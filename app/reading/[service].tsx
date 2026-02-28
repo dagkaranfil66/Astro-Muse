@@ -8,6 +8,8 @@ import {
   Pressable,
   Platform,
   ActivityIndicator,
+  Share,
+  Linking,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -22,86 +24,49 @@ import Animated, {
   withSpring,
   withRepeat,
   withTiming,
+  withSequence,
 } from "react-native-reanimated";
 import { fetch } from "expo/fetch";
 import { Colors } from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
+import { useLang } from "@/context/LanguageContext";
 import { getApiUrl } from "@/lib/query-client";
 
-const SERVICE_META: Record<
-  string,
-  {
-    label: string;
-    icon: keyof typeof Ionicons.glyphMap;
-    color: string;
-    placeholder: string;
-    inputLabel: string;
-    gradient: [string, string];
-    hint: string;
-  }
-> = {
+const SERVICE_META_BASE = {
   astroloji: {
-    label: "Türk Astrolojisi",
-    icon: "moon-outline",
+    icon: "moon-outline" as const,
     color: "#6B4FBB",
-    gradient: ["#1A0F35", "#070D1A"],
-    placeholder: "Doğum tarihinizi yazın (örn: 15 Mart 1990)",
-    inputLabel: "Doğum Tarihi & Adınız",
-    hint: "Yıldızlar kaderinizi bekliyor…",
+    gradient: ["#1A0F35", "#070D1A"] as [string, string],
   },
   kahve: {
-    label: "Kahve Falı",
-    icon: "cafe-outline",
+    icon: "cafe-outline" as const,
     color: "#C0932A",
-    gradient: ["#2A1A05", "#070D1A"],
-    placeholder: "Fincanınızda ne gördüğünüzü yazın ya da boş bırakın",
-    inputLabel: "Fincan Gözlemleriniz (İsteğe Bağlı)",
-    hint: "Telvelerin sırrı açılıyor…",
+    gradient: ["#2A1A05", "#070D1A"] as [string, string],
   },
   el: {
-    label: "El Falı",
-    icon: "hand-left-outline",
+    icon: "hand-left-outline" as const,
     color: "#1ABFB8",
-    gradient: ["#051A1A", "#070D1A"],
-    placeholder: "Elinizde dikkat çeken çizgiler var mı?",
-    inputLabel: "El Çizgileriniz (İsteğe Bağlı)",
-    hint: "Avucunuzdaki harita okunuyor…",
+    gradient: ["#051A1A", "#070D1A"] as [string, string],
   },
   tarot: {
-    label: "Tarot",
-    icon: "layers-outline",
+    icon: "layers-outline" as const,
     color: "#E7B008",
-    gradient: ["#1A1205", "#070D1A"],
-    placeholder: "Kafanızdaki soruyu ya da durumu yazın",
-    inputLabel: "Sorunuz veya Durumunuz",
-    hint: "Kartlar diziliyor…",
+    gradient: ["#1A1205", "#070D1A"] as [string, string],
   },
   samanizm: {
-    label: "Şamanizm Rehberliği",
-    icon: "leaf-outline",
+    icon: "leaf-outline" as const,
     color: "#4CAF7A",
-    gradient: ["#051A0D", "#070D1A"],
-    placeholder: "Ruhsal yolculuğunuzda ne arıyorsunuz?",
-    inputLabel: "Rehberlik İsteğiniz",
-    hint: "Ataların ruhları konuşuyor…",
+    gradient: ["#051A0D", "#070D1A"] as [string, string],
   },
   numeroloji: {
-    label: "Numeroloji",
-    icon: "star-outline",
+    icon: "star-outline" as const,
     color: "#E74C8B",
-    gradient: ["#1A0510", "#070D1A"],
-    placeholder: "Tam adınız ve doğum tarihiniz",
-    inputLabel: "Ad Soyad & Doğum Tarihi",
-    hint: "Sayıların sırrı çözülüyor…",
+    gradient: ["#1A0510", "#070D1A"] as [string, string],
   },
   ruh: {
-    label: "Ruh Okuma",
-    icon: "eye-outline",
+    icon: "eye-outline" as const,
     color: "#9B59B6",
-    gradient: ["#150E25", "#070D1A"],
-    placeholder: "Kendinizi nasıl hissediyorsunuz? Ne yaşıyorsunuz?",
-    inputLabel: "Ruhsal Durumunuz",
-    hint: "Auranız okunuyor…",
+    gradient: ["#150E25", "#070D1A"] as [string, string],
   },
 };
 
@@ -126,9 +91,7 @@ function Star({ top, left, duration, initialOpacity }: { top: number; left: numb
   const style = useAnimatedStyle(() => ({ opacity: opacity.value }));
 
   return (
-    <Animated.View
-      style={[styles.star, style, { top: `${top}%`, left: `${left}%` }]}
-    />
+    <Animated.View style={[styles.star, style, { top: `${top}%` as any, left: `${left}%` as any }]} />
   );
 }
 
@@ -142,12 +105,92 @@ function StarField() {
   );
 }
 
+// ────────── Share Panel ──────────
+function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string }) {
+  const { t } = useLang();
+  const [copied, setCopied] = useState(false);
+  const shareText = t.shareText(serviceLabel, text);
+
+  const shareWhatsApp = () => {
+    const url = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+    Linking.openURL(url);
+  };
+
+  const shareTwitter = () => {
+    const tweet = shareText.slice(0, 280);
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
+    Linking.openURL(url);
+  };
+
+  const copyToClipboard = async () => {
+    try {
+      if (Platform.OS === "web" && typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(shareText);
+      } else {
+        await Share.share({ message: shareText });
+        return;
+      }
+    } catch {}
+    setCopied(true);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  const nativeShare = async () => {
+    try {
+      await Share.share({ message: shareText, title: `Tengri — ${serviceLabel}` });
+    } catch {}
+  };
+
+  return (
+    <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.sharePanel}>
+      <View style={styles.sharePanelHeader}>
+        <Ionicons name="share-social-outline" size={14} color={Colors.gold} />
+        <Text style={styles.sharePanelTitle}>{t.share}</Text>
+      </View>
+      <View style={styles.shareButtons}>
+        <Pressable onPress={shareWhatsApp} style={[styles.shareBtn, styles.shareBtnWA]}>
+          <Ionicons name="logo-whatsapp" size={20} color="#25D366" />
+          <Text style={[styles.shareBtnLabel, { color: "#25D366" }]}>WhatsApp</Text>
+        </Pressable>
+
+        <Pressable onPress={shareTwitter} style={[styles.shareBtn, styles.shareBtnTW]}>
+          <Ionicons name="logo-twitter" size={20} color="#1DA1F2" />
+          <Text style={[styles.shareBtnLabel, { color: "#1DA1F2" }]}>Twitter / X</Text>
+        </Pressable>
+
+        <Pressable onPress={copyToClipboard} style={[styles.shareBtn, styles.shareBtnCopy]}>
+          <Ionicons
+            name={copied ? "checkmark-circle" : "copy-outline"}
+            size={20}
+            color={copied ? "#4CAF7A" : Colors.textSecondary}
+          />
+          <Text style={[styles.shareBtnLabel, { color: copied ? "#4CAF7A" : Colors.textSecondary }]}>
+            {copied ? t.copied : t.copyText}
+          </Text>
+        </Pressable>
+
+        {Platform.OS !== "web" && (
+          <Pressable onPress={nativeShare} style={[styles.shareBtn, styles.shareBtnMore]}>
+            <Ionicons name="ellipsis-horizontal" size={20} color={Colors.textSecondary} />
+            <Text style={[styles.shareBtnLabel, { color: Colors.textSecondary }]}>Daha Fazla</Text>
+          </Pressable>
+        )}
+      </View>
+    </Animated.View>
+  );
+}
+
+// ────────── Main Screen ──────────
 export default function ReadingScreen() {
   const { service } = useLocalSearchParams<{ service: string }>();
   const insets = useSafeAreaInsets();
   const { remainingReadings, isPurchased, consumeTrial, addReading } = useApp();
+  const { t } = useLang();
 
-  const meta = SERVICE_META[service] || SERVICE_META.astroloji;
+  const base = SERVICE_META_BASE[service as keyof typeof SERVICE_META_BASE] || SERVICE_META_BASE.astroloji;
+  const readingMeta = (t.reading_meta as any)[service] || (t.reading_meta as any).astroloji;
+  const serviceLabel = (t.services_list as any)[service]?.label || service;
 
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -160,6 +203,20 @@ export default function ReadingScreen() {
     transform: [{ scale: sendButtonScale.value }],
   }));
 
+  const iconPulse = useSharedValue(1);
+  React.useEffect(() => {
+    if (isLoading) {
+      iconPulse.value = withRepeat(
+        withSequence(withTiming(1.2, { duration: 600 }), withTiming(0.9, { duration: 600 })),
+        -1,
+        false
+      );
+    } else {
+      iconPulse.value = withSpring(1);
+    }
+  }, [isLoading]);
+  const iconStyle = useAnimatedStyle(() => ({ transform: [{ scale: iconPulse.value }] }));
+
   const canRead = isPurchased ? true : remainingReadings > 0;
 
   const handleRead = async () => {
@@ -169,7 +226,7 @@ export default function ReadingScreen() {
     }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    sendButtonScale.value = withSpring(0.95, {}, () => {
+    sendButtonScale.value = withSpring(0.9, {}, () => {
       sendButtonScale.value = withSpring(1);
     });
 
@@ -187,7 +244,7 @@ export default function ReadingScreen() {
         body: JSON.stringify({ service, userInput }),
       });
 
-      if (!res.ok || !res.body) throw new Error("Sunucu hatası");
+      if (!res.ok || !res.body) throw new Error("Server error");
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -216,7 +273,7 @@ export default function ReadingScreen() {
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               await addReading({
                 service,
-                serviceLabel: meta.label,
+                serviceLabel,
                 content: fullText,
                 userInput,
               });
@@ -224,8 +281,8 @@ export default function ReadingScreen() {
           } catch {}
         }
       }
-    } catch (e) {
-      setReadingText("Bağlantı hatası oluştu. Lütfen tekrar deneyin.");
+    } catch {
+      setReadingText(t.connectionError);
       setIsDone(true);
     } finally {
       setIsLoading(false);
@@ -238,20 +295,19 @@ export default function ReadingScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={[meta.gradient[0], meta.gradient[1]]}
+        colors={[base.gradient[0], base.gradient[1]]}
         style={StyleSheet.absoluteFill}
       />
 
       <StarField />
 
-      {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>
         <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={12}>
           <Ionicons name="chevron-back" size={24} color={Colors.text} />
         </Pressable>
         <View style={styles.headerCenter}>
-          <Ionicons name={meta.icon} size={20} color={meta.color} />
-          <Text style={styles.headerTitle}>{meta.label}</Text>
+          <Ionicons name={base.icon} size={18} color={base.color} />
+          <Text style={styles.headerTitle}>{serviceLabel}</Text>
         </View>
         <View style={{ width: 40 }} />
       </View>
@@ -264,40 +320,44 @@ export default function ReadingScreen() {
       >
         {!readingText && !isLoading && (
           <Animated.View entering={FadeIn.duration(600)} style={styles.intro}>
-            <View style={[styles.serviceIconBig, { borderColor: meta.color + "40" }]}>
-              <Ionicons name={meta.icon} size={48} color={meta.color} />
-            </View>
-            <Text style={styles.introTitle}>{meta.label}</Text>
-            <Text style={styles.introHint}>{meta.hint}</Text>
+            <Animated.View style={[styles.serviceIconBig, { borderColor: base.color + "40" }, iconStyle]}>
+              <Ionicons name={base.icon} size={48} color={base.color} />
+            </Animated.View>
+            <Text style={styles.introTitle}>{serviceLabel}</Text>
+            <Text style={styles.introHint}>{readingMeta.hint}</Text>
           </Animated.View>
         )}
 
         {isLoading && !readingText && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={meta.color} />
-            <Text style={[styles.loadingText, { color: meta.color }]}>{meta.hint}</Text>
+            <ActivityIndicator size="large" color={base.color} />
+            <Text style={[styles.loadingText, { color: base.color }]}>{readingMeta.hint}</Text>
           </View>
         )}
 
-        {readingText ? (
+        {!!readingText && (
           <Animated.View entering={FadeInDown.duration(400)} style={styles.readingBox}>
-            <View style={[styles.readingHeader, { borderBottomColor: meta.color + "30" }]}>
-              <Ionicons name="sparkles" size={14} color={meta.color} />
-              <Text style={[styles.readingHeaderText, { color: meta.color }]}>
-                Tengri'nin Mesajı
+            <View style={[styles.readingHeader, { borderBottomColor: base.color + "30" }]}>
+              <Ionicons name="sparkles" size={14} color={base.color} />
+              <Text style={[styles.readingHeaderText, { color: base.color }]}>
+                {t.tengriMessage}
               </Text>
             </View>
             <Text style={styles.readingText}>{readingText}</Text>
             {isLoading && (
               <View style={styles.streamingDot}>
-                <ActivityIndicator size="small" color={meta.color} />
+                <ActivityIndicator size="small" color={base.color} />
               </View>
             )}
           </Animated.View>
-        ) : null}
+        )}
+
+        {isDone && readingText && (
+          <SharePanel text={readingText} serviceLabel={serviceLabel} />
+        )}
 
         {isDone && (
-          <Animated.View entering={FadeIn.delay(300)} style={styles.doneActions}>
+          <Animated.View entering={FadeIn.delay(400)} style={styles.doneActions}>
             <Pressable
               onPress={() => {
                 setReadingText("");
@@ -307,24 +367,23 @@ export default function ReadingScreen() {
               style={styles.newReadBtn}
             >
               <Ionicons name="refresh-outline" size={16} color={Colors.textSecondary} />
-              <Text style={styles.newReadBtnText}>Yeni Okuma</Text>
+              <Text style={styles.newReadBtnText}>{t.newReading}</Text>
             </Pressable>
           </Animated.View>
         )}
       </ScrollView>
 
-      {/* Input Area */}
       {!isDone && (
         <View style={[styles.inputArea, { paddingBottom: botPad + 16 }]}>
           <View style={styles.inputLabel}>
-            <Text style={styles.inputLabelText}>{meta.inputLabel}</Text>
+            <Text style={styles.inputLabelText}>{readingMeta.inputLabel}</Text>
           </View>
           <View style={styles.inputRow}>
             <TextInput
               style={styles.input}
               value={userInput}
               onChangeText={setUserInput}
-              placeholder={meta.placeholder}
+              placeholder={readingMeta.placeholder}
               placeholderTextColor={Colors.textDim}
               multiline
               maxLength={300}
@@ -336,7 +395,7 @@ export default function ReadingScreen() {
                 disabled={isLoading}
                 style={[
                   styles.sendBtn,
-                  { backgroundColor: canRead ? meta.color : Colors.textDim },
+                  { backgroundColor: canRead ? base.color : Colors.textDim },
                 ]}
               >
                 {isLoading ? (
@@ -355,8 +414,8 @@ export default function ReadingScreen() {
           {!canRead && (
             <Pressable onPress={() => router.push("/purchase")} style={styles.purchaseNudge}>
               <Text style={styles.purchaseNudgeText}>
-                Ücretsiz denemeler bitti •{" "}
-                <Text style={{ color: Colors.gold }}>Paket satın al</Text>
+                {t.freeTrial} •{" "}
+                <Text style={{ color: Colors.gold }}>{t.buyPackage}</Text>
               </Text>
             </Pressable>
           )}
@@ -391,7 +450,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   headerTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: "CinzelDecorative_400Regular",
     color: Colors.text,
     letterSpacing: 0.5,
@@ -470,6 +529,64 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 16,
   },
+
+  // Share panel
+  sharePanel: {
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.gold + "25",
+    padding: 14,
+    marginBottom: 12,
+  },
+  sharePanelHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 12,
+  },
+  sharePanelTitle: {
+    fontSize: 11,
+    fontFamily: "CinzelDecorative_400Regular",
+    color: Colors.gold,
+    letterSpacing: 2,
+    textTransform: "uppercase",
+  },
+  shareButtons: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  shareBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  shareBtnWA: {
+    borderColor: "#25D36640",
+    backgroundColor: "#25D36610",
+  },
+  shareBtnTW: {
+    borderColor: "#1DA1F240",
+    backgroundColor: "#1DA1F210",
+  },
+  shareBtnCopy: {
+    borderColor: Colors.cardBorder,
+    backgroundColor: Colors.surfaceElevated,
+  },
+  shareBtnMore: {
+    borderColor: Colors.cardBorder,
+    backgroundColor: Colors.surfaceElevated,
+  },
+  shareBtnLabel: {
+    fontSize: 12,
+    fontFamily: "Lora_400Regular",
+  },
+
   doneActions: {
     alignItems: "center",
     paddingVertical: 8,

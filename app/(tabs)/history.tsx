@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { Colors } from "@/constants/colors";
 import { useApp, Reading } from "@/context/AppContext";
+import { useLang } from "@/context/LanguageContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const SERVICE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -80,6 +81,7 @@ export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
   const { readings } = useApp();
 
+  const { t, lang } = useLang();
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const botPad = Platform.OS === "web" ? 100 : insets.bottom + 80;
 
@@ -97,16 +99,14 @@ export default function HistoryScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.headerSub}>✦ GEÇMİŞ ✦</Text>
-        <Text style={styles.headerTitle}>Okumalarım</Text>
+        <Text style={styles.headerSub}>✦ {t.history.toUpperCase()} ✦</Text>
+        <Text style={styles.headerTitle}>{t.myReadings}</Text>
 
         {readings.length === 0 ? (
           <View style={styles.empty}>
             <Ionicons name="scroll-outline" size={56} color={Colors.textDim} />
-            <Text style={styles.emptyTitle}>Henüz okuma yok</Text>
-            <Text style={styles.emptyDesc}>
-              İlk mistik okumanızı yapmak için Ana Sayfa'ya gidin
-            </Text>
+            <Text style={styles.emptyTitle}>{t.noReadings}</Text>
+            <Text style={styles.emptyDesc}>{t.noReadingsDesc}</Text>
           </View>
         ) : (
           readings.map((r, i) => (
