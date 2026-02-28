@@ -28,6 +28,7 @@ import Animated, {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Colors } from "@/constants/colors";
 import { useLang } from "@/context/LanguageContext";
+import { useApp } from "@/context/AppContext";
 
 type Mode = "login" | "register";
 
@@ -85,6 +86,7 @@ function MysticOrb() {
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
   const { t, lang } = useLang();
+  const { setUserProfile } = useApp();
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -110,8 +112,10 @@ export default function AuthScreen() {
     setLoading(true);
 
     try {
-      const userData = { email, name: name || email.split("@")[0], mode };
+      const userName = name || email.split("@")[0];
+      const userData = { email, name: userName, mode };
       await AsyncStorage.setItem("tengri_user", JSON.stringify(userData));
+      setUserProfile({ name: userName, email, joinDate: new Date().toISOString() });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.back();
     } catch {

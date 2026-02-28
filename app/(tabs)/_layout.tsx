@@ -13,6 +13,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "moon.stars", selected: "moon.stars.fill" }} />
         <Label>Keşfet</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="profile">
+        <Icon sf={{ default: "person.circle", selected: "person.circle.fill" }} />
+        <Label>Profil</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="history">
         <Icon sf={{ default: "scroll", selected: "scroll.fill" }} />
         <Label>Geçmiş</Label>
@@ -41,11 +45,7 @@ function ClassicTabLayout() {
         },
         tabBarBackground: () =>
           isIOS ? (
-            <BlurView
-              intensity={80}
-              tint="dark"
-              style={StyleSheet.absoluteFill}
-            />
+            <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
           ) : isWeb ? (
             <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.surface }]} />
           ) : null,
@@ -57,6 +57,15 @@ function ClassicTabLayout() {
           title: "Keşfet",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="moon" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profil",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person-circle-outline" size={size} color={color} />
           ),
         }}
       />

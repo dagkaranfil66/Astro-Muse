@@ -30,6 +30,7 @@ import Animated, {
 import { Colors } from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
+import { SERVICE_GOLD_COST } from "@/constants/serviceConfig";
 
 const { width, height } = Dimensions.get("window");
 
@@ -75,7 +76,7 @@ function ShootingStar({ cfg }: { cfg: typeof SHOOTING_STARS[0] }) {
   return (
     <Animated.View style={[{ position: "absolute", top: cfg.startY, left: cfg.startX }, style]}>
       <LinearGradient
-        colors={["rgba(155,89,182,0)", "rgba(231,176,8,0.7)", "rgba(255,255,255,1)"]}
+        colors={["rgba(91,155,213,0)", "rgba(139,92,246,0.75)", "rgba(255,255,255,1)"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={[styles.shootingStar, { width: cfg.length, transform: [{ rotate: `${cfg.angle}deg` }] }]}
@@ -156,9 +157,9 @@ function AnimatedLogo() {
     <View style={styles.logoContainer}>
       <Animated.View style={[styles.logoGlowOuter, glowStyle]} />
       <View style={styles.logoGlowMid} />
-      <MandalaRing radius={90} dotCount={24} color={Colors.gold} duration={12000} />
+      <MandalaRing radius={90} dotCount={24} color="#5B9BD5" duration={12000} />
       <MandalaRing radius={72} dotCount={16} color="#9B59B6" duration={9000} reverse />
-      <MandalaRing radius={108} dotCount={8} color="#E7B008" duration={18000} />
+      <MandalaRing radius={108} dotCount={8} color="#8B5CF6" duration={18000} />
       <Animated.View style={floatStyle}>
         <Image
           source={require("@/assets/images/tengri-logo.png")}
@@ -276,7 +277,12 @@ function ServiceCard({ serviceId, index, label, desc }: {
               <Text style={styles.cardTitle}>{label}</Text>
               <Text style={styles.cardDesc} numberOfLines={2}>{desc}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={Colors.textDim} />
+            <View style={styles.cardRight}>
+              <View style={[styles.goldBadge, { borderColor: color + "40", backgroundColor: color + "15" }]}>
+                <Text style={[styles.goldBadgeText, { color }]}>{SERVICE_GOLD_COST[serviceId] ?? 2}✦</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={15} color={Colors.textDim} />
+            </View>
           </LinearGradient>
         </Animated.View>
       </Pressable>
@@ -287,7 +293,7 @@ function ServiceCard({ serviceId, index, label, desc }: {
 // ────────── Main Screen ──────────
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { remainingReadings, isPurchased } = useApp();
+  const { goldBalance, canAfford } = useApp();
   const { lang, t, toggleLang } = useLang();
   const scrollY = useSharedValue(0);
 
@@ -342,33 +348,28 @@ export default function HomeScreen() {
           </Animated.Text>
         </Animated.View>
 
-        {/* Trials Bar */}
+        {/* Gold Balance Bar */}
         <Animated.View entering={FadeInDown.delay(200).springify()}>
-          <Pressable
-            onPress={() => !isPurchased && remainingReadings === 0 && router.push("/purchase")}
-            style={styles.trialsBar}
-          >
-            <LinearGradient colors={["#1A1A05", "#0D1526"]} style={styles.trialsBarInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              <Ionicons name="sparkles" size={14} color={Colors.gold} />
+          <Pressable onPress={() => router.push("/purchase")} style={styles.trialsBar}>
+            <LinearGradient colors={["#1A1205", "#0D1526"]} style={styles.trialsBarInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+              <Text style={{ fontSize: 16 }}>✦</Text>
               <Text style={styles.trialsText}>
-                {isPurchased ? t.readingsLeft(remainingReadings)
-                  : remainingReadings > 0 ? t.trialsLeft(remainingReadings)
-                  : t.trialsExpired}
+                {goldBalance > 0
+                  ? (lang === "tr" ? `${goldBalance} altın bakiyeniz var` : `You have ${goldBalance} gold`)
+                  : (lang === "tr" ? "Altın tükendi — Satın alın" : "Gold depleted — Buy more")}
               </Text>
-              {!isPurchased && remainingReadings === 0 && (
-                <Ionicons name="chevron-forward" size={13} color={Colors.gold} />
-              )}
+              <Ionicons name="chevron-forward" size={13} color={Colors.gold} />
             </LinearGradient>
           </Pressable>
         </Animated.View>
 
-        {/* Purchase CTA when trials out */}
-        {!isPurchased && remainingReadings === 0 && (
+        {/* Purchase CTA when gold low */}
+        {goldBalance < 2 && (
           <Animated.View entering={FadeInDown.delay(250)}>
             <Pressable onPress={() => router.push("/purchase")} style={styles.purchaseCta}>
-              <LinearGradient colors={[Colors.goldLight, Colors.gold]} style={styles.purchaseCtaInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                <Ionicons name="diamond-outline" size={16} color={Colors.background} />
-                <Text style={styles.purchaseCtaText}>{lang === "tr" ? "30 Okuma Paketi — 149,99 TL" : "30 Readings Package — ₺149.99"}</Text>
+              <LinearGradient colors={["#8B5CF6", "#6B4FBB"]} style={styles.purchaseCtaInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                <Text style={{ fontSize: 16 }}>✦</Text>
+                <Text style={styles.purchaseCtaText}>{lang === "tr" ? "Altın Satın Al — 29,99 ₺'den başlar" : "Buy Gold — from ₺29.99"}</Text>
               </LinearGradient>
             </Pressable>
           </Animated.View>
@@ -519,4 +520,7 @@ const styles = StyleSheet.create({
   cardContent: { flex: 1 },
   cardTitle: { fontSize: 14, fontFamily: "Lora_700Bold", color: Colors.text, marginBottom: 3, letterSpacing: 0.1 },
   cardDesc: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textSecondary, lineHeight: 16 },
+  cardRight: { alignItems: "flex-end", gap: 6 },
+  goldBadge: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3 },
+  goldBadgeText: { fontSize: 11, fontFamily: "Lora_700Bold" },
 });

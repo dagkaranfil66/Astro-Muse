@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { FREE_START_GOLD, SERVICE_GOLD_COST } from '@/constants/serviceConfig';
 
 export interface Reading {
   id: string;
@@ -8,63 +9,92 @@ export interface Reading {
   content: string;
   date: string;
   userInput?: string;
+  goldSpent?: number;
+}
+
+export interface UserProfile {
+  name: string;
+  email: string;
+  joinDate: string;
 }
 
 interface AppContextValue {
-  trialCount: number;
+  goldBalance: number;
+  readings: Reading[];
+  userProfile: UserProfile | null;
+  isLoaded: boolean;
+  canAfford: (service: string) => boolean;
+  spendGold: (service: string) => boolean;
+  addGold: (amount: number) => void;
+  addReading: (reading: Omit<Reading, 'id' | 'date'>) => Promise<void>;
+  setUserProfile: (profile: UserProfile) => Promise<void>;
+  clearUserProfile: () => Promise<void>;
+  getServiceCost: (service: string) => number;
+  totalSpent: number;
   isPurchased: boolean;
   remainingReadings: number;
-  readings: Reading[];
-  addReading: (reading: Omit<Reading, 'id' | 'date'>) => Promise<void>;
   consumeTrial: () => void;
   purchase: () => void;
-  isLoaded: boolean;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
 
-const FREE_TRIALS = 3;
-const STORAGE_KEYS = {
+const KEYS = {
+  gold: 'tengri_gold_v2',
+  readings: 'tengri_readings',
+  profile: 'tengri_profile',
   trialCount: 'tengri_trial_count',
   isPurchased: 'tengri_is_purchased',
-  readings: 'tengri_readings',
 };
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const [goldBalance, setGoldBalance] = useState(FREE_START_GOLD);
+  const [readings, setReadings] = useState<Reading[]>([]);
+  const [userProfile, setProfileState] = useState<UserProfile | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [trialCount, setTrialCount] = useState(0);
   const [isPurchased, setIsPurchased] = useState(false);
-  const [readings, setReadings] = useState<Reading[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const load = async () => {
+    (async () => {
       try {
-        const [tc, ip, rs] = await Promise.all([
-          AsyncStorage.getItem(STORAGE_KEYS.trialCount),
-          AsyncStorage.getItem(STORAGE_KEYS.isPurchased),
-          AsyncStorage.getItem(STORAGE_KEYS.readings),
+        const [goldStr, readStr, profStr, tcStr, ipStr] = await Promise.all([
+          AsyncStorage.getItem(KEYS.gold),
+          AsyncStorage.getItem(KEYS.readings),
+          AsyncStorage.getItem(KEYS.profile),
+          AsyncStorage.getItem(KEYS.trialCount),
+          AsyncStorage.getItem(KEYS.isPurchased),
         ]);
-        if (tc) setTrialCount(parseInt(tc, 10));
-        if (ip) setIsPurchased(ip === 'true');
-        if (rs) setReadings(JSON.parse(rs));
+        if (goldStr !== null) setGoldBalance(parseInt(goldStr, 10));
+        if (readStr) setReadings(JSON.parse(readStr));
+        if (profStr) setProfileState(JSON.parse(profStr));
+        if (tcStr) setTrialCount(parseInt(tcStr, 10));
+        if (ipStr) setIsPurchased(ipStr === 'true');
       } catch (e) {
-        console.error(e);
+        console.error('AppContext load error', e);
       } finally {
         setIsLoaded(true);
       }
-    };
-    load();
+    })();
   }, []);
 
-  const consumeTrial = () => {
-    const next = trialCount + 1;
-    setTrialCount(next);
-    AsyncStorage.setItem(STORAGE_KEYS.trialCount, String(next));
+  const getServiceCost = (service: string) => SERVICE_GOLD_COST[service] ?? 2;
+
+  const canAfford = (service: string) => goldBalance >= getServiceCost(service);
+
+  const spendGold = (service: string): boolean => {
+    const cost = getServiceCost(service);
+    if (goldBalance < cost) return false;
+    const next = goldBalance - cost;
+    setGoldBalance(next);
+    AsyncStorage.setItem(KEYS.gold, String(next));
+    return true;
   };
 
-  const purchase = () => {
-    setIsPurchased(true);
-    AsyncStorage.setItem(STORAGE_KEYS.isPurchased, 'true');
+  const addGold = (amount: number) => {
+    const next = goldBalance + amount;
+    setGoldBalance(next);
+    AsyncStorage.setItem(KEYS.gold, String(next));
   };
 
   const addReading = async (reading: Omit<Reading, 'id' | 'date'>) => {
@@ -72,24 +102,57 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ...reading,
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       date: new Date().toISOString(),
+      goldSpent: getServiceCost(reading.service),
     };
     const updated = [newReading, ...readings];
     setReadings(updated);
-    await AsyncStorage.setItem(STORAGE_KEYS.readings, JSON.stringify(updated));
+    await AsyncStorage.setItem(KEYS.readings, JSON.stringify(updated));
   };
 
-  const remainingReadings = isPurchased ? 30 : Math.max(0, FREE_TRIALS - trialCount);
+  const setUserProfile = async (profile: UserProfile) => {
+    setProfileState(profile);
+    await AsyncStorage.setItem(KEYS.profile, JSON.stringify(profile));
+  };
+
+  const clearUserProfile = async () => {
+    setProfileState(null);
+    await AsyncStorage.removeItem(KEYS.profile);
+  };
+
+  const totalSpent = readings.reduce((s, r) => s + (r.goldSpent ?? 0), 0);
+
+  const consumeTrial = () => {
+    const next = trialCount + 1;
+    setTrialCount(next);
+    AsyncStorage.setItem(KEYS.trialCount, String(next));
+  };
+
+  const purchase = () => {
+    setIsPurchased(true);
+    AsyncStorage.setItem(KEYS.isPurchased, 'true');
+    addGold(30);
+  };
+
+  const remainingReadings = isPurchased ? 30 : Math.max(0, 5 - trialCount);
 
   const value = useMemo(() => ({
-    trialCount,
+    goldBalance,
+    readings,
+    userProfile,
+    isLoaded,
+    canAfford,
+    spendGold,
+    addGold,
+    addReading,
+    setUserProfile,
+    clearUserProfile,
+    getServiceCost,
+    totalSpent,
     isPurchased,
     remainingReadings,
-    readings,
-    addReading,
     consumeTrial,
     purchase,
-    isLoaded,
-  }), [trialCount, isPurchased, readings, isLoaded]);
+  }), [goldBalance, readings, userProfile, isLoaded, trialCount, isPurchased]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

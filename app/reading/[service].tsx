@@ -388,9 +388,11 @@ function DefaultIntro({ color, icon, label, hint }: { color: string; icon: keyof
 
 // ────────── Share Panel ──────────
 function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [copied, setCopied] = useState(false);
   const shareText = t.shareText(serviceLabel, text);
+  const encoded = encodeURIComponent(shareText.slice(0, 300));
+  const encodedUrl = encodeURIComponent("https://tengristar.com");
 
   const copyText = async () => {
     try {
@@ -405,6 +407,13 @@ function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string
     } catch {}
   };
 
+  const SHARE_BTNS = [
+    { label: "WhatsApp", icon: "logo-whatsapp" as const, color: "#25D366", url: `https://wa.me/?text=${encoded}` },
+    { label: "Instagram", icon: "logo-instagram" as const, color: "#E1306C", url: `https://www.instagram.com/` },
+    { label: "Facebook", icon: "logo-facebook" as const, color: "#1877F2", url: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encoded}` },
+    { label: "Twitter/X", icon: "logo-twitter" as const, color: "#1DA1F2", url: `https://twitter.com/intent/tweet?text=${encoded}` },
+  ];
+
   return (
     <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.sharePanel}>
       <View style={styles.sharePanelHeader}>
@@ -412,14 +421,23 @@ function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string
         <Text style={styles.sharePanelTitle}>{t.share}</Text>
       </View>
       <View style={styles.shareButtons}>
-        <Pressable onPress={() => Linking.openURL(`https://wa.me/?text=${encodeURIComponent(shareText)}`)} style={[styles.shareBtn, styles.shareBtnWA]}>
-          <Ionicons name="logo-whatsapp" size={18} color="#25D366" />
-          <Text style={[styles.shareBtnLabel, { color: "#25D366" }]}>WhatsApp</Text>
-        </Pressable>
-        <Pressable onPress={() => Linking.openURL(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText.slice(0, 280))}`)} style={[styles.shareBtn, styles.shareBtnTW]}>
-          <Ionicons name="logo-twitter" size={18} color="#1DA1F2" />
-          <Text style={[styles.shareBtnLabel, { color: "#1DA1F2" }]}>Twitter/X</Text>
-        </Pressable>
+        {SHARE_BTNS.map((btn) => (
+          <Pressable
+            key={btn.label}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              if (btn.label === "Instagram") {
+                Share.share({ message: shareText });
+              } else {
+                Linking.openURL(btn.url).catch(() => Share.share({ message: shareText }));
+              }
+            }}
+            style={[styles.shareBtn, { borderColor: btn.color + "40", backgroundColor: btn.color + "10" }]}
+          >
+            <Ionicons name={btn.icon} size={18} color={btn.color} />
+            <Text style={[styles.shareBtnLabel, { color: btn.color }]}>{btn.label}</Text>
+          </Pressable>
+        ))}
         <Pressable onPress={copyText} style={[styles.shareBtn, styles.shareBtnCopy]}>
           <Ionicons name={copied ? "checkmark-circle" : "copy-outline"} size={18} color={copied ? "#4CAF7A" : Colors.textSecondary} />
           <Text style={[styles.shareBtnLabel, { color: copied ? "#4CAF7A" : Colors.textSecondary }]}>
@@ -435,12 +453,13 @@ function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string
 export default function ReadingScreen() {
   const { service } = useLocalSearchParams<{ service: string }>();
   const insets = useSafeAreaInsets();
-  const { remainingReadings, isPurchased, consumeTrial, addReading } = useApp();
+  const { goldBalance, canAfford, spendGold, addReading, getServiceCost } = useApp();
   const { t, lang } = useLang();
 
   const base = SERVICE_META_BASE[service] || SERVICE_META_BASE.astroloji;
   const readingMeta = (t.reading_meta as any)[service] || (t.reading_meta as any).astroloji;
   const serviceLabel = (t.services_list as any)[service]?.label || service;
+  const goldCost = getServiceCost(service);
 
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -452,7 +471,7 @@ export default function ReadingScreen() {
   const sendButtonScale = useSharedValue(1);
   const sendButtonStyle = useAnimatedStyle(() => ({ transform: [{ scale: sendButtonScale.value }] }));
 
-  const canRead = isPurchased ? true : remainingReadings > 0;
+  const canRead = canAfford(service);
 
   const pickPhoto = async () => {
     try {
@@ -483,7 +502,7 @@ export default function ReadingScreen() {
     setIsLoading(true);
     setReadingText("");
     setIsDone(false);
-    consumeTrial();
+    spendGold(service);
 
     try {
       const baseUrl = getApiUrl();
@@ -563,7 +582,10 @@ export default function ReadingScreen() {
           <Ionicons name={base.icon} size={17} color={base.color} />
           <Text style={styles.headerTitle} numberOfLines={1}>{serviceLabel}</Text>
         </View>
-        <View style={{ width: 40 }} />
+        <Pressable onPress={() => router.push("/purchase")} style={styles.goldHeaderBadge}>
+          <Text style={{ fontSize: 13, color: Colors.gold }}>✦</Text>
+          <Text style={styles.goldHeaderText}>{goldBalance}</Text>
+        </Pressable>
       </View>
 
       <KeyboardAvoidingView
@@ -676,7 +698,10 @@ export default function ReadingScreen() {
             {!canRead && (
               <Pressable onPress={() => router.push("/purchase")} style={styles.purchaseNudge}>
                 <Text style={styles.purchaseNudgeText}>
-                  {t.freeTrial} • <Text style={{ color: Colors.gold }}>{t.buyPackage}</Text>
+                  {lang === "tr"
+                    ? `Bu okuma ${goldCost} altın gerektirir • `
+                    : `This reading costs ${goldCost} gold • `}
+                  <Text style={{ color: Colors.gold }}>{lang === "tr" ? "Altın Satın Al" : "Buy Gold"}</Text>
                 </Text>
               </Pressable>
             )}
@@ -695,6 +720,8 @@ const styles = StyleSheet.create({
   backBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
   headerCenter: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
   headerTitle: { fontSize: 13, fontFamily: "Lora_700Bold", color: Colors.text, letterSpacing: 0.2 },
+  goldHeaderBadge: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: Colors.gold + "18", borderRadius: 10, borderWidth: 1, borderColor: Colors.gold + "40", paddingHorizontal: 10, paddingVertical: 5, width: 52, justifyContent: "center" },
+  goldHeaderText: { fontSize: 13, fontFamily: "Lora_700Bold", color: Colors.gold },
 
   content: { paddingHorizontal: 18, paddingTop: 8, flexGrow: 1 },
 
