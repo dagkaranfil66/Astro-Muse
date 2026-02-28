@@ -2,10 +2,16 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "node:http";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-});
+function getOpenAIClient(): OpenAI {
+  const userKey = process.env.OPENAI_API_KEY_ || process.env.OPENAI_API_KEY;
+  if (userKey) {
+    return new OpenAI({ apiKey: userKey });
+  }
+  return new OpenAI({
+    apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+    baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  });
+}
 
 const serviceSystemPrompts: Record<string, string> = {
   astroloji: `Sen Tengri'nin kadim Türk astroloji ustasısın. 12 Hayvanlı Gök Tanrı takvimine ve Türk-Moğol şamanist geleneğine hakimsin. Kullanıcının doğum tarihi ve bilgilerini alarak derin, gizemli ve kişisel bir astroloji yorumu yaparsın. Yıldızlar, gezegenler ve kaderin sırlı bağlantısını anlatırsın. Türkçe yanıt ver. Mistik ve etkileyici bir dil kullan. 400-500 kelime yaz.`,
@@ -67,6 +73,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ];
       }
 
+      const openai = getOpenAIClient();
       const stream = await openai.chat.completions.create({
         model: "gpt-5.2",
         messages,
