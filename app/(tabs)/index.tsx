@@ -179,27 +179,19 @@ function MandalaRing({ radius, dotCount, color, duration, reverse }: {
 // ────────── Tengri Logo ──────────
 function AnimatedLogo() {
   const floatY = useSharedValue(0);
-  const glowScale = useSharedValue(1);
-  const glowOpacity = useSharedValue(0.5);
   const logoScale = useSharedValue(0.8);
-  const colorProgress = useSharedValue(0);
+  const phase = useSharedValue(0);
 
   React.useEffect(() => {
     floatY.value = withRepeat(
-      withSequence(withTiming(-12, { duration: 3000 }), withTiming(0, { duration: 3000 })),
-      -1, false
-    );
-    glowScale.value = withRepeat(
-      withSequence(withTiming(1.15, { duration: 8000 }), withTiming(1, { duration: 8000 })),
-      -1, false
-    );
-    glowOpacity.value = withRepeat(
-      withSequence(withTiming(0.18, { duration: 9000 }), withTiming(0.06, { duration: 9000 })),
+      withSequence(withTiming(-10, { duration: 4000 }), withTiming(0, { duration: 4000 })),
       -1, false
     );
     logoScale.value = withSpring(1, { damping: 10, stiffness: 70 });
-    colorProgress.value = withRepeat(
-      withSequence(withTiming(1, { duration: 18000 }), withTiming(0, { duration: 18000 })),
+    // Phase 0 = contracted+pink, Phase 1 = expanded+blue
+    // Color AND scale change together — very smooth cross-fade
+    phase.value = withRepeat(
+      withSequence(withTiming(1, { duration: 10000 }), withTiming(0, { duration: 10000 })),
       -1, false
     );
   }, []);
@@ -208,12 +200,13 @@ function AnimatedLogo() {
     transform: [{ translateY: floatY.value }, { scale: logoScale.value }],
   }));
   const glowStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: glowScale.value }],
-    opacity: glowOpacity.value,
-    backgroundColor: interpolateColor(colorProgress.value, [0, 1], ["#5B9BD5", "#FF6B9D"]),
+    transform: [{ scale: 1.0 + phase.value * 0.22 }],
+    opacity: 0.05 + phase.value * 0.17,
+    backgroundColor: interpolateColor(phase.value, [0, 1], ["#FF6B9D", "#5B9BD5"]),
   }));
   const glowMidStyle = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(colorProgress.value, [0, 1], ["#9B59B6", "#FF69B4"]),
+    opacity: 0.04 + (1 - phase.value) * 0.10,
+    backgroundColor: interpolateColor(phase.value, [0, 1], ["#FF69B4", "#9B59B6"]),
   }));
 
   return (

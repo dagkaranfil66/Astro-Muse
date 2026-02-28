@@ -206,6 +206,87 @@ function TarotIntro({ color, isDone }: { color: string; isDone: boolean }) {
   );
 }
 
+// ────────── Kahve Photo Section ──────────
+function KahvePhotoSection({
+  photos, onAdd, onRemove, color, lang,
+}: {
+  photos: { uri: string; base64: string; type: string }[];
+  onAdd: (source: "camera" | "gallery") => void;
+  onRemove: (idx: number) => void;
+  color: string;
+  lang: string;
+}) {
+  const SLOT_LABELS = lang === "tr"
+    ? ["İçeriden", "Yandan", "Altından"]
+    : ["Inside", "From Side", "Bottom"];
+  const allDone = photos.length >= 3;
+
+  return (
+    <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.kahveSectionWrap}>
+      <View style={styles.kahveSectionHeader}>
+        <Ionicons name="cafe" size={14} color={color} />
+        <Text style={[styles.kahveSectionTitle, { color }]}>
+          {lang === "tr" ? "Fincan Fotoğrafları" : "Cup Photos"}
+        </Text>
+        <View style={[styles.kahveCountBadge, { borderColor: color + "50", backgroundColor: color + "15" }]}>
+          <Text style={[styles.kahveCountText, { color }]}>{photos.length}/3</Text>
+        </View>
+      </View>
+
+      {allDone ? (
+        <Animated.View entering={ZoomIn.duration(300)} style={[styles.kahveReadyBadge, { borderColor: "#4CAF7A50", backgroundColor: "#4CAF7A15" }]}>
+          <Ionicons name="checkmark-circle" size={18} color="#4CAF7A" />
+          <Text style={[styles.kahveReadyText, { color: "#4CAF7A" }]}>
+            {lang === "tr" ? "Fincanınız hazır! Yorumu almak için aşağıya yazın ↓" : "Cup ready! Write your question below ↓"}
+          </Text>
+        </Animated.View>
+      ) : (
+        <Text style={styles.kahveSlotHint}>
+          {lang === "tr" ? "3 farklı açıdan fotoğraf çekin veya yükleyin" : "Take or upload from 3 different angles"}
+        </Text>
+      )}
+
+      <View style={styles.kahveSlotsRow}>
+        {[0, 1, 2].map((idx) => {
+          const filled = photos[idx];
+          return (
+            <View key={idx} style={styles.kahveSlotCard}>
+              {filled ? (
+                <Animated.View entering={ZoomIn.duration(250)} style={styles.kahveSlotFilled}>
+                  <Image source={{ uri: filled.uri }} style={styles.kahveSlotImg} />
+                  <View style={styles.kahveSlotCheckWrap}>
+                    <Ionicons name="checkmark-circle" size={20} color="#4CAF7A" />
+                  </View>
+                  <Pressable onPress={() => onRemove(idx)} style={styles.kahveSlotRemove} hitSlop={6}>
+                    <Ionicons name="close-circle" size={20} color="#FF6B6B" />
+                  </Pressable>
+                </Animated.View>
+              ) : (
+                <View style={[styles.kahveSlotEmpty, { borderColor: color + (idx < photos.length ? "70" : "30") }]}>
+                  <Text style={[styles.kahveSlotNum, { color: color + "80" }]}>{idx + 1}</Text>
+                  <Text style={[styles.kahveSlotAngle, { color: color + "60" }]}>{SLOT_LABELS[idx]}</Text>
+                  {idx === photos.length && (
+                    <View style={styles.kahveSlotBtns}>
+                      <Pressable onPress={() => onAdd("camera")} style={[styles.kahveSlotBtn, { backgroundColor: color + "20", borderColor: color + "40" }]}>
+                        <Ionicons name="camera" size={16} color={color} />
+                        <Text style={[styles.kahveSlotBtnText, { color }]}>{lang === "tr" ? "Çek" : "Take"}</Text>
+                      </Pressable>
+                      <Pressable onPress={() => onAdd("gallery")} style={[styles.kahveSlotBtn, { backgroundColor: color + "20", borderColor: color + "40" }]}>
+                        <Ionicons name="images-outline" size={16} color={color} />
+                        <Text style={[styles.kahveSlotBtnText, { color }]}>{lang === "tr" ? "Yükle" : "Upload"}</Text>
+                      </Pressable>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+          );
+        })}
+      </View>
+    </Animated.View>
+  );
+}
+
 function DogumIntro({ color }: { color: string }) {
   const rotate = useSharedValue(0);
   const scale = useSharedValue(0.7);
@@ -653,6 +734,17 @@ export default function ReadingScreen() {
             </Animated.View>
           )}
 
+          {/* Kahve: 3-photo slots shown prominently in main content */}
+          {service === "kahve" && !readingText && !isLoading && (
+            <KahvePhotoSection
+              photos={kahvePhotos}
+              onAdd={handleAddKahvePhoto}
+              onRemove={(idx) => setKahvePhotos((prev) => prev.filter((_, i) => i !== idx))}
+              color={base.color}
+              lang={lang}
+            />
+          )}
+
           {/* Loading */}
           {isLoading && !readingText && (
             <View style={styles.loadingContainer}>
@@ -725,43 +817,26 @@ export default function ReadingScreen() {
               </View>
             )}
 
-            {/* Kahve Falı — 3 photos */}
+            {/* Kahve — compact status badge (full UI is in main content area above) */}
             {isKahve && (
-              <View style={styles.photoSection}>
-                <Text style={[styles.photoSectionLabel, { color: base.color }]}>
-                  {lang === "tr"
-                    ? `Kahve fincanı fotoğrafları (${kahvePhotos.length}/3)`
-                    : `Coffee cup photos (${kahvePhotos.length}/3)`}
-                </Text>
-                <View style={styles.kahvePhotoGrid}>
-                  {kahvePhotos.map((p, idx) => (
-                    <View key={idx} style={styles.kahvePhotoSlot}>
-                      <Image source={{ uri: p.uri }} style={styles.kahvePhotoImg} />
-                      <Pressable
-                        onPress={() => setKahvePhotos((prev) => prev.filter((_, i) => i !== idx))}
-                        style={styles.photoRemoveBtn}
-                      >
-                        <Ionicons name="close-circle" size={18} color="#FF6B6B" />
-                      </Pressable>
-                    </View>
-                  ))}
-                  {kahvePhotos.length < 3 && (
-                    <View style={styles.kahveAddSlot}>
-                      <Pressable onPress={() => handleAddKahvePhoto("camera")} style={[styles.kahveAddBtn, { borderColor: base.color + "50" }]}>
-                        <Ionicons name="camera" size={18} color={base.color} />
-                      </Pressable>
-                      <Pressable onPress={() => handleAddKahvePhoto("gallery")} style={[styles.kahveAddBtn, { borderColor: base.color + "50" }]}>
-                        <Ionicons name="images-outline" size={18} color={base.color} />
-                      </Pressable>
-                    </View>
-                  )}
-                </View>
-                {kahvePhotos.length < 3 && (
-                  <Text style={styles.kahveHint}>
-                    {lang === "tr"
-                      ? "En iyi yorum için fincanın 3 farklı açısını yükleyin"
-                      : "Upload 3 angles of your cup for the best reading"}
-                  </Text>
+              <View style={styles.kahveInputStatus}>
+                {kahvePhotos.length >= 3 ? (
+                  <View style={[styles.kahveStatusBadge, { borderColor: "#4CAF7A50", backgroundColor: "#4CAF7A10" }]}>
+                    <Ionicons name="checkmark-circle" size={14} color="#4CAF7A" />
+                    <Text style={[styles.kahveStatusText, { color: "#4CAF7A" }]}>
+                      {lang === "tr" ? "3 fotoğraf hazır ✓" : "3 photos ready ✓"}
+                    </Text>
+                  </View>
+                ) : (
+                  <Pressable
+                    onPress={() => handleAddKahvePhoto("camera")}
+                    style={[styles.kahveStatusBadge, { borderColor: base.color + "40", backgroundColor: base.color + "10" }]}
+                  >
+                    <Ionicons name="camera-outline" size={14} color={base.color} />
+                    <Text style={[styles.kahveStatusText, { color: base.color }]}>
+                      {lang === "tr" ? `${kahvePhotos.length}/3 fotoğraf — yukarı kaydır` : `${kahvePhotos.length}/3 photos — scroll up`}
+                    </Text>
+                  </Pressable>
                 )}
               </View>
             )}
@@ -913,7 +988,58 @@ const styles = StyleSheet.create({
   singlePhotoPreview: { width: 90, height: 90, borderRadius: 12 },
   photoRemoveBtn: { position: "absolute", top: -8, right: -8, backgroundColor: Colors.background, borderRadius: 12 },
 
-  // Kahve photos
+  // Kahve photo section (main content area)
+  kahveSectionWrap: {
+    marginHorizontal: 0, marginBottom: 12,
+    backgroundColor: Colors.surface,
+    borderRadius: 16, borderWidth: 1, borderColor: Colors.cardBorder,
+    padding: 14, gap: 10,
+  },
+  kahveSectionHeader: { flexDirection: "row", alignItems: "center", gap: 8 },
+  kahveSectionTitle: { flex: 1, fontSize: 11, fontFamily: "Lora_700Bold", letterSpacing: 1, textTransform: "uppercase" },
+  kahveCountBadge: {
+    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, borderWidth: 1,
+  },
+  kahveCountText: { fontSize: 11, fontFamily: "Lora_700Bold" },
+  kahveReadyBadge: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    borderRadius: 10, borderWidth: 1, padding: 10,
+  },
+  kahveReadyText: { flex: 1, fontSize: 12, fontFamily: "Lora_400Regular", lineHeight: 17 },
+  kahveSlotHint: { fontSize: 11, fontFamily: "Lora_400Regular_Italic", color: Colors.textDim },
+  kahveSlotsRow: { flexDirection: "row", gap: 8 },
+  kahveSlotCard: { flex: 1 },
+  kahveSlotFilled: { position: "relative", borderRadius: 12, overflow: "hidden" },
+  kahveSlotImg: { width: "100%", height: 100, borderRadius: 12 },
+  kahveSlotCheckWrap: {
+    position: "absolute", top: 4, left: 4,
+    backgroundColor: Colors.background + "CC", borderRadius: 12,
+  },
+  kahveSlotRemove: {
+    position: "absolute", top: 4, right: 4,
+    backgroundColor: Colors.background + "CC", borderRadius: 12,
+  },
+  kahveSlotEmpty: {
+    height: 100, borderRadius: 12, borderWidth: 1.5, borderStyle: "dashed" as any,
+    alignItems: "center", justifyContent: "center", gap: 4,
+    backgroundColor: Colors.surfaceElevated, padding: 6,
+  },
+  kahveSlotNum: { fontSize: 18, fontFamily: "Lora_700Bold" },
+  kahveSlotAngle: { fontSize: 9, fontFamily: "Lora_400Regular", textAlign: "center" },
+  kahveSlotBtns: { flexDirection: "column", gap: 4, width: "100%" },
+  kahveSlotBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4,
+    borderRadius: 6, borderWidth: 1, paddingVertical: 5, paddingHorizontal: 6,
+  },
+  kahveSlotBtnText: { fontSize: 10, fontFamily: "Lora_700Bold" },
+  // Kahve input status (bottom bar)
+  kahveInputStatus: { marginBottom: 2 },
+  kahveStatusBadge: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+    borderRadius: 8, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 6,
+  },
+  kahveStatusText: { fontSize: 11, fontFamily: "Lora_400Regular" },
+  // Legacy kept for el falı
   kahvePhotoGrid: { flexDirection: "row", gap: 10 },
   kahvePhotoSlot: { position: "relative" },
   kahvePhotoImg: { width: 70, height: 70, borderRadius: 10 },

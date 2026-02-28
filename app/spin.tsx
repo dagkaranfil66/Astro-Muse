@@ -165,6 +165,13 @@ export default function SpinScreen() {
         </Animated.View>
 
         <Animated.View entering={FadeIn.delay(200)} style={styles.wheelContainer}>
+          {/* ── Pointer arrow at TOP pointing into wheel ── */}
+          <Animated.View style={[styles.pointerWrap, pointerStyle]}>
+            <View style={styles.pointerShadow} />
+            <View style={styles.pointerTriangle} />
+            <View style={styles.pointerBase} />
+          </Animated.View>
+
           <View style={[styles.wheelOuter, { width: WHEEL_SIZE, height: WHEEL_SIZE, borderRadius: WHEEL_SIZE / 2 }]}>
             <Animated.View
               style={[styles.wheelInner, { width: WHEEL_SIZE, height: WHEEL_SIZE, borderRadius: WHEEL_SIZE / 2 }, wheelStyle]}
@@ -182,8 +189,8 @@ export default function SpinScreen() {
                   ]}
                 >
                   <LinearGradient
-                    colors={[prize.color + "30", prize.color + "10"]}
-                    style={[styles.slice, { borderTopWidth: 2, borderTopColor: prize.color + "60" }]}
+                    colors={[prize.color + "55", prize.color + "22"]}
+                    style={[styles.slice, { borderTopWidth: 2.5, borderTopColor: prize.color + "90" }]}
                     start={{ x: 0.5, y: 0 }}
                     end={{ x: 0.5, y: 1 }}
                   />
@@ -191,7 +198,9 @@ export default function SpinScreen() {
                     style={[
                       styles.sliceLabel,
                       {
-                        color: prize.color,
+                        color: "#fff",
+                        textShadowColor: prize.color,
+                        textShadowRadius: 6,
                         transform: [
                           { translateX: -30 },
                           { translateY: WHEEL_SIZE * 0.18 },
@@ -209,10 +218,6 @@ export default function SpinScreen() {
               </View>
             </Animated.View>
           </View>
-
-          <Animated.View style={[styles.pointer, pointerStyle]}>
-            <Ionicons name="caret-down" size={28} color={Colors.gold} />
-          </Animated.View>
         </Animated.View>
 
         {!done && (
@@ -320,14 +325,33 @@ const styles = StyleSheet.create({
   },
 
   wheelCenter: {
-    width: 50, height: 50, borderRadius: 25,
+    width: 54, height: 54, borderRadius: 27,
     backgroundColor: Colors.background,
-    borderWidth: 2, borderColor: Colors.gold + "60",
+    borderWidth: 2.5, borderColor: Colors.gold,
     alignItems: "center", justifyContent: "center",
+    shadowColor: Colors.gold, shadowOpacity: 0.6, shadowRadius: 8, shadowOffset: { width: 0, height: 0 },
+    elevation: 8,
   },
-  wheelCenterIcon: { fontSize: 22, color: Colors.gold },
+  wheelCenterIcon: { fontSize: 24, color: Colors.gold },
 
-  pointer: { marginTop: -8 },
+  pointerWrap: {
+    alignItems: "center", zIndex: 10, marginBottom: -16,
+  },
+  pointerShadow: {
+    position: "absolute", bottom: -4,
+    width: 20, height: 8, borderRadius: 4,
+    backgroundColor: Colors.gold, opacity: 0.25,
+  },
+  pointerTriangle: {
+    width: 0, height: 0,
+    borderLeftWidth: 12, borderRightWidth: 12, borderTopWidth: 24,
+    borderLeftColor: "transparent", borderRightColor: "transparent",
+    borderTopColor: Colors.gold,
+  },
+  pointerBase: {
+    width: 10, height: 8, borderRadius: 2,
+    backgroundColor: Colors.gold, marginTop: -4,
+  },
 
   spinBtn: { width: "100%" },
   spinBtnInner: {
