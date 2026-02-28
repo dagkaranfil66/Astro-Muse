@@ -94,7 +94,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         model: "gpt-5.2",
         messages,
         stream: true,
-        max_completion_tokens: 1200,
+        max_completion_tokens: 2500,
       });
 
       for await (const chunk of stream) {

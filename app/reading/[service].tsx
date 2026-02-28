@@ -34,6 +34,7 @@ import Animated, {
   ZoomIn,
 } from "react-native-reanimated";
 import { fetch } from "expo/fetch";
+import * as Clipboard from "expo-clipboard";
 import { Colors } from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
@@ -471,28 +472,59 @@ function DefaultIntro({ color, icon, label, hint }: { color: string; icon: keyof
 function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string }) {
   const { t, lang } = useLang();
   const [copied, setCopied] = useState(false);
+  const [igCopied, setIgCopied] = useState(false);
   const shareText = t.shareText(serviceLabel, text);
-  const encoded = encodeURIComponent(shareText.slice(0, 300));
+  const encodedFull = encodeURIComponent(shareText.slice(0, 1000));
   const encodedUrl = encodeURIComponent("https://tengristar.com");
 
-  const copyText = async () => {
+  const copyToClipboard = async (fullText: string) => {
     try {
-      if (Platform.OS === "web" && navigator?.clipboard) {
-        await navigator.clipboard.writeText(shareText);
-        setCopied(true);
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        setTimeout(() => setCopied(false), 2500);
+      await Clipboard.setStringAsync(fullText);
+      return true;
+    } catch {
+      try {
+        if (Platform.OS === "web" && navigator?.clipboard) {
+          await navigator.clipboard.writeText(fullText);
+          return true;
+        }
+      } catch {}
+      return false;
+    }
+  };
+
+  const copyText = async () => {
+    const ok = await copyToClipboard(shareText);
+    if (ok) {
+      setCopied(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setTimeout(() => setCopied(false), 2500);
+    } else {
+      Share.share({ message: shareText });
+    }
+  };
+
+  const handleInstagram = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await copyToClipboard(shareText);
+    setIgCopied(true);
+    setTimeout(() => setIgCopied(false), 4000);
+    try {
+      const igApp = Platform.OS === "ios" ? "instagram://" : "instagram://app";
+      const canOpen = await Linking.canOpenURL(igApp);
+      if (canOpen) {
+        await Linking.openURL(igApp);
       } else {
-        await Share.share({ message: shareText });
+        await Linking.openURL("https://www.instagram.com/");
       }
-    } catch {}
+    } catch {
+      Share.share({ message: shareText });
+    }
   };
 
   const SHARE_BTNS = [
-    { label: "WhatsApp", icon: "logo-whatsapp" as const, color: "#25D366", url: `https://wa.me/?text=${encoded}` },
-    { label: "Instagram", icon: "logo-instagram" as const, color: "#E1306C", url: `https://www.instagram.com/` },
-    { label: "Facebook", icon: "logo-facebook" as const, color: "#1877F2", url: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encoded}` },
-    { label: "Twitter/X", icon: "logo-twitter" as const, color: "#1DA1F2", url: `https://twitter.com/intent/tweet?text=${encoded}` },
+    { label: "WhatsApp", icon: "logo-whatsapp" as const, color: "#25D366", url: `https://wa.me/?text=${encodedFull}` },
+    { label: "Facebook", icon: "logo-facebook" as const, color: "#1877F2", url: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedFull}` },
+    { label: "Twitter/X", icon: "logo-twitter" as const, color: "#1DA1F2", url: `https://twitter.com/intent/tweet?text=${encodedFull}` },
   ];
 
   return (
@@ -502,16 +534,23 @@ function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string
         <Text style={styles.sharePanelTitle}>{t.share}</Text>
       </View>
       <View style={styles.shareButtons}>
+        {/* Instagram — copy + open */}
+        <Pressable
+          onPress={handleInstagram}
+          style={[styles.shareBtn, { borderColor: "#E1306C" + "40", backgroundColor: "#E1306C" + "10" }]}
+        >
+          <Ionicons name="logo-instagram" size={18} color="#E1306C" />
+          <Text style={[styles.shareBtnLabel, { color: igCopied ? "#4CAF7A" : "#E1306C" }]}>
+            {igCopied ? (lang === "tr" ? "Kopyalandı!" : "Copied!") : "Instagram"}
+          </Text>
+        </Pressable>
+
         {SHARE_BTNS.map((btn) => (
           <Pressable
             key={btn.label}
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              if (btn.label === "Instagram") {
-                Share.share({ message: shareText });
-              } else {
-                Linking.openURL(btn.url).catch(() => Share.share({ message: shareText }));
-              }
+              Linking.openURL(btn.url).catch(() => Share.share({ message: shareText }));
             }}
             style={[styles.shareBtn, { borderColor: btn.color + "40", backgroundColor: btn.color + "10" }]}
           >
@@ -526,6 +565,11 @@ function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string
           </Text>
         </Pressable>
       </View>
+      {igCopied && (
+        <Text style={styles.igHint}>
+          {lang === "tr" ? "✓ Metin kopyalandı — Instagram'da yapıştırın" : "✓ Text copied — paste it in Instagram"}
+        </Text>
+      )}
     </Animated.View>
   );
 }
@@ -575,7 +619,7 @@ export default function ReadingScreen() {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsEditing: true,
-        quality: 0.8,
+        quality: 0.5,
         base64: true,
       });
       if (!result.canceled && result.assets[0]) {
@@ -592,7 +636,7 @@ export default function ReadingScreen() {
       if (!ok) return null;
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
-        quality: 0.8,
+        quality: 0.5,
         base64: true,
       });
       if (!result.canceled && result.assets[0]) {
@@ -961,6 +1005,7 @@ const styles = StyleSheet.create({
   shareBtnTW: { borderColor: "#1DA1F240", backgroundColor: "#1DA1F210" },
   shareBtnCopy: { borderColor: Colors.cardBorder, backgroundColor: Colors.surfaceElevated },
   shareBtnLabel: { fontSize: 11, fontFamily: "Lora_400Regular" },
+  igHint: { fontSize: 11, fontFamily: "Lora_400Regular_Italic", color: "#4CAF7A", textAlign: "center", marginTop: 8 },
 
   // Done
   doneActions: { alignItems: "center", paddingVertical: 6 },

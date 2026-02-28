@@ -8,6 +8,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -84,21 +85,22 @@ export default function AuthScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
   const [socialName, setSocialName] = useState("");
-  const [socialEmail, setSocialEmail] = useState("");
   const [selectedProvider, setSelectedProvider] = useState<{ label: string; icon: string; color: string; id: string } | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [socialConnecting, setSocialConnecting] = useState(false);
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const handleSocialSelect = (provider: { label: string; icon: string; color: string; id: string }) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedProvider(provider);
     setSocialName("");
-    setSocialEmail("");
     setError("");
+    setSocialConnecting(true);
     setView("social");
+    setTimeout(() => setSocialConnecting(false), 1400);
   };
 
   const handleSocialConfirm = async () => {
@@ -109,7 +111,7 @@ export default function AuthScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     try {
-      const finalEmail = socialEmail.trim() || `${selectedProvider!.id}_${Date.now()}@tengri.social`;
+      const finalEmail = `${selectedProvider!.id}_${Date.now()}@tengri.social`;
       const userData = { email: finalEmail, name: socialName.trim() };
       await AsyncStorage.setItem("tengri_user", JSON.stringify(userData));
       await setUserProfile({ name: socialName.trim(), email: finalEmail, joinDate: new Date().toISOString() });
@@ -220,61 +222,77 @@ export default function AuthScreen() {
 
           {view === "social" && selectedProvider && (
             <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.form}>
-              <View style={{ alignItems: "center", marginBottom: 20 }}>
-                <View style={[styles.socialIconCircle, { backgroundColor: selectedProvider.color + "25", borderColor: selectedProvider.color + "60", width: 56, height: 56, borderRadius: 28, marginBottom: 12 }]}>
-                  <Ionicons name={selectedProvider.icon as any} size={28} color={selectedProvider.color} />
-                </View>
-                <Text style={[styles.submitBtnText, { color: Colors.text, fontSize: 16, fontFamily: "Lora_400Regular" }]}>
-                  {lang === "tr" ? `${selectedProvider.id.charAt(0).toUpperCase() + selectedProvider.id.slice(1)} ile devam ediyorsunuz` : `Continuing with ${selectedProvider.id.charAt(0).toUpperCase() + selectedProvider.id.slice(1)}`}
-                </Text>
-              </View>
-
-              <View style={styles.inputWrap}>
-                <Ionicons name="person-outline" size={18} color={Colors.textDim} style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  value={socialName}
-                  onChangeText={setSocialName}
-                  placeholder={lang === "tr" ? "Adınız Soyadınız" : "Your Full Name"}
-                  placeholderTextColor={Colors.textDim}
-                  autoCapitalize="words"
-                  autoFocus
-                />
-              </View>
-
-              <View style={styles.inputWrap}>
-                <Ionicons name="mail-outline" size={18} color={Colors.textDim} style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  value={socialEmail}
-                  onChangeText={setSocialEmail}
-                  placeholder={lang === "tr" ? "E-posta (isteğe bağlı)" : "Email (optional)"}
-                  placeholderTextColor={Colors.textDim}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-              </View>
-
-              {!!error && <Text style={styles.errorText}>{error}</Text>}
-
-              <Pressable
-                onPress={handleSocialConfirm}
-                disabled={loading}
-                style={({ pressed }) => [styles.submitBtn, pressed && { opacity: 0.85 }]}
-              >
-                <LinearGradient
-                  colors={[Colors.goldLight, Colors.gold]}
-                  style={styles.submitBtnInner}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                >
-                  <Ionicons name="sparkles" size={18} color={Colors.background} />
-                  <Text style={styles.submitBtnText}>
-                    {loading ? (lang === "tr" ? "Yükleniyor..." : "Loading...") : (lang === "tr" ? "Devam Et" : "Continue")}
+              {socialConnecting ? (
+                <View style={styles.connectingBox}>
+                  <View style={[styles.connectingIconWrap, { backgroundColor: selectedProvider.color + "22", borderColor: selectedProvider.color + "50" }]}>
+                    <Ionicons name={selectedProvider.icon as any} size={32} color={selectedProvider.color} />
+                  </View>
+                  <ActivityIndicator color={selectedProvider.color} size="small" style={{ marginTop: 16 }} />
+                  <Text style={[styles.connectingText, { color: selectedProvider.color }]}>
+                    {lang === "tr"
+                      ? `${selectedProvider.id.charAt(0).toUpperCase() + selectedProvider.id.slice(1)} bağlanıyor…`
+                      : `Connecting to ${selectedProvider.id.charAt(0).toUpperCase() + selectedProvider.id.slice(1)}…`}
                   </Text>
-                </LinearGradient>
-              </Pressable>
+                </View>
+              ) : (
+                <>
+                  <View style={styles.socialConfirmHeader}>
+                    <View style={[styles.connectingIconWrap, { backgroundColor: selectedProvider.color + "22", borderColor: selectedProvider.color + "50", width: 48, height: 48, borderRadius: 24 }]}>
+                      <Ionicons name={selectedProvider.icon as any} size={26} color={selectedProvider.color} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.socialConfirmTitle}>
+                        {lang === "tr" ? "Hesabınıza erişildi" : "Account accessed"}
+                      </Text>
+                      <Text style={[styles.socialConfirmSub, { color: selectedProvider.color }]}>
+                        {selectedProvider.id.charAt(0).toUpperCase() + selectedProvider.id.slice(1)}
+                      </Text>
+                    </View>
+                    <Ionicons name="checkmark-circle" size={22} color="#4CAF7A" />
+                  </View>
+
+                  <Text style={styles.namePrompt}>
+                    {lang === "tr" ? "Nasıl çağrılmak istersiniz?" : "What should we call you?"}
+                  </Text>
+
+                  <View style={styles.inputWrap}>
+                    <Ionicons name="person-outline" size={18} color={Colors.textDim} style={styles.inputIcon} />
+                    <TextInput
+                      style={styles.input}
+                      value={socialName}
+                      onChangeText={setSocialName}
+                      placeholder={lang === "tr" ? "Adınız" : "Your Name"}
+                      placeholderTextColor={Colors.textDim}
+                      autoCapitalize="words"
+                      autoFocus
+                      returnKeyType="done"
+                      onSubmitEditing={handleSocialConfirm}
+                    />
+                  </View>
+
+                  {!!error && <Text style={styles.errorText}>{error}</Text>}
+
+                  <Pressable
+                    onPress={handleSocialConfirm}
+                    disabled={loading}
+                    style={({ pressed }) => [styles.submitBtn, pressed && { opacity: 0.85 }]}
+                  >
+                    <LinearGradient
+                      colors={[Colors.goldLight, Colors.gold]}
+                      style={styles.submitBtnInner}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                    >
+                      <Ionicons name="sparkles" size={18} color={Colors.background} />
+                      <Text style={styles.submitBtnText}>
+                        {loading
+                          ? (lang === "tr" ? "Yükleniyor..." : "Loading...")
+                          : (lang === "tr" ? "Tengri'ye Başla" : "Enter Tengri")}
+                      </Text>
+                    </LinearGradient>
+                  </Pressable>
+                </>
+              )}
             </Animated.View>
           )}
 
@@ -513,6 +531,28 @@ const styles = StyleSheet.create({
   },
 
   form: { width: "100%", gap: 12 },
+
+  connectingBox: {
+    alignItems: "center", paddingVertical: 28, gap: 8,
+  },
+  connectingIconWrap: {
+    width: 72, height: 72, borderRadius: 36,
+    borderWidth: 2, alignItems: "center", justifyContent: "center",
+  },
+  connectingText: {
+    fontSize: 14, fontFamily: "Lora_400Regular_Italic", marginTop: 6,
+  },
+  socialConfirmHeader: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    backgroundColor: Colors.surface, borderRadius: 14, borderWidth: 1, borderColor: Colors.cardBorder,
+    padding: 14, marginBottom: 4,
+  },
+  socialConfirmTitle: { fontSize: 13, fontFamily: "Lora_700Bold", color: Colors.text },
+  socialConfirmSub: { fontSize: 11, fontFamily: "Lora_400Regular", marginTop: 2 },
+  namePrompt: {
+    fontSize: 14, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary,
+    textAlign: "center", paddingVertical: 4,
+  },
   modeToggle: {
     flexDirection: "row",
     backgroundColor: Colors.surface,
