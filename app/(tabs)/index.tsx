@@ -35,14 +35,67 @@ import { SERVICE_GOLD_COST } from "@/constants/serviceConfig";
 
 const { width, height } = Dimensions.get("window");
 
+// ────────── Cosmic Symbols ──────────
+const COSMIC_SYMBOLS = [
+  { symbol: "☀", x: width * 0.12, y: height * 0.08, size: 18, duration: 22000, delay: 0, color: "#FFD700" },
+  { symbol: "☽", x: width * 0.82, y: height * 0.12, size: 22, duration: 28000, delay: 4000, color: "#C8A0DC" },
+  { symbol: "✦", x: width * 0.05, y: height * 0.32, size: 14, duration: 18000, delay: 2000, color: "#5B9BD5" },
+  { symbol: "✧", x: width * 0.9, y: height * 0.45, size: 12, duration: 24000, delay: 7000, color: "#FF6B9D" },
+  { symbol: "⊕", x: width * 0.2, y: height * 0.55, size: 13, duration: 30000, delay: 5000, color: "#9B59B6" },
+  { symbol: "☿", x: width * 0.75, y: height * 0.28, size: 15, duration: 20000, delay: 3000, color: "#5B9BD5" },
+  { symbol: "⋆", x: width * 0.55, y: height * 0.06, size: 16, duration: 26000, delay: 9000, color: "#C0932A" },
+  { symbol: "⊙", x: width * 0.88, y: height * 0.7, size: 14, duration: 32000, delay: 6000, color: "#FF8C42" },
+  { symbol: "☾", x: width * 0.1, y: height * 0.72, size: 20, duration: 25000, delay: 1000, color: "#C8A0DC" },
+];
+
+function CosmicSymbol({ cfg }: { cfg: typeof COSMIC_SYMBOLS[0] }) {
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(0);
+
+  React.useEffect(() => {
+    opacity.value = withDelay(
+      cfg.delay,
+      withRepeat(
+        withSequence(
+          withTiming(0.18, { duration: cfg.duration * 0.4 }),
+          withTiming(0.08, { duration: cfg.duration * 0.3 }),
+          withTiming(0.22, { duration: cfg.duration * 0.3 }),
+        ),
+        -1, true
+      )
+    );
+    translateY.value = withDelay(
+      cfg.delay,
+      withRepeat(
+        withSequence(
+          withTiming(-8, { duration: cfg.duration * 0.5 }),
+          withTiming(8, { duration: cfg.duration * 0.5 }),
+        ),
+        -1, true
+      )
+    );
+  }, []);
+
+  const style = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return (
+    <Animated.View style={[{ position: "absolute", left: cfg.x, top: cfg.y }, style]}>
+      <Text style={{ fontSize: cfg.size, color: cfg.color }}>{cfg.symbol}</Text>
+    </Animated.View>
+  );
+}
+
 // ────────── Shooting Stars ──────────
-const SHOOTING_STARS = Array.from({ length: 10 }, (_, i) => ({
+const SHOOTING_STARS = Array.from({ length: 7 }, (_, i) => ({
   startX: Math.random() * width * 1.2 - width * 0.1,
-  startY: Math.random() * height * 0.6,
+  startY: Math.random() * height * 0.5,
   angle: 20 + Math.random() * 25,
-  duration: 2200 + Math.random() * 3000,
-  delay: i * 1400 + Math.random() * 2500,
-  length: 70 + Math.random() * 90,
+  duration: 2800 + Math.random() * 3500,
+  delay: i * 2000 + Math.random() * 4000,
+  length: 60 + Math.random() * 80,
 }));
 
 function ShootingStar({ cfg }: { cfg: typeof SHOOTING_STARS[0] }) {
@@ -137,16 +190,16 @@ function AnimatedLogo() {
       -1, false
     );
     glowScale.value = withRepeat(
-      withSequence(withTiming(1.4, { duration: 2500 }), withTiming(1, { duration: 2500 })),
+      withSequence(withTiming(1.15, { duration: 8000 }), withTiming(1, { duration: 8000 })),
       -1, false
     );
     glowOpacity.value = withRepeat(
-      withSequence(withTiming(0.9, { duration: 2000 }), withTiming(0.3, { duration: 2000 })),
+      withSequence(withTiming(0.18, { duration: 9000 }), withTiming(0.06, { duration: 9000 })),
       -1, false
     );
     logoScale.value = withSpring(1, { damping: 10, stiffness: 70 });
     colorProgress.value = withRepeat(
-      withSequence(withTiming(1, { duration: 4000 }), withTiming(0, { duration: 4000 })),
+      withSequence(withTiming(1, { duration: 18000 }), withTiming(0, { duration: 18000 })),
       -1, false
     );
   }, []);
@@ -327,9 +380,10 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <LinearGradient colors={["#04080F", "#070D1A", "#080D1E"]} style={StyleSheet.absoluteFill} />
 
-      {/* Shooting Stars */}
+      {/* Cosmic Background Layer */}
       <View style={[StyleSheet.absoluteFill, { pointerEvents: "none", overflow: "hidden" }]}>
-        {SHOOTING_STARS.map((cfg, i) => <ShootingStar key={i} cfg={cfg} />)}
+        {COSMIC_SYMBOLS.map((cfg, i) => <CosmicSymbol key={`cs-${i}`} cfg={cfg} />)}
+        {SHOOTING_STARS.map((cfg, i) => <ShootingStar key={`ss-${i}`} cfg={cfg} />)}
       </View>
 
       {/* Top Bar */}

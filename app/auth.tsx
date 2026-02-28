@@ -28,7 +28,7 @@ import { Colors } from "@/constants/colors";
 import { useLang } from "@/context/LanguageContext";
 import { useApp } from "@/context/AppContext";
 
-type AuthView = "choice" | "email";
+type AuthView = "choice" | "email" | "social";
 
 function MysticOrb() {
   const scale = useSharedValue(1);
@@ -83,21 +83,36 @@ export default function AuthScreen() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
+  const [socialName, setSocialName] = useState("");
+  const [socialEmail, setSocialEmail] = useState("");
+  const [selectedProvider, setSelectedProvider] = useState<{ label: string; icon: string; color: string; id: string } | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
 
-  const handleSocialLogin = async (provider: string, providerId: string) => {
+  const handleSocialSelect = (provider: { label: string; icon: string; color: string; id: string }) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSelectedProvider(provider);
+    setSocialName("");
+    setSocialEmail("");
+    setError("");
+    setView("social");
+  };
+
+  const handleSocialConfirm = async () => {
+    if (!socialName.trim()) {
+      setError(lang === "tr" ? "Lütfen adınızı girin" : "Please enter your name");
+      return;
+    }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     try {
-      const fakeName = provider;
-      const fakeEmail = `${providerId}@${provider.toLowerCase().replace(" ", "")}.social`;
-      const userData = { email: fakeEmail, name: fakeName };
+      const finalEmail = socialEmail.trim() || `${selectedProvider!.id}_${Date.now()}@tengri.social`;
+      const userData = { email: finalEmail, name: socialName.trim() };
       await AsyncStorage.setItem("tengri_user", JSON.stringify(userData));
-      await setUserProfile({ name: fakeName, email: fakeEmail, joinDate: new Date().toISOString() });
+      await setUserProfile({ name: socialName.trim(), email: finalEmail, joinDate: new Date().toISOString() });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.back();
     } catch {
@@ -142,28 +157,24 @@ export default function AuthScreen() {
       label: lang === "tr" ? "Google ile giriş yap" : "Continue with Google",
       icon: "logo-google" as const,
       color: "#DB4437",
-      provider: "Google Kullanıcısı",
       id: "google",
     },
     {
       label: lang === "tr" ? "Facebook ile giriş yap" : "Continue with Facebook",
       icon: "logo-facebook" as const,
       color: "#1877F2",
-      provider: "Facebook Kullanıcısı",
       id: "facebook",
     },
     {
       label: lang === "tr" ? "Apple ile giriş yap" : "Continue with Apple",
       icon: "logo-apple" as const,
       color: Colors.text,
-      provider: "Apple Kullanıcısı",
       id: "apple",
     },
     {
       label: lang === "tr" ? "E-posta ile giriş yap" : "Continue with Email",
       icon: "mail-outline" as const,
       color: Colors.gold,
-      provider: null,
       id: "email",
     },
   ];
@@ -182,8 +193,18 @@ export default function AuthScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Pressable onPress={() => view === "email" ? setView("choice") : router.back()} style={styles.closeBtn} hitSlop={12}>
-            <Ionicons name={view === "email" ? "chevron-back" : "close"} size={22} color={Colors.textSecondary} />
+          <Pressable
+            onPress={() => {
+              if (view === "email" || view === "social") {
+                setView("choice");
+                setError("");
+              } else {
+                router.back();
+              }
+            }}
+            style={styles.closeBtn} hitSlop={12}
+          >
+            <Ionicons name={(view === "email" || view === "social") ? "chevron-back" : "close"} size={22} color={Colors.textSecondary} />
           </Pressable>
 
           <MysticOrb />
@@ -197,7 +218,67 @@ export default function AuthScreen() {
             </Text>
           </Animated.View>
 
-          {view === "choice" ? (
+          {view === "social" && selectedProvider && (
+            <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.form}>
+              <View style={{ alignItems: "center", marginBottom: 20 }}>
+                <View style={[styles.socialIconCircle, { backgroundColor: selectedProvider.color + "25", borderColor: selectedProvider.color + "60", width: 56, height: 56, borderRadius: 28, marginBottom: 12 }]}>
+                  <Ionicons name={selectedProvider.icon as any} size={28} color={selectedProvider.color} />
+                </View>
+                <Text style={[styles.submitBtnText, { color: Colors.text, fontSize: 16, fontFamily: "Lora_400Regular" }]}>
+                  {lang === "tr" ? `${selectedProvider.id.charAt(0).toUpperCase() + selectedProvider.id.slice(1)} ile devam ediyorsunuz` : `Continuing with ${selectedProvider.id.charAt(0).toUpperCase() + selectedProvider.id.slice(1)}`}
+                </Text>
+              </View>
+
+              <View style={styles.inputWrap}>
+                <Ionicons name="person-outline" size={18} color={Colors.textDim} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  value={socialName}
+                  onChangeText={setSocialName}
+                  placeholder={lang === "tr" ? "Adınız Soyadınız" : "Your Full Name"}
+                  placeholderTextColor={Colors.textDim}
+                  autoCapitalize="words"
+                  autoFocus
+                />
+              </View>
+
+              <View style={styles.inputWrap}>
+                <Ionicons name="mail-outline" size={18} color={Colors.textDim} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  value={socialEmail}
+                  onChangeText={setSocialEmail}
+                  placeholder={lang === "tr" ? "E-posta (isteğe bağlı)" : "Email (optional)"}
+                  placeholderTextColor={Colors.textDim}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </View>
+
+              {!!error && <Text style={styles.errorText}>{error}</Text>}
+
+              <Pressable
+                onPress={handleSocialConfirm}
+                disabled={loading}
+                style={({ pressed }) => [styles.submitBtn, pressed && { opacity: 0.85 }]}
+              >
+                <LinearGradient
+                  colors={[Colors.goldLight, Colors.gold]}
+                  style={styles.submitBtnInner}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Ionicons name="sparkles" size={18} color={Colors.background} />
+                  <Text style={styles.submitBtnText}>
+                    {loading ? (lang === "tr" ? "Yükleniyor..." : "Loading...") : (lang === "tr" ? "Devam Et" : "Continue")}
+                  </Text>
+                </LinearGradient>
+              </Pressable>
+            </Animated.View>
+          )}
+
+          {view === "choice" && (
             <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.socialBlock}>
               {SOCIAL_PROVIDERS.map((p, i) => (
                 <Animated.View key={p.id} entering={FadeInDown.delay(320 + i * 60).springify()}>
@@ -206,7 +287,7 @@ export default function AuthScreen() {
                       if (p.id === "email") {
                         setView("email");
                       } else {
-                        handleSocialLogin(p.provider!, p.id);
+                        handleSocialSelect(p);
                       }
                     }}
                     disabled={loading}
@@ -226,7 +307,9 @@ export default function AuthScreen() {
                   : "By continuing you accept our Privacy Policy and Terms of Use."}
               </Text>
             </Animated.View>
-          ) : (
+          )}
+
+          {view === "email" && (
             <Animated.View entering={FadeIn.duration(300)} style={styles.form}>
               <View style={styles.modeToggle}>
                 <Pressable
