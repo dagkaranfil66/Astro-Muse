@@ -151,57 +151,107 @@ function ElIntro({ color }: { color: string }) {
   );
 }
 
-function TarotCard({ color, label, isDone, flipDelay, floatDelay }: {
-  color: string; label: string; isDone: boolean; flipDelay: number; floatDelay: number;
+const TAROT_SYMBOLS = ["☽", "✦", "☀"];
+
+function TarotCard({ color, label, isDone, isLoading, flipDelay, floatDelay, cardIndex }: {
+  color: string; label: string; isDone: boolean; isLoading?: boolean;
+  flipDelay: number; floatDelay: number; cardIndex: number;
 }) {
   const flipProg = useSharedValue(0);
   const floatY = useSharedValue(0);
+  const pulseOp = useSharedValue(0);
 
   React.useEffect(() => {
     floatY.value = withDelay(floatDelay, withRepeat(
-      withSequence(withTiming(-7, { duration: 2200 }), withTiming(0, { duration: 2200 })), -1, false
+      withSequence(withTiming(-6, { duration: 2200 }), withTiming(0, { duration: 2200 })), -1, false
     ));
   }, []);
 
   React.useEffect(() => {
     if (isDone) {
-      flipProg.value = withDelay(flipDelay, withSpring(1, { damping: 12 }));
+      pulseOp.value = 0;
+      flipProg.value = withDelay(flipDelay, withTiming(1, { duration: 550 }));
     } else {
       flipProg.value = 0;
     }
   }, [isDone]);
 
-  const style = useAnimatedStyle(() => ({
+  React.useEffect(() => {
+    if (isLoading) {
+      pulseOp.value = withDelay(floatDelay, withRepeat(
+        withSequence(withTiming(0.55, { duration: 700 }), withTiming(0.1, { duration: 700 })), -1, false
+      ));
+    } else if (!isDone) {
+      pulseOp.value = withTiming(0, { duration: 300 });
+    }
+  }, [isLoading]);
+
+  const outerStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: floatY.value }],
-    opacity: 1 - flipProg.value * 0.1,
   }));
+
+  const backStyle = useAnimatedStyle(() => {
+    const scaleX = flipProg.value < 0.5 ? 1 - flipProg.value * 2 : 0;
+    return { transform: [{ scaleX }], opacity: scaleX > 0.01 ? 1 : 0 };
+  });
+
+  const frontStyle = useAnimatedStyle(() => {
+    const scaleX = flipProg.value > 0.5 ? (flipProg.value - 0.5) * 2 : 0;
+    return { transform: [{ scaleX }], opacity: scaleX > 0.01 ? 1 : 0 };
+  });
+
+  const glowStyle = useAnimatedStyle(() => ({ opacity: pulseOp.value }));
+
+  const symbol = TAROT_SYMBOLS[cardIndex] ?? "✦";
 
   return (
     <View style={styles.tarotCardWrap}>
-      <Animated.View style={[styles.tarotCard, { borderColor: color + "50" }, style]}>
-        <LinearGradient colors={["#1A1205", "#0D1020"]} style={styles.tarotCardInner}>
-          {isDone ? (
-            <Ionicons name="sparkles" size={22} color={color} />
-          ) : (
-            <Ionicons name="star-outline" size={20} color={color + "80"} />
-          )}
-        </LinearGradient>
+      <Animated.View style={[styles.tarotCard, { borderColor: color + "50" }, outerStyle]}>
+        {/* Loading pulse glow */}
+        <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: color, borderRadius: 10 }, glowStyle]} pointerEvents="none" />
+
+        {/* Card Back */}
+        <Animated.View style={[StyleSheet.absoluteFill, backStyle]}>
+          <LinearGradient colors={["#1C1308", "#0D0E1F"]} style={[styles.tarotCardInner, { borderRadius: 10 }]}>
+            <View style={{ position: "absolute", top: 5, left: 5, right: 5, bottom: 5, borderWidth: 1, borderColor: color + "45", borderRadius: 7 }} />
+            <View style={{ position: "absolute", top: 9, left: 9, right: 9, bottom: 9, borderWidth: 1, borderColor: color + "25", borderRadius: 5 }} />
+            <Text style={{ fontSize: 26, color: color + "75" }}>✦</Text>
+            <Text style={{ position: "absolute", top: 7, left: 8, fontSize: 8, color: color + "55" }}>✦</Text>
+            <Text style={{ position: "absolute", bottom: 7, right: 8, fontSize: 8, color: color + "55" }}>✦</Text>
+          </LinearGradient>
+        </Animated.View>
+
+        {/* Card Front */}
+        <Animated.View style={[StyleSheet.absoluteFill, frontStyle]}>
+          <LinearGradient colors={[color + "45", "#0D0E1F"]} style={[styles.tarotCardInner, { borderRadius: 10, gap: 5 }]}>
+            <View style={{ position: "absolute", top: 5, left: 5, right: 5, bottom: 5, borderWidth: 1, borderColor: color + "55", borderRadius: 7 }} />
+            <Text style={{ fontSize: 32, color }}>{symbol}</Text>
+            <Text style={{ fontSize: 8, fontFamily: "Lora_700Bold", color: color + "EE", textAlign: "center", paddingHorizontal: 6, lineHeight: 11 }}>
+              {label}
+            </Text>
+          </LinearGradient>
+        </Animated.View>
       </Animated.View>
-      <Text style={[styles.tarotCardLabel, { color: color + "90" }]}>{label}</Text>
+      <Text style={[styles.tarotCardLabel, { color: isDone ? color : color + "90" }]}>{label}</Text>
     </View>
   );
 }
 
-function TarotIntro({ color, isDone }: { color: string; isDone: boolean }) {
+function TarotIntro({ color, isDone, isLoading }: { color: string; isDone: boolean; isLoading?: boolean; readingText?: string }) {
   return (
     <View style={styles.tarotIntro}>
       <View style={styles.tarotCardsRow}>
         {TAROT_CARD_NAMES.map((label, i) => (
-          <TarotCard key={i} color={color} label={label} isDone={isDone} flipDelay={i * 400} floatDelay={i * 250} />
+          <TarotCard key={i} color={color} label={label} isDone={isDone} isLoading={isLoading} cardIndex={i} flipDelay={i * 380} floatDelay={i * 250} />
         ))}
       </View>
-      {!isDone && (
+      {!isDone && !isLoading && (
         <Text style={styles.introDesc}>Sorunuzu yazın ve kartlarınızın çekilmesini bekleyin. Tengri'nin tarot bilgesi üç kartı açacak.</Text>
+      )}
+      {isLoading && (
+        <Text style={[styles.introDesc, { color: color + "CC", fontFamily: "Lora_400Regular_Italic" }]}>
+          Kartlar okunuyor…
+        </Text>
       )}
     </View>
   );
@@ -730,7 +780,7 @@ export default function ReadingScreen() {
   const renderIntro = () => {
     if (service === "kahve") return <KahveIntro color={base.color} />;
     if (service === "el") return <ElIntro color={base.color} />;
-    if (service === "tarot") return <TarotIntro color={base.color} isDone={isDone} />;
+    if (service === "tarot") return <TarotIntro color={base.color} isDone={isDone} isLoading={isLoading} />;
     if (service === "dogum") return <DogumIntro color={base.color} />;
     if (service === "ruya") return <RuyaIntro color={base.color} />;
     if (service === "burclar") return <BurclarIntro color={base.color} />;
@@ -799,7 +849,7 @@ export default function ReadingScreen() {
 
           {/* Tarot cards overlay above reading */}
           {base.isTarot && (readingText || isLoading) && (
-            <TarotIntro color={base.color} isDone={isDone} readingText={readingText} />
+            <TarotIntro color={base.color} isDone={isDone} isLoading={isLoading} readingText={readingText} />
           )}
 
           {/* Reading text */}
