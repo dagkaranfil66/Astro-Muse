@@ -30,7 +30,7 @@ const serviceSystemPrompts: Record<string, string> = {
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/reading", async (req: Request, res: Response) => {
     try {
-      const { service, userInput, imageBase64, imageType } = req.body;
+      const { service, userInput, imageBase64, imageType, images } = req.body;
 
       if (!service) {
         return res.status(400).json({ error: "Servis türü gerekli" });
@@ -45,7 +45,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[];
 
-      if (imageBase64 && (service === "kahve" || service === "el")) {
+      const multiPhotos: { base64: string; type: string }[] = Array.isArray(images) ? images : [];
+      const hasSinglePhoto = !!(imageBase64 && (service === "kahve" || service === "el"));
+      const hasMultiPhotos = multiPhotos.length > 0 && (service === "kahve" || service === "el");
+
+      if (hasMultiPhotos) {
+        const contentParts: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [
+          ...multiPhotos.map((img) => ({
+            type: "image_url" as const,
+            image_url: {
+              url: `data:${img.type || "image/jpeg"};base64,${img.base64}`,
+              detail: "high" as const,
+            },
+          })),
+          { type: "text" as const, text: userMessage },
+        ];
+        messages = [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: contentParts },
+        ];
+      } else if (hasSinglePhoto) {
         const mimeType = imageType || "image/jpeg";
         messages = [
           { role: "system", content: systemPrompt },
@@ -59,10 +78,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   detail: "high",
                 },
               },
-              {
-                type: "text",
-                text: userMessage,
-              },
+              { type: "text", text: userMessage },
             ],
           },
         ];

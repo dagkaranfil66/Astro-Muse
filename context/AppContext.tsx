@@ -31,6 +31,9 @@ interface AppContextValue {
   clearUserProfile: () => Promise<void>;
   getServiceCost: (service: string) => number;
   totalSpent: number;
+  canSpin: boolean;
+  lastSpinDate: string | null;
+  performSpin: (prize: number) => Promise<void>;
   isPurchased: boolean;
   remainingReadings: number;
   consumeTrial: () => void;
@@ -43,31 +46,42 @@ const KEYS = {
   gold: 'tengri_gold_v2',
   readings: 'tengri_readings',
   profile: 'tengri_profile',
+  lastSpin: 'tengri_last_spin',
   trialCount: 'tengri_trial_count',
   isPurchased: 'tengri_is_purchased',
 };
+
+function isSpinAvailable(lastSpin: string | null): boolean {
+  if (!lastSpin) return true;
+  const last = new Date(lastSpin).getTime();
+  const now = Date.now();
+  return now - last >= 24 * 60 * 60 * 1000;
+}
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [goldBalance, setGoldBalance] = useState(FREE_START_GOLD);
   const [readings, setReadings] = useState<Reading[]>([]);
   const [userProfile, setProfileState] = useState<UserProfile | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [lastSpinDate, setLastSpinDate] = useState<string | null>(null);
   const [trialCount, setTrialCount] = useState(0);
   const [isPurchased, setIsPurchased] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
-        const [goldStr, readStr, profStr, tcStr, ipStr] = await Promise.all([
+        const [goldStr, readStr, profStr, spinStr, tcStr, ipStr] = await Promise.all([
           AsyncStorage.getItem(KEYS.gold),
           AsyncStorage.getItem(KEYS.readings),
           AsyncStorage.getItem(KEYS.profile),
+          AsyncStorage.getItem(KEYS.lastSpin),
           AsyncStorage.getItem(KEYS.trialCount),
           AsyncStorage.getItem(KEYS.isPurchased),
         ]);
         if (goldStr !== null) setGoldBalance(parseInt(goldStr, 10));
         if (readStr) setReadings(JSON.parse(readStr));
         if (profStr) setProfileState(JSON.parse(profStr));
+        if (spinStr) setLastSpinDate(spinStr);
         if (tcStr) setTrialCount(parseInt(tcStr, 10));
         if (ipStr) setIsPurchased(ipStr === 'true');
       } catch (e) {
@@ -119,6 +133,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await AsyncStorage.removeItem(KEYS.profile);
   };
 
+  const canSpin = isSpinAvailable(lastSpinDate);
+
+  const performSpin = async (prize: number) => {
+    const now = new Date().toISOString();
+    setLastSpinDate(now);
+    await AsyncStorage.setItem(KEYS.lastSpin, now);
+    addGold(prize);
+  };
+
   const totalSpent = readings.reduce((s, r) => s + (r.goldSpent ?? 0), 0);
 
   const consumeTrial = () => {
@@ -148,11 +171,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     clearUserProfile,
     getServiceCost,
     totalSpent,
+    canSpin,
+    lastSpinDate,
+    performSpin,
     isPurchased,
     remainingReadings,
     consumeTrial,
     purchase,
-  }), [goldBalance, readings, userProfile, isLoaded, trialCount, isPurchased]);
+  }), [goldBalance, readings, userProfile, isLoaded, trialCount, isPurchased, lastSpinDate]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

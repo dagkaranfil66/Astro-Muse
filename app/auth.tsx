@@ -8,7 +8,6 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
-  Linking,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -23,14 +22,13 @@ import Animated, {
   withRepeat,
   withSequence,
   withTiming,
-  withSpring,
 } from "react-native-reanimated";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Colors } from "@/constants/colors";
 import { useLang } from "@/context/LanguageContext";
 import { useApp } from "@/context/AppContext";
 
-type Mode = "login" | "register";
+type AuthView = "choice" | "email";
 
 function MysticOrb() {
   const scale = useSharedValue(1);
@@ -64,15 +62,7 @@ function MysticOrb() {
         {[0, 45, 90, 135, 180, 225, 270, 315].map((deg, i) => (
           <View
             key={i}
-            style={[
-              styles.orbDot,
-              {
-                transform: [
-                  { rotate: `${deg}deg` },
-                  { translateX: 44 },
-                ],
-              },
-            ]}
+            style={[styles.orbDot, { transform: [{ rotate: `${deg}deg` }, { translateX: 44 }] }]}
           />
         ))}
       </Animated.View>
@@ -85,11 +75,13 @@ function MysticOrb() {
 
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
-  const { t, lang } = useLang();
+  const { lang } = useLang();
   const { setUserProfile } = useApp();
-  const [mode, setMode] = useState<Mode>("login");
+  const [view, setView] = useState<AuthView>("choice");
+  const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -97,25 +89,15 @@ export default function AuthScreen() {
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
 
-  const handleSubmit = async () => {
-    setError("");
-    if (!email || !password) {
-      setError(lang === "tr" ? "E-posta ve şifre gerekli" : "Email and password required");
-      return;
-    }
-    if (mode === "register" && !name) {
-      setError(lang === "tr" ? "İsim gerekli" : "Name required");
-      return;
-    }
-
+  const handleSocialLogin = async (provider: string, providerId: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
-
     try {
-      const userName = name || email.split("@")[0];
-      const userData = { email, name: userName, mode };
+      const fakeName = provider;
+      const fakeEmail = `${providerId}@${provider.toLowerCase().replace(" ", "")}.social`;
+      const userData = { email: fakeEmail, name: fakeName };
       await AsyncStorage.setItem("tengri_user", JSON.stringify(userData));
-      setUserProfile({ name: userName, email, joinDate: new Date().toISOString() });
+      await setUserProfile({ name: fakeName, email: fakeEmail, joinDate: new Date().toISOString() });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.back();
     } catch {
@@ -125,12 +107,70 @@ export default function AuthScreen() {
     }
   };
 
+  const handleEmailSubmit = async () => {
+    setError("");
+    if (!email || !password) {
+      setError(lang === "tr" ? "E-posta ve şifre gerekli" : "Email and password required");
+      return;
+    }
+    if (mode === "register" && !name) {
+      setError(lang === "tr" ? "İsim gerekli" : "Name required");
+      return;
+    }
+    if (mode === "register" && password !== confirmPassword) {
+      setError(lang === "tr" ? "Şifreler eşleşmiyor" : "Passwords do not match");
+      return;
+    }
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setLoading(true);
+    try {
+      const userName = name || email.split("@")[0];
+      await AsyncStorage.setItem("tengri_user", JSON.stringify({ email, name: userName }));
+      await setUserProfile({ name: userName, email, joinDate: new Date().toISOString() });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.back();
+    } catch {
+      setError(lang === "tr" ? "Bir hata oluştu" : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const SOCIAL_PROVIDERS = [
+    {
+      label: lang === "tr" ? "Google ile giriş yap" : "Continue with Google",
+      icon: "logo-google" as const,
+      color: "#DB4437",
+      provider: "Google Kullanıcısı",
+      id: "google",
+    },
+    {
+      label: lang === "tr" ? "Facebook ile giriş yap" : "Continue with Facebook",
+      icon: "logo-facebook" as const,
+      color: "#1877F2",
+      provider: "Facebook Kullanıcısı",
+      id: "facebook",
+    },
+    {
+      label: lang === "tr" ? "Apple ile giriş yap" : "Continue with Apple",
+      icon: "logo-apple" as const,
+      color: Colors.text,
+      provider: "Apple Kullanıcısı",
+      id: "apple",
+    },
+    {
+      label: lang === "tr" ? "E-posta ile giriş yap" : "Continue with Email",
+      icon: "mail-outline" as const,
+      color: Colors.gold,
+      provider: null,
+      id: "email",
+    },
+  ];
+
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={["#08051A", "#070D1A", "#0D0820"]}
-        style={StyleSheet.absoluteFill}
-      />
+      <LinearGradient colors={["#08051A", "#070D1A", "#0D0820"]} style={StyleSheet.absoluteFill} />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -142,142 +182,150 @@ export default function AuthScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Pressable onPress={() => router.back()} style={styles.closeBtn} hitSlop={12}>
-            <Ionicons name="close" size={22} color={Colors.textSecondary} />
+          <Pressable onPress={() => view === "email" ? setView("choice") : router.back()} style={styles.closeBtn} hitSlop={12}>
+            <Ionicons name={view === "email" ? "chevron-back" : "close"} size={22} color={Colors.textSecondary} />
           </Pressable>
 
           <MysticOrb />
 
           <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.titleBlock}>
             <Text style={styles.title}>
-              {mode === "login"
-                ? lang === "tr" ? "Hoş Geldiniz" : "Welcome Back"
-                : lang === "tr" ? "Hesap Oluştur" : "Create Account"}
+              {lang === "tr" ? "Tengri'ye Hoş Geldiniz" : "Welcome to Tengri"}
             </Text>
             <Text style={styles.subtitle}>
-              {lang === "tr"
-                ? "Tengri mistik yolculuğunuz başlıyor"
-                : "Your mystic journey begins"}
+              {lang === "tr" ? "Mistik yolculuğunuz başlıyor" : "Your mystic journey begins"}
             </Text>
           </Animated.View>
 
-          {/* Mode Toggle */}
-          <Animated.View entering={FadeInDown.delay(250)} style={styles.modeToggle}>
-            <Pressable
-              onPress={() => setMode("login")}
-              style={[styles.modeBtn, mode === "login" && styles.modeBtnActive]}
-            >
-              <Text style={[styles.modeBtnText, mode === "login" && styles.modeBtnTextActive]}>
-                {lang === "tr" ? "Giriş Yap" : "Login"}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setMode("register")}
-              style={[styles.modeBtn, mode === "register" && styles.modeBtnActive]}
-            >
-              <Text style={[styles.modeBtnText, mode === "register" && styles.modeBtnTextActive]}>
-                {lang === "tr" ? "Kayıt Ol" : "Register"}
-              </Text>
-            </Pressable>
-          </Animated.View>
+          {view === "choice" ? (
+            <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.socialBlock}>
+              {SOCIAL_PROVIDERS.map((p, i) => (
+                <Animated.View key={p.id} entering={FadeInDown.delay(320 + i * 60).springify()}>
+                  <Pressable
+                    onPress={() => {
+                      if (p.id === "email") {
+                        setView("email");
+                      } else {
+                        handleSocialLogin(p.provider!, p.id);
+                      }
+                    }}
+                    disabled={loading}
+                    style={({ pressed }) => [styles.socialBtn, pressed && { opacity: 0.8 }]}
+                  >
+                    <Text style={styles.socialBtnLabel}>{p.label}</Text>
+                    <View style={[styles.socialIconCircle, { backgroundColor: p.color + "20", borderColor: p.color + "40" }]}>
+                      <Ionicons name={p.icon} size={22} color={p.color} />
+                    </View>
+                  </Pressable>
+                </Animated.View>
+              ))}
 
-          <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.form}>
-            {mode === "register" && (
+              <Text style={styles.legalNote}>
+                {lang === "tr"
+                  ? "Devam ederek Gizlilik Politikası ve Kullanım Koşullarını kabul etmiş olursunuz."
+                  : "By continuing you accept our Privacy Policy and Terms of Use."}
+              </Text>
+            </Animated.View>
+          ) : (
+            <Animated.View entering={FadeIn.duration(300)} style={styles.form}>
+              <View style={styles.modeToggle}>
+                <Pressable
+                  onPress={() => setMode("login")}
+                  style={[styles.modeBtn, mode === "login" && styles.modeBtnActive]}
+                >
+                  <Text style={[styles.modeBtnText, mode === "login" && styles.modeBtnTextActive]}>
+                    {lang === "tr" ? "Giriş Yap" : "Login"}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => setMode("register")}
+                  style={[styles.modeBtn, mode === "register" && styles.modeBtnActive]}
+                >
+                  <Text style={[styles.modeBtnText, mode === "register" && styles.modeBtnTextActive]}>
+                    {lang === "tr" ? "Kayıt Ol" : "Register"}
+                  </Text>
+                </Pressable>
+              </View>
+
+              {mode === "register" && (
+                <View style={styles.inputWrap}>
+                  <Ionicons name="person-outline" size={18} color={Colors.textDim} style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    value={name}
+                    onChangeText={setName}
+                    placeholder={lang === "tr" ? "Adınız" : "Your Name"}
+                    placeholderTextColor={Colors.textDim}
+                    autoCapitalize="words"
+                  />
+                </View>
+              )}
+
               <View style={styles.inputWrap}>
-                <Ionicons name="person-outline" size={18} color={Colors.textDim} style={styles.inputIcon} />
+                <Ionicons name="mail-outline" size={18} color={Colors.textDim} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
-                  value={name}
-                  onChangeText={setName}
-                  placeholder={lang === "tr" ? "Adınız" : "Your Name"}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder={lang === "tr" ? "E-posta adresiniz" : "Email address"}
                   placeholderTextColor={Colors.textDim}
-                  autoCapitalize="words"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
                 />
               </View>
-            )}
 
-            <View style={styles.inputWrap}>
-              <Ionicons name="mail-outline" size={18} color={Colors.textDim} style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder={lang === "tr" ? "E-posta adresiniz" : "Email address"}
-                placeholderTextColor={Colors.textDim}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-            </View>
+              <View style={styles.inputWrap}>
+                <Ionicons name="lock-closed-outline" size={18} color={Colors.textDim} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder={lang === "tr" ? "Şifreniz" : "Password"}
+                  placeholderTextColor={Colors.textDim}
+                  secureTextEntry
+                />
+              </View>
 
-            <View style={styles.inputWrap}>
-              <Ionicons name="lock-closed-outline" size={18} color={Colors.textDim} style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                value={password}
-                onChangeText={setPassword}
-                placeholder={lang === "tr" ? "Şifreniz" : "Password"}
-                placeholderTextColor={Colors.textDim}
-                secureTextEntry
-              />
-            </View>
+              {mode === "register" && (
+                <View style={styles.inputWrap}>
+                  <Ionicons name="lock-closed-outline" size={18} color={Colors.textDim} style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    placeholder={lang === "tr" ? "Şifrenizi tekrar girin" : "Confirm Password"}
+                    placeholderTextColor={Colors.textDim}
+                    secureTextEntry
+                  />
+                </View>
+              )}
 
-            {!!error && (
-              <Text style={styles.errorText}>{error}</Text>
-            )}
+              {!!error && <Text style={styles.errorText}>{error}</Text>}
 
-            <Pressable
-              onPress={handleSubmit}
-              disabled={loading}
-              style={({ pressed }) => [styles.submitBtn, pressed && { opacity: 0.85 }]}
-            >
-              <LinearGradient
-                colors={[Colors.goldLight, Colors.gold]}
-                style={styles.submitBtnInner}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              >
-                <Ionicons name="sparkles" size={18} color={Colors.background} />
-                <Text style={styles.submitBtnText}>
-                  {loading
-                    ? (lang === "tr" ? "Yükleniyor..." : "Loading...")
-                    : mode === "login"
-                    ? (lang === "tr" ? "Giriş Yap" : "Login")
-                    : (lang === "tr" ? "Kayıt Ol" : "Register")}
-                </Text>
-              </LinearGradient>
-            </Pressable>
-
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>{lang === "tr" ? "veya" : "or"}</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* App Store Links */}
-            <View style={styles.storeRow}>
               <Pressable
-                onPress={() => Linking.openURL("https://apps.apple.com/app/tengri")}
-                style={styles.storeBtn}
+                onPress={handleEmailSubmit}
+                disabled={loading}
+                style={({ pressed }) => [styles.submitBtn, pressed && { opacity: 0.85 }]}
               >
-                <Ionicons name="logo-apple" size={20} color={Colors.text} />
-                <Text style={styles.storeBtnText}>App Store</Text>
+                <LinearGradient
+                  colors={[Colors.goldLight, Colors.gold]}
+                  style={styles.submitBtnInner}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Ionicons name="sparkles" size={18} color={Colors.background} />
+                  <Text style={styles.submitBtnText}>
+                    {loading
+                      ? (lang === "tr" ? "Yükleniyor..." : "Loading...")
+                      : mode === "login"
+                      ? (lang === "tr" ? "Giriş Yap" : "Login")
+                      : (lang === "tr" ? "Kayıt Ol" : "Register")}
+                  </Text>
+                </LinearGradient>
               </Pressable>
-              <Pressable
-                onPress={() => Linking.openURL("https://play.google.com/store/apps/tengri")}
-                style={styles.storeBtn}
-              >
-                <Ionicons name="logo-google-playstore" size={20} color={Colors.text} />
-                <Text style={styles.storeBtnText}>Google Play</Text>
-              </Pressable>
-            </View>
-
-            <Text style={styles.legalNote}>
-              {lang === "tr"
-                ? "tengristar.com • Gizlilik Politikası • Kullanım Koşulları"
-                : "tengristar.com • Privacy Policy • Terms of Use"}
-            </Text>
-          </Animated.View>
+            </Animated.View>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -286,84 +334,116 @@ export default function AuthScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { paddingHorizontal: 24 },
-  closeBtn: { alignSelf: "flex-end", width: 36, height: 36, alignItems: "center", justifyContent: "center" },
+  scroll: { paddingHorizontal: 24, alignItems: "center" },
+
+  closeBtn: {
+    alignSelf: "flex-start",
+    width: 36, height: 36,
+    alignItems: "center", justifyContent: "center",
+    backgroundColor: Colors.surface,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+  },
 
   orbContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    height: 130,
-    marginVertical: 16,
+    width: 120, height: 120,
+    alignItems: "center", justifyContent: "center",
+    marginTop: 24, marginBottom: 8,
   },
   orbGlow: {
     position: "absolute",
-    width: 100,
-    height: 100,
+    width: 100, height: 100,
     borderRadius: 50,
     backgroundColor: Colors.gold,
-    opacity: 0.12,
+    opacity: 0.15,
   },
   orbRing: {
     position: "absolute",
-    width: 110,
-    height: 110,
-    alignItems: "center",
-    justifyContent: "center",
+    width: 100, height: 100,
+    alignItems: "center", justifyContent: "center",
   },
   orbDot: {
     position: "absolute",
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+    width: 5, height: 5,
+    borderRadius: 3,
     backgroundColor: Colors.gold,
     opacity: 0.6,
   },
   orbCenter: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: 60, height: 60,
+    borderRadius: 30,
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.gold + "40",
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: "center", justifyContent: "center",
   },
 
-  titleBlock: { alignItems: "center", marginBottom: 24, gap: 6 },
+  titleBlock: { alignItems: "center", marginBottom: 32, marginTop: 8 },
   title: {
-    fontSize: 26,
+    fontSize: 24,
     fontFamily: "Lora_700Bold",
     color: Colors.text,
     textAlign: "center",
-    letterSpacing: 0.2,
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 13,
-    fontFamily: "Lora_400Regular_Italic",
+    fontFamily: "Lora_400Regular",
     color: Colors.textSecondary,
     textAlign: "center",
   },
 
+  socialBlock: { width: "100%", gap: 12 },
+  socialBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  socialBtnLabel: {
+    fontSize: 16,
+    fontFamily: "Lora_700Bold",
+    color: Colors.text,
+    flex: 1,
+  },
+  socialIconCircle: {
+    width: 42, height: 42,
+    borderRadius: 21,
+    borderWidth: 1,
+    alignItems: "center", justifyContent: "center",
+  },
+
+  legalNote: {
+    fontSize: 10,
+    fontFamily: "Lora_400Regular",
+    color: Colors.textDim,
+    textAlign: "center",
+    lineHeight: 15,
+    marginTop: 12,
+    paddingHorizontal: 16,
+  },
+
+  form: { width: "100%", gap: 12 },
   modeToggle: {
     flexDirection: "row",
     backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 4,
-    marginBottom: 20,
     borderWidth: 1,
     borderColor: Colors.cardBorder,
+    marginBottom: 4,
   },
   modeBtn: { flex: 1, paddingVertical: 10, alignItems: "center", borderRadius: 9 },
-  modeBtnActive: { backgroundColor: Colors.gold + "20" },
-  modeBtnText: {
-    fontSize: 13,
-    fontFamily: "Lora_700Bold",
-    color: Colors.textDim,
-    letterSpacing: 0.2,
-  },
-  modeBtnTextActive: { color: Colors.gold },
+  modeBtnActive: { backgroundColor: Colors.gold },
+  modeBtnText: { fontSize: 13, fontFamily: "Lora_700Bold", color: Colors.textDim },
+  modeBtnTextActive: { color: Colors.background },
 
-  form: { gap: 12 },
   inputWrap: {
     flexDirection: "row",
     alignItems: "center",
@@ -372,16 +452,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.cardBorder,
     paddingHorizontal: 14,
-    paddingVertical: 2,
+    height: 52,
   },
   inputIcon: { marginRight: 10 },
   input: {
     flex: 1,
-    height: 48,
     color: Colors.text,
     fontSize: 14,
     fontFamily: "Lora_400Regular",
   },
+
   errorText: {
     fontSize: 12,
     fontFamily: "Lora_400Regular",
@@ -389,46 +469,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  submitBtn: { borderRadius: 14, overflow: "hidden", marginTop: 4 },
+  submitBtn: { marginTop: 4 },
   submitBtnInner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 16,
     gap: 10,
+    borderRadius: 14,
+    paddingVertical: 16,
   },
-  submitBtnText: {
-    fontSize: 15,
-    fontFamily: "Lora_700Bold",
-    color: Colors.background,
-    letterSpacing: 0.2,
-  },
-
-  divider: { flexDirection: "row", alignItems: "center", gap: 12 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: Colors.cardBorder },
-  dividerText: { fontSize: 12, color: Colors.textDim, fontFamily: "Lora_400Regular" },
-
-  storeRow: { flexDirection: "row", gap: 12 },
-  storeBtn: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 13,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
-    backgroundColor: Colors.surface,
-  },
-  storeBtnText: { fontSize: 13, fontFamily: "Lora_400Regular", color: Colors.text },
-
-  legalNote: {
-    fontSize: 10,
-    fontFamily: "Lora_400Regular",
-    color: Colors.textDim,
-    textAlign: "center",
-    lineHeight: 16,
-    marginTop: 4,
-  },
+  submitBtnText: { fontSize: 15, fontFamily: "Lora_700Bold", color: Colors.background },
 });

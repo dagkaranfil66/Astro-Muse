@@ -23,6 +23,7 @@ import Animated, {
   withDelay,
   useAnimatedScrollHandler,
   interpolate,
+  interpolateColor,
   Extrapolation,
   FadeInDown,
   ZoomIn,
@@ -128,6 +129,7 @@ function AnimatedLogo() {
   const glowScale = useSharedValue(1);
   const glowOpacity = useSharedValue(0.5);
   const logoScale = useSharedValue(0.8);
+  const colorProgress = useSharedValue(0);
 
   React.useEffect(() => {
     floatY.value = withRepeat(
@@ -143,6 +145,10 @@ function AnimatedLogo() {
       -1, false
     );
     logoScale.value = withSpring(1, { damping: 10, stiffness: 70 });
+    colorProgress.value = withRepeat(
+      withSequence(withTiming(1, { duration: 4000 }), withTiming(0, { duration: 4000 })),
+      -1, false
+    );
   }, []);
 
   const floatStyle = useAnimatedStyle(() => ({
@@ -151,15 +157,19 @@ function AnimatedLogo() {
   const glowStyle = useAnimatedStyle(() => ({
     transform: [{ scale: glowScale.value }],
     opacity: glowOpacity.value,
+    backgroundColor: interpolateColor(colorProgress.value, [0, 1], ["#5B9BD5", "#FF6B9D"]),
+  }));
+  const glowMidStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(colorProgress.value, [0, 1], ["#9B59B6", "#FF69B4"]),
   }));
 
   return (
     <View style={styles.logoContainer}>
       <Animated.View style={[styles.logoGlowOuter, glowStyle]} />
-      <View style={styles.logoGlowMid} />
+      <Animated.View style={[styles.logoGlowMid, glowMidStyle]} />
       <MandalaRing radius={90} dotCount={24} color="#5B9BD5" duration={12000} />
-      <MandalaRing radius={72} dotCount={16} color="#9B59B6" duration={9000} reverse />
-      <MandalaRing radius={108} dotCount={8} color="#8B5CF6" duration={18000} />
+      <MandalaRing radius={72} dotCount={16} color="#FF6B9D" duration={9000} reverse />
+      <MandalaRing radius={108} dotCount={8} color="#9B59B6" duration={18000} />
       <Animated.View style={floatStyle}>
         <Image
           source={require("@/assets/images/tengri-logo.png")}
@@ -204,8 +214,8 @@ const ALL_SERVICES = [
 
 const ANIM_TYPES = ["rotate", "pulse", "bounce", "flip", "slide", "spin", "glow", "rotate", "pulse", "bounce", "flip"];
 
-function ServiceCard({ serviceId, index, label, desc }: {
-  serviceId: string; index: number; label: string; desc: string;
+function ServiceCard({ serviceId, index, label, desc, onPress }: {
+  serviceId: string; index: number; label: string; desc: string; onPress: () => void;
 }) {
   const animType = ANIM_TYPES[index % ANIM_TYPES.length];
   const color = SERVICE_COLORS[serviceId];
@@ -266,7 +276,7 @@ function ServiceCard({ serviceId, index, label, desc }: {
       <Pressable
         onPressIn={() => { cardScale.value = withSpring(0.96); }}
         onPressOut={() => { cardScale.value = withSpring(1); }}
-        onPress={() => router.push(`/reading/${serviceId}`)}
+        onPress={onPress}
       >
         <Animated.View style={[styles.cardBorder, borderStyle]}>
           <LinearGradient colors={gradient} style={styles.card} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
@@ -293,7 +303,7 @@ function ServiceCard({ serviceId, index, label, desc }: {
 // ────────── Main Screen ──────────
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { goldBalance, canAfford } = useApp();
+  const { goldBalance, userProfile, canSpin } = useApp();
   const { lang, t, toggleLang } = useLang();
   const scrollY = useSharedValue(0);
 
@@ -304,6 +314,14 @@ export default function HomeScreen() {
   }));
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
+
+  const handleServicePress = (serviceId: string) => {
+    if (!userProfile) {
+      router.push("/auth");
+      return;
+    }
+    router.push(`/reading/${serviceId}`);
+  };
 
   return (
     <View style={styles.container}>
@@ -318,7 +336,13 @@ export default function HomeScreen() {
       <View style={[styles.topBar, { paddingTop: topPad + 10 }]}>
         <Pressable onPress={() => router.push("/auth")} style={styles.authBtn}>
           <Ionicons name="person-circle-outline" size={18} color={Colors.gold} />
-          <Text style={styles.authBtnText}>{lang === "tr" ? "Giriş" : "Login"}</Text>
+          <Text style={styles.authBtnText} numberOfLines={1}>
+            {userProfile ? userProfile.name.split(" ")[0] : (lang === "tr" ? "Giriş" : "Login")}
+          </Text>
+        </Pressable>
+        <Pressable onPress={() => router.push("/spin")} style={[styles.spinBtn, canSpin && styles.spinBtnActive]}>
+          <Text style={{ fontSize: 14 }}>🎡</Text>
+          {canSpin && <View style={styles.spinBadge} />}
         </Pressable>
         <Pressable onPress={() => {}} style={styles.aiBadge}>
           <Ionicons name="sparkles" size={11} color="#00C8FF" />
@@ -386,6 +410,7 @@ export default function HomeScreen() {
             index={index}
             label={(t.services_list as any)[id]?.label ?? id}
             desc={(t.services_list as any)[id]?.desc ?? ""}
+            onPress={() => handleServicePress(id)}
           />
         ))}
       </Animated.ScrollView>
@@ -414,7 +439,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.gold + "30",
   },
-  authBtnText: { fontSize: 11, color: Colors.gold, fontFamily: "Lora_700Bold", letterSpacing: 0.3 },
+  authBtnText: { fontSize: 11, color: Colors.gold, fontFamily: "Lora_700Bold", letterSpacing: 0.3, maxWidth: 70 },
+  spinBtn: {
+    width: 36, height: 36, borderRadius: 18,
+    alignItems: "center", justifyContent: "center",
+    backgroundColor: Colors.surface,
+    borderWidth: 1, borderColor: Colors.cardBorder,
+  },
+  spinBtnActive: { borderColor: "#8B5CF6", backgroundColor: "#8B5CF615" },
+  spinBadge: {
+    position: "absolute", top: 4, right: 4,
+    width: 8, height: 8, borderRadius: 4,
+    backgroundColor: "#FF6B9D",
+    borderWidth: 1, borderColor: Colors.background,
+  },
   aiBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -456,16 +494,16 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: Colors.gold,
-    opacity: 0.08,
+    backgroundColor: "#5B9BD5",
+    opacity: 0.12,
   },
   logoGlowMid: {
     position: "absolute",
     width: 130,
     height: 130,
     borderRadius: 65,
-    backgroundColor: "#9B59B6",
-    opacity: 0.06,
+    backgroundColor: "#FF6B9D",
+    opacity: 0.08,
   },
   logoImage: { width: 150, height: 150 },
 

@@ -453,7 +453,7 @@ function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string
 export default function ReadingScreen() {
   const { service } = useLocalSearchParams<{ service: string }>();
   const insets = useSafeAreaInsets();
-  const { goldBalance, canAfford, spendGold, addReading, getServiceCost } = useApp();
+  const { goldBalance, canAfford, spendGold, addReading, getServiceCost, userProfile } = useApp();
   const { t, lang } = useLang();
 
   const base = SERVICE_META_BASE[service] || SERVICE_META_BASE.astroloji;
@@ -461,11 +461,15 @@ export default function ReadingScreen() {
   const serviceLabel = (t.services_list as any)[service]?.label || service;
   const goldCost = getServiceCost(service);
 
+  const isKahve = service === "kahve";
+  const isEl = service === "el";
+
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [readingText, setReadingText] = useState("");
   const [isDone, setIsDone] = useState(false);
   const [photo, setPhoto] = useState<{ uri: string; base64: string; type: string } | null>(null);
+  const [kahvePhotos, setKahvePhotos] = useState<{ uri: string; base64: string; type: string }[]>([]);
   const scrollRef = useRef<ScrollView>(null);
 
   const sendButtonScale = useSharedValue(1);
@@ -473,24 +477,62 @@ export default function ReadingScreen() {
 
   const canRead = canAfford(service);
 
-  const pickPhoto = async () => {
+  React.useEffect(() => {
+    if (!userProfile) {
+      router.replace("/auth");
+    }
+  }, [userProfile]);
+
+  const requestCameraPermission = async (): Promise<boolean> => {
+    if (Platform.OS === "web") return true;
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    return status === "granted";
+  };
+
+  const pickFromGallery = async (): Promise<{ uri: string; base64: string; type: string } | null> => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         allowsEditing: true,
         quality: 0.8,
         base64: true,
       });
       if (!result.canceled && result.assets[0]) {
         const asset = result.assets[0];
-        setPhoto({
-          uri: asset.uri,
-          base64: asset.base64 || "",
-          type: asset.mimeType || "image/jpeg",
-        });
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        return { uri: asset.uri, base64: asset.base64 || "", type: asset.mimeType || "image/jpeg" };
       }
     } catch {}
+    return null;
+  };
+
+  const pickFromCamera = async (): Promise<{ uri: string; base64: string; type: string } | null> => {
+    try {
+      const ok = await requestCameraPermission();
+      if (!ok) return null;
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        quality: 0.8,
+        base64: true,
+      });
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+        return { uri: asset.uri, base64: asset.base64 || "", type: asset.mimeType || "image/jpeg" };
+      }
+    } catch {}
+    return null;
+  };
+
+  const handleAddKahvePhoto = async (source: "gallery" | "camera") => {
+    if (kahvePhotos.length >= 3) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const img = source === "camera" ? await pickFromCamera() : await pickFromGallery();
+    if (img) setKahvePhotos((prev) => [...prev, img]);
+  };
+
+  const handleElPhoto = async (source: "gallery" | "camera") => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const img = source === "camera" ? await pickFromCamera() : await pickFromGallery();
+    if (img) setPhoto(img);
   };
 
   const handleRead = async () => {
@@ -506,8 +548,13 @@ export default function ReadingScreen() {
 
     try {
       const baseUrl = getApiUrl();
-      const body: Record<string, string> = { service, userInput: userInput || "Benim için mistik bir okuma yap." };
-      if (photo?.base64 && base.hasPhoto) {
+      const body: Record<string, any> = { service, userInput: userInput || "Benim için mistik bir okuma yap." };
+      if (isKahve && kahvePhotos.length > 0) {
+        body.images = kahvePhotos.map((p) => ({ base64: p.base64, type: p.type }));
+      } else if (isEl && photo?.base64) {
+        body.imageBase64 = photo.base64;
+        body.imageType = photo.type;
+      } else if (photo?.base64 && base.hasPhoto) {
         body.imageBase64 = photo.base64;
         body.imageType = photo.type;
       }
@@ -646,25 +693,75 @@ export default function ReadingScreen() {
         {/* Input Area - always stays above keyboard */}
         {!isDone && (
           <View style={[styles.inputArea, { paddingBottom: botPad + 16 }]}>
-            {/* Photo upload for kahve and el */}
-            {base.hasPhoto && (
-              <View style={styles.photoRow}>
-                <Pressable onPress={pickPhoto} style={[styles.photoBtn, { borderColor: base.color + "40" }]}>
-                  {photo ? (
-                    <Image source={{ uri: photo.uri }} style={styles.photoPreview} />
-                  ) : (
-                    <>
-                      <Ionicons name="camera-outline" size={20} color={base.color} />
-                      <Text style={[styles.photoBtnText, { color: base.color }]}>
-                        {lang === "tr" ? "Fotoğraf Yükle" : "Upload Photo"}
+            {/* El Falı — camera + gallery */}
+            {isEl && (
+              <View style={styles.photoSection}>
+                <Text style={[styles.photoSectionLabel, { color: base.color }]}>
+                  {lang === "tr" ? "El fotoğrafı" : "Hand photo"}
+                </Text>
+                {photo ? (
+                  <View style={styles.singlePhotoWrap}>
+                    <Image source={{ uri: photo.uri }} style={styles.singlePhotoPreview} />
+                    <Pressable onPress={() => setPhoto(null)} style={styles.photoRemoveBtn}>
+                      <Ionicons name="close-circle" size={22} color="#FF6B6B" />
+                    </Pressable>
+                  </View>
+                ) : (
+                  <View style={styles.photoSourceRow}>
+                    <Pressable onPress={() => handleElPhoto("camera")} style={[styles.photoSourceBtn, { borderColor: base.color + "50" }]}>
+                      <Ionicons name="camera" size={22} color={base.color} />
+                      <Text style={[styles.photoSourceLabel, { color: base.color }]}>
+                        {lang === "tr" ? "Kamera" : "Camera"}
                       </Text>
-                    </>
+                    </Pressable>
+                    <Pressable onPress={() => handleElPhoto("gallery")} style={[styles.photoSourceBtn, { borderColor: base.color + "50" }]}>
+                      <Ionicons name="images-outline" size={22} color={base.color} />
+                      <Text style={[styles.photoSourceLabel, { color: base.color }]}>
+                        {lang === "tr" ? "Galeri" : "Gallery"}
+                      </Text>
+                    </Pressable>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Kahve Falı — 3 photos */}
+            {isKahve && (
+              <View style={styles.photoSection}>
+                <Text style={[styles.photoSectionLabel, { color: base.color }]}>
+                  {lang === "tr"
+                    ? `Kahve fincanı fotoğrafları (${kahvePhotos.length}/3)`
+                    : `Coffee cup photos (${kahvePhotos.length}/3)`}
+                </Text>
+                <View style={styles.kahvePhotoGrid}>
+                  {kahvePhotos.map((p, idx) => (
+                    <View key={idx} style={styles.kahvePhotoSlot}>
+                      <Image source={{ uri: p.uri }} style={styles.kahvePhotoImg} />
+                      <Pressable
+                        onPress={() => setKahvePhotos((prev) => prev.filter((_, i) => i !== idx))}
+                        style={styles.photoRemoveBtn}
+                      >
+                        <Ionicons name="close-circle" size={18} color="#FF6B6B" />
+                      </Pressable>
+                    </View>
+                  ))}
+                  {kahvePhotos.length < 3 && (
+                    <View style={styles.kahveAddSlot}>
+                      <Pressable onPress={() => handleAddKahvePhoto("camera")} style={[styles.kahveAddBtn, { borderColor: base.color + "50" }]}>
+                        <Ionicons name="camera" size={18} color={base.color} />
+                      </Pressable>
+                      <Pressable onPress={() => handleAddKahvePhoto("gallery")} style={[styles.kahveAddBtn, { borderColor: base.color + "50" }]}>
+                        <Ionicons name="images-outline" size={18} color={base.color} />
+                      </Pressable>
+                    </View>
                   )}
-                </Pressable>
-                {photo && (
-                  <Pressable onPress={() => setPhoto(null)} style={styles.photoRemove}>
-                    <Ionicons name="close-circle" size={18} color={Colors.textDim} />
-                  </Pressable>
+                </View>
+                {kahvePhotos.length < 3 && (
+                  <Text style={styles.kahveHint}>
+                    {lang === "tr"
+                      ? "En iyi yorum için fincanın 3 farklı açısını yükleyin"
+                      : "Upload 3 angles of your cup for the best reading"}
+                  </Text>
                 )}
               </View>
             )}
@@ -802,6 +899,30 @@ const styles = StyleSheet.create({
   photoBtnText: { fontSize: 12, fontFamily: "Lora_400Regular" },
   photoPreview: { width: 40, height: 40, borderRadius: 8 },
   photoRemove: { padding: 4 },
+
+  // Photo sections
+  photoSection: { gap: 8 },
+  photoSectionLabel: { fontSize: 10, fontFamily: "Lora_700Bold", letterSpacing: 1, textTransform: "uppercase" },
+  photoSourceRow: { flexDirection: "row", gap: 10 },
+  photoSourceBtn: {
+    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 8, paddingVertical: 12, borderRadius: 12, borderWidth: 1, backgroundColor: Colors.surface,
+  },
+  photoSourceLabel: { fontSize: 12, fontFamily: "Lora_700Bold" },
+  singlePhotoWrap: { position: "relative", alignSelf: "flex-start" },
+  singlePhotoPreview: { width: 90, height: 90, borderRadius: 12 },
+  photoRemoveBtn: { position: "absolute", top: -8, right: -8, backgroundColor: Colors.background, borderRadius: 12 },
+
+  // Kahve photos
+  kahvePhotoGrid: { flexDirection: "row", gap: 10 },
+  kahvePhotoSlot: { position: "relative" },
+  kahvePhotoImg: { width: 70, height: 70, borderRadius: 10 },
+  kahveAddSlot: { flexDirection: "column", gap: 6 },
+  kahveAddBtn: {
+    width: 32, height: 32, borderRadius: 8, borderWidth: 1,
+    backgroundColor: Colors.surface, alignItems: "center", justifyContent: "center",
+  },
+  kahveHint: { fontSize: 10, fontFamily: "Lora_400Regular", color: Colors.textDim, fontStyle: "italic" },
   inputLabelText: { fontSize: 10, fontFamily: "Lora_400Regular", color: Colors.textDim, letterSpacing: 1 },
   inputRow: { flexDirection: "row", alignItems: "flex-end", gap: 10 },
   input: {
