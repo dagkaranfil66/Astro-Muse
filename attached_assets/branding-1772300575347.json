@@ -1,0 +1,132 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "Cormorant Garamond",
+      "role": "body"
+    },
+    {
+      "family": "Cinzel",
+      "role": "heading"
+    }
+  ],
+  "colors": {
+    "primary": "#0D1526",
+    "accent": "#E7B008",
+    "background": "#F6F7F9",
+    "textPrimary": "#2E2442",
+    "link": "#2E2442"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "Cormorant Garamond",
+      "heading": "Cinzel"
+    },
+    "fontStacks": {
+      "heading": [
+        "Cinzel",
+        "serif"
+      ],
+      "body": [
+        "Cormorant Garamond",
+        "serif"
+      ],
+      "paragraph": [
+        "Cormorant Garamond",
+        "serif"
+      ]
+    },
+    "fontSizes": {
+      "h1": "96px",
+      "h2": "36px",
+      "body": "20px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "borderRadius": "10px"
+  },
+  "components": {
+    "buttonPrimary": {
+      "background": "#E7B008",
+      "textColor": "#0D1526",
+      "borderRadius": "10px",
+      "borderRadiusCorners": {
+        "topLeft": "10px",
+        "topRight": "10px",
+        "bottomRight": "10px",
+        "bottomLeft": "10px"
+      },
+      "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(212, 175, 55, 0.4) 0px 0px 20px 0px"
+    },
+    "buttonSecondary": {
+      "background": "#ACADAE",
+      "textColor": "#E7B008",
+      "borderColor": "#E7B008",
+      "borderRadius": "10px",
+      "borderRadiusCorners": {
+        "topLeft": "10px",
+        "topRight": "10px",
+        "bottomRight": "10px",
+        "bottomLeft": "10px"
+      },
+      "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
+    }
+  },
+  "images": {
+    "logo": "https://horizons-cdn.hostinger.com/034a05a4-c220-46ae-978e-7ac102583110/203fa5897cc665b73d1330ac07ec2db9.png",
+    "favicon": "https://horizons-cdn.hostinger.com/034a05a4-c220-46ae-978e-7ac102583110/485035d8856ac573088f57b556b2ed26.jpg",
+    "ogImage": "https://horizons-cdn.hostinger.com/034a05a4-c220-46ae-978e-7ac102583110/061b2dfe47a9c987577aac6a5f738fc9.png",
+    "logoHref": "File saved at: attached_assets/logoHref.html",
+    "logoAlt": "Tengri Logo"
+  },
+  "__llm_logo_reasoning": {
+    "selectedIndex": 0,
+    "reasoning": "Selected #0 because it is visible, located in the header, and links to the homepage. The alt text 'Tengri Logo' matches the brand name inferred from the page title and URL.",
+    "confidence": 0.9,
+    "source": "llm"
+  },
+  "__llm_button_reasoning": {
+    "primary": {
+      "index": 1,
+      "text": "Kayıt Ol",
+      "reasoning": "Button #1 has a vibrant orange background (#E7B008), which is a strong indicator of a primary call-to-action. The text 'Kayıt Ol' (Sign Up) is action-oriented, making it suitable as the primary CTA."
+    },
+    "secondary": {
+      "index": 0,
+      "text": "Hizmetleri Keşfet",
+      "reasoning": "Button #0 has a more muted blue background (#ACADAE) and serves as a secondary action with the text 'Hizmetleri Keşfet' (Explore Services), which is less direct than 'Sign Up'."
+    },
+    "confidence": 0.95
+  },
+  "personality": {
+    "tone": "professional",
+    "energy": "medium",
+    "targetAudience": "business professionals and consultants"
+  },
+  "designSystem": {
+    "framework": "tailwind",
+    "componentLibrary": ""
+  },
+  "confidence": {
+    "buttons": 0.95,
+    "colors": 0.9,
+    "overall": 0.925
+  },
+  "__llm_metadata": {
+    "logoSelection": {
+      "llmCalled": true,
+      "llmSucceeded": true,
+      "finalSource": "llm",
+      "rawLogoSelection": {
+        "selectedLogoIndex": 0,
+        "selectedLogoReasoning": "Selected #0 because it is visible, located in the header, and links to the homepage. The alt text 'Tengri Logo' matches the brand name inferred from the page title and URL.",
+        "confidence": 0.9
+      }
+    },
+    "buttonClassification": {
+      "llmCalled": true,
+      "llmSucceeded": true
+    }
+  }
+}
