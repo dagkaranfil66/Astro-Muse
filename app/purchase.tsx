@@ -84,9 +84,9 @@ export default function PurchaseScreen() {
   const { lang } = useLang();
   const [buying, setBuying] = useState(false);
 
-  const glowOp = useSharedValue(0.4);
+  const glowOp = useSharedValue(0.2);
   React.useEffect(() => {
-    glowOp.value = withRepeat(withTiming(0.9, { duration: 2000 }), -1, true);
+    glowOp.value = withRepeat(withTiming(0.5, { duration: 2000 }), -1, true);
   }, []);
   const glowStyle = useAnimatedStyle(() => ({ opacity: glowOp.value }));
 
@@ -156,7 +156,7 @@ export default function PurchaseScreen() {
 
         {/* Current balance */}
         <Animated.View entering={ZoomIn.delay(100).springify()} style={styles.balanceCard}>
-          <LinearGradient colors={["#1A1205", "#0D1526"]} style={styles.balanceCardInner}>
+          <LinearGradient colors={["#141420", "#0D1526"]} style={styles.balanceCardInner}>
             <Text style={styles.balanceIcon}>✦</Text>
             <View>
               <Text style={styles.balanceLabel}>{lang === "tr" ? "Mevcut Bakiyeniz" : "Current Balance"}</Text>
@@ -217,7 +217,7 @@ export default function PurchaseScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  glow: { position: "absolute", width: 300, height: 300, borderRadius: 150, backgroundColor: Colors.gold, opacity: 0.05, top: "10%", left: "50%", marginLeft: -150 },
+  glow: { position: "absolute", width: 300, height: 300, borderRadius: 150, backgroundColor: Colors.gold, opacity: 0.02, top: "10%", left: "50%", marginLeft: -150 },
   inner: { paddingHorizontal: 18, gap: 16 },
 
   closeBtn: { alignSelf: "flex-end", width: 36, height: 36, alignItems: "center", justifyContent: "center" },
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   balanceUnit: { fontSize: 14, fontFamily: "Lora_400Regular", color: Colors.gold + "90" },
 
   section: { gap: 12 },
-  sectionTitle: { fontSize: 12, fontFamily: "Lora_700Bold", color: Colors.gold, letterSpacing: 1 },
+  sectionTitle: { fontSize: 12, fontFamily: "Lora_700Bold", color: Colors.textSecondary, letterSpacing: 1 },
 
   pkgCard: { borderRadius: 16, borderWidth: 1, borderColor: Colors.cardBorder, overflow: "hidden", marginBottom: 2 },
   pkgCardPopular: { borderColor: Colors.gold + "60", borderWidth: 2 },
@@ -253,8 +253,8 @@ const styles = StyleSheet.create({
   pkgBuyBtnText: { fontSize: 12, fontFamily: "Lora_700Bold", color: Colors.background },
 
   costTier: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
-  costTierBadge: { backgroundColor: Colors.gold + "20", borderRadius: 10, borderWidth: 1, borderColor: Colors.gold + "40", paddingHorizontal: 10, paddingVertical: 6, minWidth: 52, alignItems: "center" },
-  costTierValue: { fontSize: 13, fontFamily: "Lora_700Bold", color: Colors.gold },
+  costTierBadge: { backgroundColor: Colors.surface, borderRadius: 10, borderWidth: 1, borderColor: Colors.cardBorder, paddingHorizontal: 10, paddingVertical: 6, minWidth: 52, alignItems: "center" },
+  costTierValue: { fontSize: 13, fontFamily: "Lora_700Bold", color: Colors.text },
   costTierServices: { flex: 1, flexDirection: "row", flexWrap: "wrap", gap: 6 },
   costPill: { backgroundColor: Colors.surface, borderRadius: 8, borderWidth: 1, borderColor: Colors.cardBorder, paddingHorizontal: 10, paddingVertical: 5 },
   costPillText: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textSecondary },

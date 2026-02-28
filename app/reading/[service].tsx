@@ -861,7 +861,7 @@ export default function ReadingScreen() {
               </View>
             )}
 
-            {/* Kahve — compact status badge (full UI is in main content area above) */}
+            {/* Kahve — camera + gallery buttons in input bar */}
             {isKahve && (
               <View style={styles.kahveInputStatus}>
                 {kahvePhotos.length >= 3 ? (
@@ -872,15 +872,25 @@ export default function ReadingScreen() {
                     </Text>
                   </View>
                 ) : (
-                  <Pressable
-                    onPress={() => handleAddKahvePhoto("camera")}
-                    style={[styles.kahveStatusBadge, { borderColor: base.color + "40", backgroundColor: base.color + "10" }]}
-                  >
-                    <Ionicons name="camera-outline" size={14} color={base.color} />
-                    <Text style={[styles.kahveStatusText, { color: base.color }]}>
-                      {lang === "tr" ? `${kahvePhotos.length}/3 fotoğraf — yukarı kaydır` : `${kahvePhotos.length}/3 photos — scroll up`}
+                  <View style={styles.photoSection}>
+                    <Text style={[styles.photoSectionLabel, { color: base.color }]}>
+                      {lang === "tr" ? `Fincan fotoğrafı ${kahvePhotos.length}/3` : `Cup photo ${kahvePhotos.length}/3`}
                     </Text>
-                  </Pressable>
+                    <View style={styles.photoSourceRow}>
+                      <Pressable onPress={() => handleAddKahvePhoto("camera")} style={[styles.photoSourceBtn, { borderColor: base.color + "50" }]}>
+                        <Ionicons name="camera" size={22} color={base.color} />
+                        <Text style={[styles.photoSourceLabel, { color: base.color }]}>
+                          {lang === "tr" ? "Kamera" : "Camera"}
+                        </Text>
+                      </Pressable>
+                      <Pressable onPress={() => handleAddKahvePhoto("gallery")} style={[styles.photoSourceBtn, { borderColor: base.color + "50" }]}>
+                        <Ionicons name="images-outline" size={22} color={base.color} />
+                        <Text style={[styles.photoSourceLabel, { color: base.color }]}>
+                          {lang === "tr" ? "Galeri" : "Gallery"}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </View>
                 )}
               </View>
             )}
