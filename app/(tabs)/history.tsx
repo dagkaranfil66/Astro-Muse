@@ -136,11 +136,11 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 28,
-    fontFamily: "CinzelDecorative_700Bold",
+    fontFamily: "Lora_700Bold",
     color: Colors.text,
     textAlign: "center",
     marginBottom: 28,
-    letterSpacing: 1,
+    letterSpacing: 0.3,
   },
   empty: {
     alignItems: "center",
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 20,
-    fontFamily: "CinzelDecorative_400Regular",
+    fontFamily: "Lora_700Bold",
     color: Colors.textSecondary,
     textAlign: "center",
   },
@@ -191,9 +191,9 @@ const styles = StyleSheet.create({
   },
   cardService: {
     fontSize: 14,
-    fontFamily: "CinzelDecorative_400Regular",
+    fontFamily: "Lora_700Bold",
     color: Colors.text,
-    letterSpacing: 0.5,
+    letterSpacing: 0.1,
   },
   cardDate: {
     fontSize: 11,

@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.gold + "30",
   },
-  authBtnText: { fontSize: 11, color: Colors.gold, fontFamily: "CinzelDecorative_400Regular", letterSpacing: 0.5 },
+  authBtnText: { fontSize: 11, color: Colors.gold, fontFamily: "Lora_700Bold", letterSpacing: 0.3 },
   aiBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -494,13 +494,13 @@ const styles = StyleSheet.create({
 
   purchaseCta: { marginBottom: 14, borderRadius: 12, overflow: "hidden" },
   purchaseCtaInner: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 14, gap: 10 },
-  purchaseCtaText: { fontSize: 13, fontFamily: "CinzelDecorative_700Bold", color: Colors.background, letterSpacing: 0.5 },
+  purchaseCtaText: { fontSize: 13, fontFamily: "Lora_700Bold", color: Colors.background, letterSpacing: 0.3 },
 
   sectionTitle: {
     fontSize: 11,
-    fontFamily: "CinzelDecorative_400Regular",
+    fontFamily: "Lora_400Regular",
     color: Colors.textSecondary,
-    letterSpacing: 4,
+    letterSpacing: 3,
     marginBottom: 12,
     textTransform: "uppercase",
   },
@@ -517,6 +517,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   cardContent: { flex: 1 },
-  cardTitle: { fontSize: 14, fontFamily: "CinzelDecorative_400Regular", color: Colors.text, marginBottom: 3, letterSpacing: 0.3 },
+  cardTitle: { fontSize: 14, fontFamily: "Lora_700Bold", color: Colors.text, marginBottom: 3, letterSpacing: 0.1 },
   cardDesc: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textSecondary, lineHeight: 16 },
 });

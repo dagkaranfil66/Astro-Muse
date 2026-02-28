@@ -328,10 +328,10 @@ const styles = StyleSheet.create({
   titleBlock: { alignItems: "center", marginBottom: 24, gap: 6 },
   title: {
     fontSize: 26,
-    fontFamily: "CinzelDecorative_700Bold",
+    fontFamily: "Lora_700Bold",
     color: Colors.text,
     textAlign: "center",
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
   subtitle: {
     fontSize: 13,
@@ -353,9 +353,9 @@ const styles = StyleSheet.create({
   modeBtnActive: { backgroundColor: Colors.gold + "20" },
   modeBtnText: {
     fontSize: 13,
-    fontFamily: "CinzelDecorative_400Regular",
+    fontFamily: "Lora_700Bold",
     color: Colors.textDim,
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
   modeBtnTextActive: { color: Colors.gold },
 
@@ -395,9 +395,9 @@ const styles = StyleSheet.create({
   },
   submitBtnText: {
     fontSize: 15,
-    fontFamily: "CinzelDecorative_700Bold",
+    fontFamily: "Lora_700Bold",
     color: Colors.background,
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
 
   divider: { flexDirection: "row", alignItems: "center", gap: 12 },

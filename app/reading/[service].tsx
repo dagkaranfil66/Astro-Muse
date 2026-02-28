@@ -694,13 +694,13 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingBottom: 12 },
   backBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
   headerCenter: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
-  headerTitle: { fontSize: 13, fontFamily: "CinzelDecorative_400Regular", color: Colors.text, letterSpacing: 0.5 },
+  headerTitle: { fontSize: 13, fontFamily: "Lora_700Bold", color: Colors.text, letterSpacing: 0.2 },
 
   content: { paddingHorizontal: 18, paddingTop: 8, flexGrow: 1 },
 
   // Service intros
   serviceIntro: { alignItems: "center", paddingVertical: 20, gap: 12 },
-  introServiceTitle: { fontSize: 20, fontFamily: "CinzelDecorative_700Bold", color: Colors.text, textAlign: "center" },
+  introServiceTitle: { fontSize: 20, fontFamily: "Lora_700Bold", color: Colors.text, textAlign: "center" },
   introDesc: { fontSize: 13, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary, textAlign: "center", lineHeight: 20, paddingHorizontal: 20 },
 
   // Kahve
@@ -719,7 +719,7 @@ const styles = StyleSheet.create({
   tarotCardWrap: { alignItems: "center", gap: 6 },
   tarotCard: { width: (width - 80) / 3, height: 110, borderRadius: 10, borderWidth: 1, overflow: "hidden" },
   tarotCardInner: { flex: 1, alignItems: "center", justifyContent: "center" },
-  tarotCardLabel: { fontSize: 9, fontFamily: "CinzelDecorative_400Regular", letterSpacing: 1 },
+  tarotCardLabel: { fontSize: 9, fontFamily: "Lora_400Regular", letterSpacing: 0.5 },
 
   // Doğum
   zodiacWheel: { width: 130, height: 130, borderRadius: 65, borderWidth: 1, backgroundColor: Colors.surface, alignItems: "center", justifyContent: "center" },
@@ -749,13 +749,13 @@ const styles = StyleSheet.create({
   // Reading
   readingBox: { backgroundColor: Colors.surfaceElevated, borderRadius: 16, overflow: "hidden", borderWidth: 1, borderColor: Colors.cardBorder, marginTop: 8, marginBottom: 14 },
   readingHeader: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16, paddingVertical: 11, borderBottomWidth: 1 },
-  readingHeaderText: { fontSize: 10, fontFamily: "CinzelDecorative_400Regular", letterSpacing: 2 },
+  readingHeaderText: { fontSize: 10, fontFamily: "Lora_700Bold", letterSpacing: 1 },
   readingText: { padding: 16, fontSize: 15, fontFamily: "Lora_400Regular", color: Colors.text, lineHeight: 26 },
 
   // Share
   sharePanel: { backgroundColor: Colors.surface, borderRadius: 14, borderWidth: 1, borderColor: Colors.gold + "25", padding: 14, marginBottom: 12 },
   sharePanelHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 10 },
-  sharePanelTitle: { fontSize: 10, fontFamily: "CinzelDecorative_400Regular", color: Colors.gold, letterSpacing: 2, textTransform: "uppercase" },
+  sharePanelTitle: { fontSize: 10, fontFamily: "Lora_700Bold", color: Colors.gold, letterSpacing: 1, textTransform: "uppercase" },
   shareButtons: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   shareBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 9, borderWidth: 1 },
   shareBtnWA: { borderColor: "#25D36640", backgroundColor: "#25D36610" },

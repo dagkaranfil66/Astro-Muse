@@ -214,9 +214,9 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 10,
-    fontFamily: "CinzelDecorative_400Regular",
+    fontFamily: "Lora_400Regular",
     color: Colors.gold,
-    letterSpacing: 2,
+    letterSpacing: 1,
   },
   iconBig: {
     marginBottom: 24,
@@ -237,11 +237,11 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 26,
-    fontFamily: "CinzelDecorative_700Bold",
+    fontFamily: "Lora_700Bold",
     color: Colors.text,
     textAlign: "center",
     lineHeight: 38,
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
   subtitle: {
     fontSize: 14,
@@ -320,9 +320,9 @@ const styles = StyleSheet.create({
   },
   buyBtnText: {
     fontSize: 16,
-    fontFamily: "CinzelDecorative_700Bold",
+    fontFamily: "Lora_700Bold",
     color: Colors.background,
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
   legalNote: {
     fontSize: 11,
