@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import Svg, { Path, G, Text as SvgText, Circle, Line } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import Animated, {
   FadeIn,
@@ -29,47 +30,105 @@ import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
 
 const { width } = Dimensions.get("window");
-const WHEEL_SIZE = Math.min(width - 48, 320);
+const WHEEL_SIZE = Math.min(width - 40, 320);
+const R = WHEEL_SIZE / 2;
 
 const PRIZES = [
-  { label: "2 Altın", gold: 2, color: "#6B4FBB" },
-  { label: "5 Altın", gold: 5, color: "#C0932A" },
-  { label: "1 Altın", gold: 1, color: "#1ABFB8" },
-  { label: "10 Altın", gold: 10, color: "#E74C8B" },
-  { label: "3 Altın", gold: 3, color: "#4CAF7A" },
-  { label: "7 Altın", gold: 7, color: "#FF8C42" },
-  { label: "1 Altın", gold: 1, color: "#9B59B6" },
-  { label: "15 Altın", gold: 15, color: "#E7B008" },
+  { label: "2 Altın", gold: 2,  color: "#E91E8C" },
+  { label: "5 Altın", gold: 5,  color: "#7B1FA2" },
+  { label: "1 Altın", gold: 1,  color: "#1565C0" },
+  { label: "10 Altın", gold: 10, color: "#00897B" },
+  { label: "3 Altın", gold: 3,  color: "#8BC34A" },
+  { label: "7 Altın", gold: 7,  color: "#FF6F00" },
+  { label: "1 Altın", gold: 1,  color: "#D32F2F" },
+  { label: "15 Altın", gold: 15, color: "#F9A825" },
 ];
 
 const SLICE_ANGLE = 360 / PRIZES.length;
 
-function WheelSegment({ index, total, prize }: { index: number; total: number; prize: typeof PRIZES[0] }) {
-  const angle = (index / total) * 360;
-  const midAngle = angle + SLICE_ANGLE / 2;
-  const rad = (midAngle * Math.PI) / 180;
-  const r = WHEEL_SIZE / 2;
-  const labelR = r * 0.62;
-  const lx = r + labelR * Math.cos(rad);
-  const ly = r + labelR * Math.sin(rad);
+function polarToXY(angleDeg: number, radius: number) {
+  const rad = ((angleDeg - 90) * Math.PI) / 180;
+  return {
+    x: R + radius * Math.cos(rad),
+    y: R + radius * Math.sin(rad),
+  };
+}
 
+function segmentPath(startDeg: number, endDeg: number) {
+  const start = polarToXY(startDeg, R - 1);
+  const end = polarToXY(endDeg, R - 1);
+  const largeArc = endDeg - startDeg > 180 ? 1 : 0;
+  return `M ${R} ${R} L ${start.x} ${start.y} A ${R - 1} ${R - 1} 0 ${largeArc} 1 ${end.x} ${end.y} Z`;
+}
+
+function WheelSvg() {
   return (
-    <View
-      style={[
-        styles.segment,
-        {
-          transform: [{ rotate: `${angle}deg` }],
-          backgroundColor: prize.color + "22",
-          borderTopColor: prize.color + "50",
-        },
-      ]}
-    >
-      <View
-        style={[styles.segmentLabel, { left: lx - 24, top: ly - 12 }]}
+    <Svg width={WHEEL_SIZE} height={WHEEL_SIZE} viewBox={`0 0 ${WHEEL_SIZE} ${WHEEL_SIZE}`}>
+      {PRIZES.map((prize, i) => {
+        const startDeg = i * SLICE_ANGLE;
+        const endDeg = (i + 1) * SLICE_ANGLE;
+        const midDeg = startDeg + SLICE_ANGLE / 2;
+        const textRotation = midDeg;
+
+        const textR = R * 0.62;
+        const textPos = polarToXY(midDeg, textR);
+
+        return (
+          <G key={i}>
+            <Path
+              d={segmentPath(startDeg, endDeg)}
+              fill={prize.color}
+            />
+            <SvgText
+              x={textPos.x}
+              y={textPos.y}
+              fill="#FFFFFF"
+              fontSize={13}
+              fontWeight="bold"
+              textAnchor="middle"
+              alignmentBaseline="middle"
+              rotation={textRotation}
+              originX={textPos.x}
+              originY={textPos.y}
+            >
+              {prize.label}
+            </SvgText>
+          </G>
+        );
+      })}
+
+      {/* White dividing lines */}
+      {PRIZES.map((_, i) => {
+        const angleDeg = i * SLICE_ANGLE;
+        const outer = polarToXY(angleDeg, R - 1);
+        return (
+          <Line
+            key={`line-${i}`}
+            x1={R}
+            y1={R}
+            x2={outer.x}
+            y2={outer.y}
+            stroke="rgba(255,255,255,0.6)"
+            strokeWidth={2}
+          />
+        );
+      })}
+
+      {/* Center circle */}
+      <Circle cx={R} cy={R} r={28} fill="#0A0520" />
+      <Circle cx={R} cy={R} r={28} fill="none" stroke={Colors.gold} strokeWidth={2.5} />
+      <SvgText
+        x={R}
+        y={R + 1}
+        fill={Colors.gold}
+        fontSize={22}
+        fontWeight="bold"
+        textAnchor="middle"
+        alignmentBaseline="middle"
       >
-        <Text style={styles.segmentText}>{prize.label}</Text>
-      </View>
-    </View>
+        ✦
+      </SvgText>
+    </Svg>
   );
 }
 
@@ -111,8 +170,8 @@ export default function SpinScreen() {
     const targetAngle = extraSpins * 360 + (360 - prizeIndex * SLICE_ANGLE - SLICE_ANGLE / 2);
 
     pointerBounce.value = withRepeat(
-      withSequence(withTiming(1.3, { duration: 150 }), withTiming(1, { duration: 150 })),
-      8, false
+      withSequence(withTiming(1.35, { duration: 140 }), withTiming(1, { duration: 140 })),
+      10, false
     );
 
     rotation.value = withTiming(
@@ -165,85 +224,22 @@ export default function SpinScreen() {
         </Animated.View>
 
         <Animated.View entering={FadeIn.delay(200)} style={styles.wheelContainer}>
-          {/* ── Pointer arrow at TOP pointing into wheel ── */}
+          {/* Gold pointer at top */}
           <Animated.View style={[styles.pointerWrap, pointerStyle]}>
-            <View style={styles.pointerShadow} />
             <View style={styles.pointerTriangle} />
             <View style={styles.pointerBase} />
           </Animated.View>
 
-          <View style={[styles.wheelOuter, { width: WHEEL_SIZE, height: WHEEL_SIZE, borderRadius: WHEEL_SIZE / 2 }]}>
-            <Animated.View
-              style={[styles.wheelInner, { width: WHEEL_SIZE, height: WHEEL_SIZE, borderRadius: WHEEL_SIZE / 2 }, wheelStyle]}
-            >
-              {PRIZES.map((prize, i) => {
-                const startAngle = (i / PRIZES.length) * 360;
-                const midAngleDeg = startAngle + SLICE_ANGLE / 2;
-                const midAngleRad = (midAngleDeg - 90) * (Math.PI / 180);
-                const labelR = WHEEL_SIZE * 0.29;
-                const cx = WHEEL_SIZE / 2;
-                const cy = WHEEL_SIZE / 2;
-                const lx = cx + Math.cos(midAngleRad) * labelR;
-                const ly = cy + Math.sin(midAngleRad) * labelR;
-                return (
-                  <View
-                    key={i}
-                    style={[
-                      styles.sliceWrap,
-                      {
-                        width: WHEEL_SIZE,
-                        height: WHEEL_SIZE,
-                        transform: [{ rotate: `${startAngle}deg` }],
-                      },
-                    ]}
-                  >
-                    <LinearGradient
-                      colors={[prize.color + "FF", prize.color + "CC"]}
-                      style={[styles.slice, { borderTopWidth: 2, borderTopColor: "rgba(255,255,255,0.35)" }]}
-                      start={{ x: 0.5, y: 0 }}
-                      end={{ x: 0.5, y: 1 }}
-                    />
-                  </View>
-                );
-              })}
-              {/* Labels rendered outside the rotated slices so they stay aligned */}
-              {PRIZES.map((prize, i) => {
-                const midAngleDeg = (i / PRIZES.length) * 360 + SLICE_ANGLE / 2;
-                const midAngleRad = (midAngleDeg - 90) * (Math.PI / 180);
-                const labelR = WHEEL_SIZE * 0.3;
-                const cx = WHEEL_SIZE / 2;
-                const cy = WHEEL_SIZE / 2;
-                const lx = cx + Math.cos(midAngleRad) * labelR;
-                const ly = cy + Math.sin(midAngleRad) * labelR;
-                const [amount, unit] = prize.label.split(" ");
-                return (
-                  <View
-                    key={`label-${i}`}
-                    style={[
-                      styles.sliceLabelBox,
-                      {
-                        left: lx - 22,
-                        top: ly - 18,
-                        transform: [{ rotate: `${midAngleDeg}deg` }],
-                        borderColor: prize.color,
-                        backgroundColor: "rgba(4,6,20,0.75)",
-                      },
-                    ]}
-                  >
-                    <Text style={[styles.sliceLabelAmount, { color: Colors.gold }]}>{amount}</Text>
-                    <Text style={[styles.sliceLabelUnit, { color: prize.color }]}>{unit}</Text>
-                  </View>
-                );
-              })}
-              <View style={styles.wheelCenter}>
-                <Text style={styles.wheelCenterIcon}>✦</Text>
-              </View>
+          {/* Wheel ring + SVG */}
+          <View style={[styles.wheelRing, { width: WHEEL_SIZE + 10, height: WHEEL_SIZE + 10, borderRadius: (WHEEL_SIZE + 10) / 2 }]}>
+            <Animated.View style={[{ width: WHEEL_SIZE, height: WHEEL_SIZE, borderRadius: R }, wheelStyle]}>
+              <WheelSvg />
             </Animated.View>
           </View>
         </Animated.View>
 
         {!done && (
-          <Animated.View entering={FadeInDown.delay(300).springify()}>
+          <Animated.View entering={FadeInDown.delay(300).springify()} style={{ width: "100%" }}>
             <Pressable
               onPress={spin}
               disabled={spinning || !canSpin}
@@ -308,85 +304,42 @@ const styles = StyleSheet.create({
   },
   goldBadgeText: { fontSize: 13, fontFamily: "Lora_700Bold", color: Colors.gold },
 
-  content: { flex: 1, alignItems: "center", paddingHorizontal: 24 },
+  content: { flex: 1, alignItems: "center", paddingHorizontal: 20 },
 
   infoBox: {
     backgroundColor: Colors.surface,
     borderRadius: 14, borderWidth: 1, borderColor: Colors.cardBorder,
     paddingHorizontal: 20, paddingVertical: 14,
-    alignItems: "center", width: "100%", marginBottom: 24,
+    alignItems: "center", width: "100%", marginBottom: 28,
   },
   infoTitle: { fontSize: 15, fontFamily: "Lora_700Bold", color: Colors.text, marginBottom: 4 },
   infoDesc: { fontSize: 12, fontFamily: "Lora_400Regular", color: Colors.textSecondary, textAlign: "center" },
 
-  wheelContainer: { alignItems: "center", marginBottom: 28 },
-  wheelOuter: {
-    borderWidth: 3, borderColor: Colors.gold + "60",
-    overflow: "hidden",
-    shadowColor: Colors.gold, shadowOpacity: 0.4, shadowRadius: 16, shadowOffset: { width: 0, height: 0 },
-    elevation: 12,
-  },
-  wheelInner: { overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  wheelContainer: { alignItems: "center", marginBottom: 32 },
 
-  sliceWrap: {
-    position: "absolute",
-    overflow: "hidden",
-    alignItems: "center",
-    top: 0, left: 0,
-  },
-  slice: {
-    position: "absolute",
-    width: "100%", height: "50%",
-    transformOrigin: "50% 100%",
-  },
-  sliceLabel: {
-    position: "absolute",
-    fontSize: 11, fontFamily: "Lora_700Bold",
-    top: "12%", left: "50%",
-    width: 60, textAlign: "center",
-  },
-  sliceLabelBox: {
-    position: "absolute",
-    width: 44, height: 36,
-    borderRadius: 6, borderWidth: 1,
-    alignItems: "center", justifyContent: "center",
-    gap: 1,
-  },
-  sliceLabelAmount: {
-    fontSize: 13, fontFamily: "Lora_700Bold", lineHeight: 15,
-  },
-  sliceLabelUnit: {
-    fontSize: 8, fontFamily: "Lora_700Bold", lineHeight: 10, letterSpacing: 0.5,
-    textTransform: "uppercase" as const,
-  },
-
-  wheelCenter: {
-    width: 54, height: 54, borderRadius: 27,
-    backgroundColor: Colors.background,
-    borderWidth: 2.5, borderColor: Colors.gold,
-    alignItems: "center", justifyContent: "center",
-    shadowColor: Colors.gold, shadowOpacity: 0.6, shadowRadius: 8, shadowOffset: { width: 0, height: 0 },
-    elevation: 8,
-  },
-  wheelCenterIcon: { fontSize: 24, color: Colors.gold },
-
-  pointerWrap: {
-    alignItems: "center", zIndex: 10, marginBottom: -16,
-  },
-  pointerShadow: {
-    position: "absolute", bottom: -4,
-    width: 20, height: 8, borderRadius: 4,
-    backgroundColor: Colors.gold, opacity: 0.25,
-  },
+  pointerWrap: { alignItems: "center", zIndex: 10, marginBottom: -6 },
   pointerTriangle: {
     width: 0, height: 0,
-    borderLeftWidth: 12, borderRightWidth: 12, borderTopWidth: 24,
+    borderLeftWidth: 11, borderRightWidth: 11, borderTopWidth: 22,
     borderLeftColor: "transparent", borderRightColor: "transparent",
     borderTopColor: Colors.gold,
   },
   pointerBase: {
-    width: 10, height: 8, borderRadius: 2,
-    backgroundColor: Colors.gold, marginTop: -4,
+    width: 8, height: 6, borderRadius: 2,
+    backgroundColor: Colors.gold, marginTop: -3,
+  },
+
+  wheelRing: {
+    borderWidth: 4,
+    borderColor: Colors.gold + "80",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    shadowColor: Colors.gold,
+    shadowOpacity: 0.5,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 14,
   },
 
   spinBtn: { width: "100%" },
@@ -410,8 +363,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32, paddingVertical: 14,
   },
   closeBtnText: { fontSize: 15, fontFamily: "Lora_700Bold", color: Colors.background },
-
-  segment: {},
-  segmentLabel: { position: "absolute" },
-  segmentText: { fontSize: 10, fontFamily: "Lora_700Bold", color: Colors.text },
 });
