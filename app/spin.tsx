@@ -176,43 +176,65 @@ export default function SpinScreen() {
             <Animated.View
               style={[styles.wheelInner, { width: WHEEL_SIZE, height: WHEEL_SIZE, borderRadius: WHEEL_SIZE / 2 }, wheelStyle]}
             >
-              {PRIZES.map((prize, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.sliceWrap,
-                    {
-                      width: WHEEL_SIZE,
-                      height: WHEEL_SIZE,
-                      transform: [{ rotate: `${(i / PRIZES.length) * 360}deg` }],
-                    },
-                  ]}
-                >
-                  <LinearGradient
-                    colors={[prize.color + "55", prize.color + "22"]}
-                    style={[styles.slice, { borderTopWidth: 2.5, borderTopColor: prize.color + "90" }]}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 1 }}
-                  />
-                  <Text
+              {PRIZES.map((prize, i) => {
+                const startAngle = (i / PRIZES.length) * 360;
+                const midAngleDeg = startAngle + SLICE_ANGLE / 2;
+                const midAngleRad = (midAngleDeg - 90) * (Math.PI / 180);
+                const labelR = WHEEL_SIZE * 0.29;
+                const cx = WHEEL_SIZE / 2;
+                const cy = WHEEL_SIZE / 2;
+                const lx = cx + Math.cos(midAngleRad) * labelR;
+                const ly = cy + Math.sin(midAngleRad) * labelR;
+                return (
+                  <View
+                    key={i}
                     style={[
-                      styles.sliceLabel,
+                      styles.sliceWrap,
                       {
-                        color: "#fff",
-                        textShadowColor: prize.color,
-                        textShadowRadius: 6,
-                        transform: [
-                          { translateX: -30 },
-                          { translateY: WHEEL_SIZE * 0.18 },
-                          { rotate: `${SLICE_ANGLE / 2}deg` },
-                        ],
+                        width: WHEEL_SIZE,
+                        height: WHEEL_SIZE,
+                        transform: [{ rotate: `${startAngle}deg` }],
                       },
                     ]}
                   >
-                    {prize.label}
-                  </Text>
-                </View>
-              ))}
+                    <LinearGradient
+                      colors={[prize.color + "FF", prize.color + "CC"]}
+                      style={[styles.slice, { borderTopWidth: 2, borderTopColor: "rgba(255,255,255,0.35)" }]}
+                      start={{ x: 0.5, y: 0 }}
+                      end={{ x: 0.5, y: 1 }}
+                    />
+                  </View>
+                );
+              })}
+              {/* Labels rendered outside the rotated slices so they stay aligned */}
+              {PRIZES.map((prize, i) => {
+                const midAngleDeg = (i / PRIZES.length) * 360 + SLICE_ANGLE / 2;
+                const midAngleRad = (midAngleDeg - 90) * (Math.PI / 180);
+                const labelR = WHEEL_SIZE * 0.3;
+                const cx = WHEEL_SIZE / 2;
+                const cy = WHEEL_SIZE / 2;
+                const lx = cx + Math.cos(midAngleRad) * labelR;
+                const ly = cy + Math.sin(midAngleRad) * labelR;
+                const [amount, unit] = prize.label.split(" ");
+                return (
+                  <View
+                    key={`label-${i}`}
+                    style={[
+                      styles.sliceLabelBox,
+                      {
+                        left: lx - 22,
+                        top: ly - 18,
+                        transform: [{ rotate: `${midAngleDeg}deg` }],
+                        borderColor: prize.color,
+                        backgroundColor: "rgba(4,6,20,0.75)",
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.sliceLabelAmount, { color: Colors.gold }]}>{amount}</Text>
+                    <Text style={[styles.sliceLabelUnit, { color: prize.color }]}>{unit}</Text>
+                  </View>
+                );
+              })}
               <View style={styles.wheelCenter}>
                 <Text style={styles.wheelCenterIcon}>✦</Text>
               </View>
@@ -322,6 +344,20 @@ const styles = StyleSheet.create({
     fontSize: 11, fontFamily: "Lora_700Bold",
     top: "12%", left: "50%",
     width: 60, textAlign: "center",
+  },
+  sliceLabelBox: {
+    position: "absolute",
+    width: 44, height: 36,
+    borderRadius: 6, borderWidth: 1,
+    alignItems: "center", justifyContent: "center",
+    gap: 1,
+  },
+  sliceLabelAmount: {
+    fontSize: 13, fontFamily: "Lora_700Bold", lineHeight: 15,
+  },
+  sliceLabelUnit: {
+    fontSize: 8, fontFamily: "Lora_700Bold", lineHeight: 10, letterSpacing: 0.5,
+    textTransform: "uppercase" as const,
   },
 
   wheelCenter: {

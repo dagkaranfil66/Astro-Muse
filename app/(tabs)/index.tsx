@@ -556,13 +556,14 @@ const styles = StyleSheet.create({
 
   hero: { alignItems: "center", paddingTop: 8, marginBottom: 18 },
   heroTitle: {
-    fontSize: 26,
-    fontFamily: "CinzelDecorative_700Bold",
+    fontSize: 24,
+    fontFamily: "Lora_700Bold",
     color: Colors.text,
     textAlign: "center",
-    letterSpacing: 1,
+    letterSpacing: 2,
     marginBottom: 8,
     marginTop: 4,
+    textTransform: "uppercase" as const,
   },
   heroDesc: {
     fontSize: 12,
