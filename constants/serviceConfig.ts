@@ -1,6 +1,6 @@
 export const SERVICE_GOLD_COST: Record<string, number> = {
   samanizm: 1,
-  burclar: 1,
+  burclar: 3,
   ruh: 1,
   astroloji: 2,
   kahve: 2,
