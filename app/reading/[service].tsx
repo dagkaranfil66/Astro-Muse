@@ -151,8 +151,10 @@ function ElIntro({ color }: { color: string }) {
   );
 }
 
-const TAROT_SYMBOLS = ["☽", "⊕", "☀"];
-const TAROT_FRONT_COLORS = ["#3B2A6B", "#1A4A3A", "#7A3800"];
+const TAROT_SYMBOLS = ["Ψ", "♾", "☠"];
+const TAROT_ROMAN = ["IV", "VIII", "XIII"];
+const TAROT_LABELS_TR = ["GEÇMIŞ", "GÜÇLÜ", "ÖLÜM"];
+const TAROT_FRONT_COLORS = ["#4A2A7A", "#2A5C3A", "#6B2A00"];
 
 function TarotCard({ color, label, isDone, isLoading, flipDelay, floatDelay, cardIndex }: {
   color: string; label: string; isDone: boolean; isLoading?: boolean;
@@ -222,23 +224,26 @@ function TarotCard({ color, label, isDone, isLoading, flipDelay, floatDelay, car
           </LinearGradient>
         </Animated.View>
 
-        {/* Card Front — parchment white */}
+        {/* Card Front — parchment tarot card */}
         <Animated.View style={[StyleSheet.absoluteFill, frontStyle]}>
-          <View style={[styles.tarotCardInner, { borderRadius: 10, backgroundColor: "#FAF5E8", gap: 4 }]}>
-            {/* Outer gold frame */}
-            <View style={{ position: "absolute", top: 4, left: 4, right: 4, bottom: 4, borderWidth: 1.5, borderColor: TAROT_FRONT_COLORS[cardIndex] + "80", borderRadius: 7 }} />
-            {/* Inner thin frame */}
-            <View style={{ position: "absolute", top: 8, left: 8, right: 8, bottom: 8, borderWidth: 0.5, borderColor: TAROT_FRONT_COLORS[cardIndex] + "40", borderRadius: 5 }} />
-            {/* Corner marks */}
-            <Text style={{ position: "absolute", top: 5, left: 7, fontSize: 7, color: TAROT_FRONT_COLORS[cardIndex] + "90" }}>✦</Text>
-            <Text style={{ position: "absolute", top: 5, right: 7, fontSize: 7, color: TAROT_FRONT_COLORS[cardIndex] + "90" }}>✦</Text>
-            <Text style={{ position: "absolute", bottom: 5, left: 7, fontSize: 7, color: TAROT_FRONT_COLORS[cardIndex] + "90" }}>✦</Text>
-            <Text style={{ position: "absolute", bottom: 5, right: 7, fontSize: 7, color: TAROT_FRONT_COLORS[cardIndex] + "90" }}>✦</Text>
-            {/* Main symbol */}
-            <Text style={{ fontSize: 34, color: TAROT_FRONT_COLORS[cardIndex] }}>{symbol}</Text>
-            {/* Card name */}
-            <Text style={{ fontSize: 7, fontFamily: "Lora_700Bold", color: TAROT_FRONT_COLORS[cardIndex] + "CC", textAlign: "center", paddingHorizontal: 8, lineHeight: 10, letterSpacing: 0.5 }}>
-              {label}
+          <View style={[styles.tarotCardInner, { borderRadius: 10, backgroundColor: "#F8F2E0" }]}>
+            {/* Outer ornate frame */}
+            <View style={{ position: "absolute", top: 4, left: 4, right: 4, bottom: 4, borderWidth: 1.5, borderColor: "#B8860B", borderRadius: 7 }} />
+            <View style={{ position: "absolute", top: 7, left: 7, right: 7, bottom: 7, borderWidth: 0.5, borderColor: "#B8860B70", borderRadius: 5 }} />
+            {/* Gold corner ornaments */}
+            <Text style={{ position: "absolute", top: 3, left: 5, fontSize: 9, color: "#8B6914" }}>✦</Text>
+            <Text style={{ position: "absolute", top: 3, right: 5, fontSize: 9, color: "#8B6914" }}>✦</Text>
+            <Text style={{ position: "absolute", bottom: 3, left: 5, fontSize: 9, color: "#8B6914" }}>✦</Text>
+            <Text style={{ position: "absolute", bottom: 3, right: 5, fontSize: 9, color: "#8B6914" }}>✦</Text>
+            {/* Roman numeral at top */}
+            <Text style={{ position: "absolute", top: 12, fontSize: 8, fontFamily: "Lora_700Bold", color: "#8B6914", letterSpacing: 1 }}>
+              {TAROT_ROMAN[cardIndex]}
+            </Text>
+            {/* Main mystical symbol */}
+            <Text style={{ fontSize: 38, color: TAROT_FRONT_COLORS[cardIndex], marginTop: 8 }}>{symbol}</Text>
+            {/* Card thematic name at bottom */}
+            <Text style={{ position: "absolute", bottom: 12, fontSize: 7, fontFamily: "Lora_700Bold", color: "#6B4C00", textAlign: "center", letterSpacing: 1 }}>
+              {TAROT_LABELS_TR[cardIndex]}
             </Text>
           </View>
         </Animated.View>
@@ -1031,7 +1036,7 @@ const styles = StyleSheet.create({
   tarotIntro: { alignItems: "center", paddingVertical: 16, gap: 12 },
   tarotCardsRow: { flexDirection: "row", gap: 12, justifyContent: "center" },
   tarotCardWrap: { alignItems: "center", gap: 6 },
-  tarotCard: { width: (width - 80) / 3, height: 110, borderRadius: 10, borderWidth: 1, overflow: "hidden" },
+  tarotCard: { width: (width - 80) / 3, height: 150, borderRadius: 10, borderWidth: 1, overflow: "hidden" },
   tarotCardInner: { flex: 1, alignItems: "center", justifyContent: "center" },
   tarotCardLabel: { fontSize: 9, fontFamily: "Lora_400Regular", letterSpacing: 0.5 },
 
