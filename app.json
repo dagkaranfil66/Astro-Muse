@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Tengri",
-    "slug": "tengri",
+    "name": "Tengri-Astroloji-Fal-Burçlar-Mistik Yolculuk",
+    "slug": "tengriastrolojifalburlarmistikyolculuk",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "tengri",
+    "scheme": "tengriastrolojifalburlarmistikyolculuk",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
@@ -15,10 +15,10 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.tengri.app"
+      "bundleIdentifier": "com.tengriastrolojifalburlarmistikyolculuk.app"
     },
     "android": {
-      "package": "com.tengri.app",
+      "package": "com.tengriastrolojifalburlarmistikyolculuk.app",
       "adaptiveIcon": {
         "backgroundColor": "#070D1A",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

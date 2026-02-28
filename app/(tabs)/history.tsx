@@ -104,7 +104,7 @@ export default function HistoryScreen() {
 
         {readings.length === 0 ? (
           <View style={styles.empty}>
-            <Ionicons name="scroll-outline" size={56} color={Colors.textDim} />
+            <Ionicons name="document-text-outline" size={56} color={Colors.textDim} />
             <Text style={styles.emptyTitle}>{t.noReadings}</Text>
             <Text style={styles.emptyDesc}>{t.noReadingsDesc}</Text>
           </View>
