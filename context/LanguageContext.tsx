@@ -5,7 +5,7 @@ type Lang = 'tr' | 'en';
 
 const translations = {
   tr: {
-    appTagline: 'Mistik Rehberlik',
+    appTagline: 'MİSTİK REHBERLİK',
     appDesc: 'Kadim bilgelik ile modern ruhsal yolculuğunuza başlayın',
     poweredBy: 'Yapay Zeka Destekli',
     services: 'Hizmetlerimiz',

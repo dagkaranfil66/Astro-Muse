@@ -151,7 +151,8 @@ function ElIntro({ color }: { color: string }) {
   );
 }
 
-const TAROT_SYMBOLS = ["☽", "✦", "☀"];
+const TAROT_SYMBOLS = ["☽", "⊕", "☀"];
+const TAROT_FRONT_COLORS = ["#3B2A6B", "#1A4A3A", "#7A3800"];
 
 function TarotCard({ color, label, isDone, isLoading, flipDelay, floatDelay, cardIndex }: {
   color: string; label: string; isDone: boolean; isLoading?: boolean;
@@ -221,15 +222,25 @@ function TarotCard({ color, label, isDone, isLoading, flipDelay, floatDelay, car
           </LinearGradient>
         </Animated.View>
 
-        {/* Card Front */}
+        {/* Card Front — parchment white */}
         <Animated.View style={[StyleSheet.absoluteFill, frontStyle]}>
-          <LinearGradient colors={[color + "45", "#0D0E1F"]} style={[styles.tarotCardInner, { borderRadius: 10, gap: 5 }]}>
-            <View style={{ position: "absolute", top: 5, left: 5, right: 5, bottom: 5, borderWidth: 1, borderColor: color + "55", borderRadius: 7 }} />
-            <Text style={{ fontSize: 32, color }}>{symbol}</Text>
-            <Text style={{ fontSize: 8, fontFamily: "Lora_700Bold", color: color + "EE", textAlign: "center", paddingHorizontal: 6, lineHeight: 11 }}>
+          <View style={[styles.tarotCardInner, { borderRadius: 10, backgroundColor: "#FAF5E8", gap: 4 }]}>
+            {/* Outer gold frame */}
+            <View style={{ position: "absolute", top: 4, left: 4, right: 4, bottom: 4, borderWidth: 1.5, borderColor: TAROT_FRONT_COLORS[cardIndex] + "80", borderRadius: 7 }} />
+            {/* Inner thin frame */}
+            <View style={{ position: "absolute", top: 8, left: 8, right: 8, bottom: 8, borderWidth: 0.5, borderColor: TAROT_FRONT_COLORS[cardIndex] + "40", borderRadius: 5 }} />
+            {/* Corner marks */}
+            <Text style={{ position: "absolute", top: 5, left: 7, fontSize: 7, color: TAROT_FRONT_COLORS[cardIndex] + "90" }}>✦</Text>
+            <Text style={{ position: "absolute", top: 5, right: 7, fontSize: 7, color: TAROT_FRONT_COLORS[cardIndex] + "90" }}>✦</Text>
+            <Text style={{ position: "absolute", bottom: 5, left: 7, fontSize: 7, color: TAROT_FRONT_COLORS[cardIndex] + "90" }}>✦</Text>
+            <Text style={{ position: "absolute", bottom: 5, right: 7, fontSize: 7, color: TAROT_FRONT_COLORS[cardIndex] + "90" }}>✦</Text>
+            {/* Main symbol */}
+            <Text style={{ fontSize: 34, color: TAROT_FRONT_COLORS[cardIndex] }}>{symbol}</Text>
+            {/* Card name */}
+            <Text style={{ fontSize: 7, fontFamily: "Lora_700Bold", color: TAROT_FRONT_COLORS[cardIndex] + "CC", textAlign: "center", paddingHorizontal: 8, lineHeight: 10, letterSpacing: 0.5 }}>
               {label}
             </Text>
-          </LinearGradient>
+          </View>
         </Animated.View>
       </Animated.View>
       <Text style={[styles.tarotCardLabel, { color: isDone ? color : color + "90" }]}>{label}</Text>

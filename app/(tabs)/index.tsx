@@ -563,7 +563,6 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     marginBottom: 8,
     marginTop: 4,
-    textTransform: "uppercase" as const,
   },
   heroDesc: {
     fontSize: 12,
