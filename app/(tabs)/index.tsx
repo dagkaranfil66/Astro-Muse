@@ -421,7 +421,7 @@ export default function HomeScreen() {
 
       {/* Top Bar */}
       <View style={[styles.topBar, { paddingTop: topPad + 10 }]}>
-        <Pressable onPress={() => router.push("/auth")} style={styles.authBtn}>
+        <Pressable onPress={() => userProfile ? router.push("/(tabs)/profile") : router.push("/auth")} style={styles.authBtn}>
           <Ionicons name="person-circle-outline" size={18} color={Colors.gold} />
           <Text style={styles.authBtnText} numberOfLines={1}>
             {userProfile ? userProfile.name.split(" ")[0] : (lang === "tr" ? "Giriş" : "Login")}
