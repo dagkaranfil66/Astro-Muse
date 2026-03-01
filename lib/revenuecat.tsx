@@ -12,10 +12,10 @@ export const RC_ENTITLEMENT = "altın";
 
 // Map RevenueCat package lookup_key → gold amount
 export const PACKAGE_GOLD_MAP: Record<string, number> = {
-  tengri_starter:  15,
-  tengri_standard: 40,
-  tengri_premium:  80,
-  tengri_vip:      150,
+  tengri_starter:  20,
+  tengri_standard: 50,
+  tengri_premium:  100,
+  tengri_vip:      200,
 };
 
 function getApiKey(): string {

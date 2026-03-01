@@ -26,7 +26,7 @@ import Animated, {
 import { Colors } from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
-import { GOLD_PACKAGES, SERVICE_GOLD_COST } from "@/constants/serviceConfig";
+import { GOLD_PACKAGES, SERVICE_GOLD_COST, FREE_START_GOLD } from "@/constants/serviceConfig";
 import { useSubscription, PACKAGE_GOLD_MAP } from "@/lib/revenuecat";
 import type { PurchasesPackage } from "react-native-purchases";
 
@@ -37,14 +37,93 @@ const SERVICE_NAMES_TR: Record<string, string> = {
   tarot: "Tarot", dogum: "Doğum Haritası",
 };
 
-// Local display data keyed by package identifier
-const PKG_DISPLAY: Record<string, { gradient: [string, string]; popular: boolean; gold: number; id: string }> = {
-  tengri_starter:  { gradient: ["#1A1A30", "#0D1526"], popular: false, gold: 15,  id: "starter"  },
-  tengri_standard: { gradient: ["#1A1030", "#0D1526"], popular: true,  gold: 40,  id: "standard" },
-  tengri_premium:  { gradient: ["#1A0A20", "#0D1526"], popular: false, gold: 80,  id: "premium"  },
-  tengri_vip:      { gradient: ["#1A0805", "#0D1526"], popular: false, gold: 150, id: "vip"      },
+// RC package display data — gold amounts now match GOLD_PACKAGES
+const PKG_DISPLAY: Record<string, {
+  gradient: [string, string];
+  popular: boolean;
+  gold: number;
+  label: string;
+  discount: number;
+}> = {
+  tengri_starter:  { gradient: ["#1A1A30", "#0D1526"], popular: false, gold: 20,  label: "Başlangıç", discount: 0  },
+  tengri_standard: { gradient: ["#1A1030", "#0D1526"], popular: true,  gold: 50,  label: "Standart",  discount: 12 },
+  tengri_premium:  { gradient: ["#1A0A20", "#0D1526"], popular: false, gold: 100, label: "Premium",   discount: 20 },
+  tengri_vip:      { gradient: ["#1A0805", "#0D1526"], popular: false, gold: 200, label: "VIP",       discount: 30 },
 };
 
+// ─── Auth Gate (not logged in) ─────────────────────────────────────────────
+function AuthGate({ lang, goldBalance }: { lang: string; goldBalance: number }) {
+  const { canSpin } = useApp();
+  return (
+    <Animated.View entering={FadeInDown.delay(100).springify()} style={ag.wrap}>
+      <LinearGradient colors={["#0F0B20", "#0A0D18"]} style={ag.inner}>
+        <View style={ag.giftRow}>
+          <Text style={ag.giftIcon}>✦</Text>
+          <View>
+            <Text style={ag.giftTitle}>
+              {lang === "tr" ? "Hoş Geldiniz Hediyesi" : "Welcome Gift"}
+            </Text>
+            <Text style={ag.giftSub}>
+              {lang === "tr"
+                ? `${FREE_START_GOLD} ücretsiz altın hesabınızda`
+                : `${FREE_START_GOLD} free gold in your account`}
+            </Text>
+          </View>
+        </View>
+
+        <View style={ag.divider} />
+
+        <Text style={ag.lockTitle}>
+          {lang === "tr" ? "Altın Satın Almak İçin Giriş Yapın" : "Log in to Buy Gold"}
+        </Text>
+        <Text style={ag.lockDesc}>
+          {lang === "tr"
+            ? "Pakete erişmek için ücretsiz hesabınızla giriş yapın."
+            : "Sign in with your free account to access packages."}
+        </Text>
+
+        <Pressable
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            router.push("/auth");
+          }}
+          style={({ pressed }) => [ag.loginBtn, pressed && { opacity: 0.85 }]}
+        >
+          <LinearGradient colors={["#C8A020", "#9B6820"]} style={ag.loginBtnInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+            <Ionicons name="person-outline" size={18} color="#08051A" />
+            <Text style={ag.loginBtnText}>
+              {lang === "tr" ? "Giriş Yap / Kayıt Ol" : "Login / Register"}
+            </Text>
+          </LinearGradient>
+        </Pressable>
+
+        {canSpin && (
+          <>
+            <View style={ag.orRow}>
+              <View style={ag.orLine} />
+              <Text style={ag.orText}>{lang === "tr" ? "ya da" : "or"}</Text>
+              <View style={ag.orLine} />
+            </View>
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/spin");
+              }}
+              style={ag.spinBtn}
+            >
+              <Ionicons name="refresh-circle-outline" size={20} color={Colors.gold} />
+              <Text style={ag.spinBtnText}>
+                {lang === "tr" ? "Günlük Çarkı Çevir" : "Spin Daily Wheel"}
+              </Text>
+            </Pressable>
+          </>
+        )}
+      </LinearGradient>
+    </Animated.View>
+  );
+}
+
+// ─── RC Package Card ──────────────────────────────────────────────────────
 function GoldPackageCard({
   rcPkg,
   onBuy,
@@ -58,14 +137,13 @@ function GoldPackageCard({
 }) {
   const scale = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-
   const display = PKG_DISPLAY[rcPkg.identifier] ?? {
     gradient: ["#1A1A30", "#0D1526"] as [string, string],
     popular: false,
     gold: PACKAGE_GOLD_MAP[rcPkg.identifier] ?? 0,
-    id: rcPkg.identifier,
+    label: rcPkg.identifier,
+    discount: 0,
   };
-  const gold = display.gold;
   const isThisBought = boughtId === rcPkg.identifier;
   const isBuying = buying && boughtId === null;
 
@@ -82,34 +160,42 @@ function GoldPackageCard({
             <Text style={styles.popularBadgeText}>EN POPÜLER</Text>
           </View>
         )}
+        {display.discount > 0 && !isThisBought && (
+          <View style={styles.discountBadge}>
+            <Text style={styles.discountBadgeText}>%{display.discount} İNDİRİM</Text>
+          </View>
+        )}
         <LinearGradient colors={isThisBought ? ["#0D2A1A", "#0A2010"] : display.gradient} style={styles.pkgCardInner}>
           <View style={styles.pkgLeft}>
             <View style={[styles.goldIconWrap, isThisBought && styles.goldIconWrapSuccess]}>
               <Text style={styles.goldIconText}>{isThisBought ? "✓" : "✦"}</Text>
             </View>
             <View>
-              <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>{gold} Altın</Text>
+              <Text style={styles.pkgLabel}>{display.label}</Text>
+              <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>
+                {display.gold} <Text style={styles.pkgGoldUnit}>altın</Text>
+              </Text>
               <Text style={styles.pkgPerGold}>
-                {isThisBought ? "Eklendi!" : rcPkg.product.priceString + "/paket"}
+                {isThisBought ? "Eklendi!" : rcPkg.product.priceString + " • " + "₺/altın: " + (Number(rcPkg.product.price) / display.gold).toFixed(2)}
               </Text>
             </View>
           </View>
           <View style={styles.pkgRight}>
             {isThisBought ? (
               <View style={[styles.pkgBuyBtn, styles.pkgBuyBtnSuccess]}>
-                <Text style={[styles.pkgBuyBtnText, { color: "#fff" }]}>Tamamlandı</Text>
+                <Text style={[styles.pkgBuyBtnText, { color: "#fff" }]}>Tamam</Text>
               </View>
             ) : isBuying ? (
               <View style={[styles.pkgBuyBtn, styles.pkgBuyBtnBuying]}>
                 <ActivityIndicator size="small" color="#fff" />
               </View>
             ) : (
-              <>
+              <View>
                 <Text style={styles.pkgPrice}>{rcPkg.product.priceString}</Text>
                 <View style={styles.pkgBuyBtn}>
                   <Text style={styles.pkgBuyBtnText}>Satın Al</Text>
                 </View>
-              </>
+              </View>
             )}
           </View>
         </LinearGradient>
@@ -118,6 +204,7 @@ function GoldPackageCard({
   );
 }
 
+// ─── Fallback Package Card ────────────────────────────────────────────────
 function FallbackPackageCard({
   pkg,
   onBuy,
@@ -130,7 +217,7 @@ function FallbackPackageCard({
   boughtId: string | null;
 }) {
   const scale = useSharedValue(1);
-  const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   const isThisBought = boughtId === pkg.id;
 
   return (
@@ -140,10 +227,15 @@ function FallbackPackageCard({
       onPress={() => onBuy(pkg)}
       disabled={buying || !!boughtId}
     >
-      <Animated.View style={[styles.pkgCard, pkg.popular && styles.pkgCardPopular, style]}>
+      <Animated.View style={[styles.pkgCard, pkg.popular && styles.pkgCardPopular, animStyle]}>
         {pkg.popular && !isThisBought && (
           <View style={styles.popularBadge}>
             <Text style={styles.popularBadgeText}>EN POPÜLER</Text>
+          </View>
+        )}
+        {pkg.discount > 0 && !isThisBought && (
+          <View style={styles.discountBadge}>
+            <Text style={styles.discountBadgeText}>%{pkg.discount} İNDİRİM</Text>
           </View>
         )}
         <LinearGradient colors={isThisBought ? ["#0D2A1A", "#0A2010"] : pkg.gradient} style={styles.pkgCardInner}>
@@ -152,26 +244,31 @@ function FallbackPackageCard({
               <Text style={styles.goldIconText}>{isThisBought ? "✓" : "✦"}</Text>
             </View>
             <View>
-              <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>{pkg.gold} Altın</Text>
-              <Text style={styles.pkgPerGold}>{isThisBought ? "Eklendi!" : pkg.perGold + "/altın"}</Text>
+              <Text style={styles.pkgLabel}>{pkg.label}</Text>
+              <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>
+                {pkg.gold} <Text style={styles.pkgGoldUnit}>altın</Text>
+              </Text>
+              <Text style={styles.pkgPerGold}>
+                {isThisBought ? "Eklendi!" : `${pkg.perGold}/altın`}
+              </Text>
             </View>
           </View>
           <View style={styles.pkgRight}>
             {isThisBought ? (
               <View style={[styles.pkgBuyBtn, styles.pkgBuyBtnSuccess]}>
-                <Text style={[styles.pkgBuyBtnText, { color: "#fff" }]}>Tamamlandı</Text>
+                <Text style={[styles.pkgBuyBtnText, { color: "#fff" }]}>Tamam</Text>
               </View>
             ) : buying ? (
               <View style={[styles.pkgBuyBtn, styles.pkgBuyBtnBuying]}>
                 <ActivityIndicator size="small" color="#fff" />
               </View>
             ) : (
-              <>
+              <View>
                 <Text style={styles.pkgPrice}>{pkg.price}</Text>
                 <View style={styles.pkgBuyBtn}>
                   <Text style={styles.pkgBuyBtnText}>Satın Al</Text>
                 </View>
-              </>
+              </View>
             )}
           </View>
         </LinearGradient>
@@ -180,11 +277,12 @@ function FallbackPackageCard({
   );
 }
 
+// ─── Main Screen ──────────────────────────────────────────────────────────
 export default function PurchaseScreen() {
   const insets = useSafeAreaInsets();
-  const { addGold, goldBalance } = useApp();
+  const { addGold, goldBalance, userProfile, canSpin } = useApp();
   const { lang } = useLang();
-  const { packages, isLoading: rcLoading, purchase, isPurchasing } = useSubscription();
+  const { packages, isLoading: rcLoading, purchase } = useSubscription();
 
   const [buying, setBuying] = useState(false);
   const [boughtId, setBoughtId] = useState<string | null>(null);
@@ -200,8 +298,16 @@ export default function PurchaseScreen() {
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
 
+  const isLoggedIn = !!userProfile;
+
+  const ORDER = ["tengri_starter", "tengri_standard", "tengri_premium", "tengri_vip"];
+  const sortedRcPkgs = [...packages].sort(
+    (a, b) => ORDER.indexOf(a.identifier) - ORDER.indexOf(b.identifier)
+  );
+  const useRc = !rcLoading && sortedRcPkgs.length > 0;
+
   const handleRcBuy = async (rcPkg: PurchasesPackage) => {
-    if (buying || boughtId) return;
+    if (!isLoggedIn || buying || boughtId) return;
     setPurchaseError("");
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setBuying(true);
@@ -223,7 +329,7 @@ export default function PurchaseScreen() {
   };
 
   const handleFallbackBuy = (pkg: typeof GOLD_PACKAGES[0]) => {
-    if (buying || boughtId) return;
+    if (!isLoggedIn || buying || boughtId) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setBuying(true);
     setTimeout(() => {
@@ -243,14 +349,6 @@ export default function PurchaseScreen() {
     byCost[cost].push(svc);
   });
 
-  // Sort RC packages in our preferred order
-  const ORDER = ["tengri_starter", "tengri_standard", "tengri_premium", "tengri_vip"];
-  const sortedRcPkgs = [...packages].sort(
-    (a, b) => ORDER.indexOf(a.identifier) - ORDER.indexOf(b.identifier)
-  );
-
-  const useRc = !rcLoading && sortedRcPkgs.length > 0;
-
   return (
     <View style={styles.container}>
       <LinearGradient colors={["#08051A", "#070D1A", "#0D0820"]} style={StyleSheet.absoluteFill} />
@@ -264,6 +362,7 @@ export default function PurchaseScreen() {
           <Ionicons name="close" size={22} color={Colors.textSecondary} />
         </Pressable>
 
+        {/* Success Banner */}
         {boughtId ? (
           <Animated.View entering={ZoomIn.springify()} style={styles.successBanner}>
             <LinearGradient colors={["#0D2A1A", "#0A2010"]} style={styles.successBannerInner}>
@@ -284,62 +383,101 @@ export default function PurchaseScreen() {
             </Text>
             <Text style={styles.headerDesc}>
               {lang === "tr"
-                ? "Mistik okumalar için altın kullanın. Her hizmetin kendine özel fiyatı var."
-                : "Use gold for mystic readings. Each service has its own price."}
+                ? "Mistik okumalar için altın kullanın. Paket büyüdükçe tasarruf artar."
+                : "Use gold for mystic readings. Bigger packages save more."}
             </Text>
           </Animated.View>
         )}
 
+        {/* Balance Card */}
         <Animated.View entering={ZoomIn.delay(100).springify()} style={styles.balanceCard}>
           <LinearGradient colors={["#141420", "#0D1526"]} style={styles.balanceCardInner}>
             <Text style={styles.balanceIcon}>✦</Text>
-            <View>
-              <Text style={styles.balanceLabel}>{lang === "tr" ? "Mevcut Bakiyeniz" : "Current Balance"}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.balanceLabel}>
+                {isLoggedIn ? (lang === "tr" ? "Mevcut Bakiyeniz" : "Current Balance") : (lang === "tr" ? "Hoş Geldiniz Hediyesi" : "Welcome Gift")}
+              </Text>
               <Text style={styles.balanceValue}>
                 {goldBalance} <Text style={styles.balanceUnit}>{lang === "tr" ? "altın" : "gold"}</Text>
               </Text>
             </View>
+            {!isLoggedIn && canSpin && (
+              <Pressable
+                onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/spin"); }}
+                style={styles.spinChip}
+              >
+                <Ionicons name="refresh-circle-outline" size={16} color={Colors.gold} />
+                <Text style={styles.spinChipText}>{lang === "tr" ? "Çark" : "Spin"}</Text>
+              </Pressable>
+            )}
           </LinearGradient>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(150).springify()} style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            {lang === "tr" ? "✦ Altın Paketleri" : "✦ Gold Packages"}
-          </Text>
+        {/* Auth Gate OR Packages */}
+        {!isLoggedIn ? (
+          <AuthGate lang={lang} goldBalance={goldBalance} />
+        ) : (
+          <Animated.View entering={FadeInDown.delay(150).springify()} style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {lang === "tr" ? "✦ Altın Paketleri" : "✦ Gold Packages"}
+            </Text>
+            <Text style={styles.sectionPricingNote}>
+              {lang === "tr" ? "Baz fiyat: 49,99 ₺ / 20 altın (2,50 ₺/altın)" : "Base price: ₺49.99 / 20 gold (₺2.50/gold)"}
+            </Text>
 
-          {rcLoading ? (
-            <View style={styles.loadingWrap}>
-              <ActivityIndicator color={Colors.gold} />
-              <Text style={styles.loadingText}>{lang === "tr" ? "Paketler yükleniyor..." : "Loading packages..."}</Text>
-            </View>
-          ) : useRc ? (
-            sortedRcPkgs.map((pkg, i) => (
-              <Animated.View key={pkg.identifier} entering={FadeInDown.delay(200 + i * 60).springify()}>
-                <GoldPackageCard
-                  rcPkg={pkg}
-                  onBuy={handleRcBuy}
-                  buying={buying}
-                  boughtId={boughtId}
-                />
+            {rcLoading ? (
+              <View style={styles.loadingWrap}>
+                <ActivityIndicator color={Colors.gold} />
+                <Text style={styles.loadingText}>{lang === "tr" ? "Paketler yükleniyor..." : "Loading packages..."}</Text>
+              </View>
+            ) : useRc ? (
+              sortedRcPkgs.map((pkg, i) => (
+                <Animated.View key={pkg.identifier} entering={FadeInDown.delay(200 + i * 60).springify()}>
+                  <GoldPackageCard rcPkg={pkg} onBuy={handleRcBuy} buying={buying} boughtId={boughtId} />
+                </Animated.View>
+              ))
+            ) : (
+              GOLD_PACKAGES.map((pkg, i) => (
+                <Animated.View key={pkg.id} entering={FadeInDown.delay(200 + i * 60).springify()}>
+                  <FallbackPackageCard pkg={pkg} onBuy={handleFallbackBuy} buying={buying} boughtId={boughtId} />
+                </Animated.View>
+              ))
+            )}
+
+            {!!purchaseError && (
+              <Animated.View entering={FadeIn.duration(300)} style={styles.errorBanner}>
+                <Ionicons name="alert-circle-outline" size={16} color="#FF6B6B" />
+                <Text style={styles.errorText}>{purchaseError}</Text>
               </Animated.View>
-            ))
-          ) : (
-            GOLD_PACKAGES.map((pkg, i) => (
-              <Animated.View key={pkg.id} entering={FadeInDown.delay(200 + i * 60).springify()}>
-                <FallbackPackageCard pkg={pkg} onBuy={handleFallbackBuy} buying={buying} boughtId={boughtId} />
+            )}
+
+            {/* Spin Redirect for logged-in users */}
+            {canSpin && (
+              <Animated.View entering={FadeInDown.delay(500).springify()}>
+                <Pressable
+                  onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/spin"); }}
+                  style={styles.spinCard}
+                >
+                  <LinearGradient colors={["#1A1030", "#0D1526"]} style={styles.spinCardInner}>
+                    <Ionicons name="refresh-circle-outline" size={28} color={Colors.gold} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.spinCardTitle}>
+                        {lang === "tr" ? "Bugün Çark Çevirin!" : "Spin Today's Wheel!"}
+                      </Text>
+                      <Text style={styles.spinCardSub}>
+                        {lang === "tr" ? "Ücretsiz altın kazanın — her gün bir kez" : "Win free gold — once per day"}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color={Colors.textDim} />
+                  </LinearGradient>
+                </Pressable>
               </Animated.View>
-            ))
-          )}
+            )}
+          </Animated.View>
+        )}
 
-          {!!purchaseError && (
-            <Animated.View entering={FadeIn.duration(300)} style={styles.errorBanner}>
-              <Ionicons name="alert-circle-outline" size={16} color="#FF6B6B" />
-              <Text style={styles.errorText}>{purchaseError}</Text>
-            </Animated.View>
-          )}
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.delay(400).springify()} style={styles.section}>
+        {/* Service Prices */}
+        <Animated.View entering={FadeInDown.delay(isLoggedIn ? 500 : 200).springify()} style={styles.section}>
           <Text style={styles.sectionTitle}>
             {lang === "tr" ? "✦ Hizmet Fiyatları" : "✦ Service Prices"}
           </Text>
@@ -360,7 +498,7 @@ export default function PurchaseScreen() {
           <View style={styles.freeTierNote}>
             <Ionicons name="gift-outline" size={14} color={Colors.success} />
             <Text style={styles.freeTierNoteText}>
-              {lang === "tr" ? "Başlangıçta ücretsiz altın hediye!" : "Start with free gold!"}
+              {lang === "tr" ? `Başlangıçta ${FREE_START_GOLD} ücretsiz altın hediye!` : `Start with ${FREE_START_GOLD} free gold!`}
             </Text>
           </View>
         </Animated.View>
@@ -398,33 +536,45 @@ const styles = StyleSheet.create({
   balanceLabel: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textSecondary },
   balanceValue: { fontSize: 26, fontFamily: "Lora_700Bold", color: Colors.gold },
   balanceUnit: { fontSize: 14, fontFamily: "Lora_400Regular", color: Colors.gold + "90" },
+  spinChip: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: Colors.gold + "15", borderRadius: 10, borderWidth: 1, borderColor: Colors.gold + "30", paddingHorizontal: 10, paddingVertical: 6 },
+  spinChipText: { fontSize: 12, fontFamily: "Lora_700Bold", color: Colors.gold },
 
   section: { gap: 12 },
   sectionTitle: { fontSize: 12, fontFamily: "Lora_700Bold", color: Colors.textSecondary, letterSpacing: 1 },
+  sectionPricingNote: { fontSize: 11, fontFamily: "Lora_400Regular_Italic", color: Colors.textDim, marginTop: -6 },
 
   loadingWrap: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 24, justifyContent: "center" },
   loadingText: { fontSize: 13, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary },
 
   pkgCard: { borderRadius: 16, borderWidth: 1, borderColor: Colors.cardBorder, overflow: "hidden", marginBottom: 2 },
   pkgCardPopular: { borderColor: Colors.gold + "60", borderWidth: 2 },
-  pkgCardInner: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 16 },
-  popularBadge: { position: "absolute", top: -1, right: 16, backgroundColor: Colors.gold, paddingHorizontal: 10, paddingVertical: 3, borderBottomLeftRadius: 8, borderBottomRightRadius: 8, zIndex: 1 },
+  pkgCardInner: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 16, paddingTop: 20 },
+  popularBadge: { position: "absolute", top: 0, left: 12, backgroundColor: Colors.gold, paddingHorizontal: 10, paddingVertical: 3, borderBottomLeftRadius: 8, borderBottomRightRadius: 8, zIndex: 2 },
   popularBadgeText: { fontSize: 9, fontFamily: "Lora_700Bold", color: Colors.background, letterSpacing: 1 },
+  discountBadge: { position: "absolute", top: 0, right: 12, backgroundColor: Colors.success, paddingHorizontal: 8, paddingVertical: 3, borderBottomLeftRadius: 8, borderBottomRightRadius: 8, zIndex: 2 },
+  discountBadgeText: { fontSize: 9, fontFamily: "Lora_700Bold", color: "#fff", letterSpacing: 0.5 },
   pkgLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
   goldIconWrap: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.gold + "20", borderWidth: 1, borderColor: Colors.gold + "40", alignItems: "center", justifyContent: "center" },
   goldIconWrapSuccess: { backgroundColor: Colors.success + "20", borderColor: Colors.success + "40" },
   goldIconText: { fontSize: 20, color: Colors.gold },
-  pkgGold: { fontSize: 17, fontFamily: "Lora_700Bold", color: Colors.text },
-  pkgPerGold: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textSecondary },
-  pkgRight: { alignItems: "flex-end", gap: 8 },
-  pkgPrice: { fontSize: 18, fontFamily: "Lora_700Bold", color: Colors.gold },
-  pkgBuyBtn: { backgroundColor: Colors.gold, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10, minWidth: 90, alignItems: "center" },
+  pkgLabel: { fontSize: 11, fontFamily: "Lora_700Bold", color: Colors.textDim, letterSpacing: 0.5, marginBottom: 2 },
+  pkgGold: { fontSize: 18, fontFamily: "Lora_700Bold", color: Colors.text },
+  pkgGoldUnit: { fontSize: 13, fontFamily: "Lora_400Regular", color: Colors.textSecondary },
+  pkgPerGold: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textSecondary, marginTop: 1 },
+  pkgRight: { alignItems: "flex-end", gap: 6 },
+  pkgPrice: { fontSize: 18, fontFamily: "Lora_700Bold", color: Colors.gold, textAlign: "right" },
+  pkgBuyBtn: { backgroundColor: Colors.gold, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, minWidth: 88, alignItems: "center" },
   pkgBuyBtnBuying: { backgroundColor: Colors.textDim },
   pkgBuyBtnSuccess: { backgroundColor: Colors.success },
   pkgBuyBtnText: { fontSize: 12, fontFamily: "Lora_700Bold", color: Colors.background },
 
   errorBanner: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: "#FF6B6B15", borderRadius: 10, borderWidth: 1, borderColor: "#FF6B6B30" },
   errorText: { fontSize: 13, fontFamily: "Lora_400Regular", color: "#FF6B6B", flex: 1 },
+
+  spinCard: { borderRadius: 14, overflow: "hidden", borderWidth: 1, borderColor: Colors.gold + "30" },
+  spinCardInner: { flexDirection: "row", alignItems: "center", gap: 14, padding: 16 },
+  spinCardTitle: { fontSize: 14, fontFamily: "Lora_700Bold", color: Colors.text },
+  spinCardSub: { fontSize: 12, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary, marginTop: 2 },
 
   costTier: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
   costTierBadge: { backgroundColor: Colors.surface, borderRadius: 10, borderWidth: 1, borderColor: Colors.cardBorder, paddingHorizontal: 10, paddingVertical: 6, minWidth: 52, alignItems: "center" },
@@ -436,4 +586,24 @@ const styles = StyleSheet.create({
   freeTierNoteText: { fontSize: 12, fontFamily: "Lora_400Regular_Italic", color: Colors.success },
 
   legal: { fontSize: 10, fontFamily: "Lora_400Regular", color: Colors.textDim, textAlign: "center", lineHeight: 16 },
+});
+
+const ag = StyleSheet.create({
+  wrap: { borderRadius: 16, overflow: "hidden", borderWidth: 1, borderColor: Colors.gold + "30" },
+  inner: { padding: 22, gap: 14 },
+  giftRow: { flexDirection: "row", alignItems: "center", gap: 16 },
+  giftIcon: { fontSize: 38, color: Colors.gold },
+  giftTitle: { fontSize: 15, fontFamily: "Lora_700Bold", color: Colors.gold },
+  giftSub: { fontSize: 12, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary, marginTop: 2 },
+  divider: { borderTopWidth: 1, borderColor: Colors.cardBorder },
+  lockTitle: { fontSize: 16, fontFamily: "Lora_700Bold", color: Colors.text },
+  lockDesc: { fontSize: 13, fontFamily: "Lora_400Regular", color: Colors.textSecondary, lineHeight: 20 },
+  loginBtn: { borderRadius: 14, overflow: "hidden" },
+  loginBtnInner: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, paddingVertical: 14, paddingHorizontal: 24 },
+  loginBtnText: { fontSize: 15, fontFamily: "Lora_700Bold", color: "#08051A" },
+  orRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  orLine: { flex: 1, borderTopWidth: 1, borderColor: Colors.cardBorder },
+  orText: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textDim },
+  spinBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: Colors.gold + "30", backgroundColor: Colors.gold + "08" },
+  spinBtnText: { fontSize: 14, fontFamily: "Lora_700Bold", color: Colors.gold },
 });
