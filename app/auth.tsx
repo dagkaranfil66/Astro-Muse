@@ -33,7 +33,7 @@ import { getApiUrl } from "@/lib/query-client";
 
 WebBrowser.maybeCompleteAuthSession();
 
-type AuthView = "choice" | "email" | "social" | "verify";
+type AuthView = "choice" | "email" | "social";
 
 const SOCIAL_PROVIDERS = [
   {
@@ -244,8 +244,7 @@ export default function AuthScreen() {
           setLoading(false);
           return;
         }
-        setLoading(false);
-        setView("verify");
+        await finishLogin(data.user.name, data.user.email);
       } else {
         const res = await fetch(`${apiBase}/api/auth/login`, {
           method: "POST",
@@ -254,11 +253,7 @@ export default function AuthScreen() {
         });
         const data = await res.json();
         if (!res.ok) {
-          if (data.error === "unverified") {
-            setError(lang === "tr" ? "Lütfen önce e-postanızı doğrulayın" : "Please verify your email first");
-          } else {
-            setError(data.error || (lang === "tr" ? "Giriş başarısız" : "Login failed"));
-          }
+          setError(data.error || (lang === "tr" ? "Giriş başarısız" : "Login failed"));
           setLoading(false);
           return;
         }
@@ -270,19 +265,8 @@ export default function AuthScreen() {
     }
   };
 
-  const handleResendMail = async () => {
-    try {
-      const apiBase = new URL("", getApiUrl()).toString().replace(/\/$/, "");
-      await fetch(`${apiBase}/api/auth/resend`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-    } catch {}
-  };
-
   const goBack = () => {
-    if (view === "email" || view === "social" || view === "verify") {
+    if (view === "email" || view === "social") {
       setView("choice");
       setError("");
       setSelectedProvider(null);
@@ -358,31 +342,6 @@ export default function AuthScreen() {
                   ? "Devam ederek Gizlilik Politikası ve Kullanım Koşullarını kabul etmiş olursunuz."
                   : "By continuing you accept our Privacy Policy and Terms of Use."}
               </Text>
-            </Animated.View>
-          )}
-
-          {view === "verify" && (
-            <Animated.View entering={ZoomIn.springify()} style={styles.verifyCard}>
-              <View style={styles.verifyIconWrap}>
-                <Ionicons name="mail" size={36} color={Colors.gold} />
-              </View>
-              <Text style={styles.verifyTitle}>
-                {lang === "tr" ? "Mailinizi Kontrol Edin" : "Check Your Email"}
-              </Text>
-              <Text style={styles.verifyBody}>
-                {lang === "tr"
-                  ? `${email} adresine doğrulama bağlantısı gönderdik. Bağlantıya tıklayarak hesabınızı onaylayın, ardından giriş yapın.`
-                  : `We sent a verification link to ${email}. Click the link to confirm your account, then log in.`}
-              </Text>
-              <Pressable onPress={() => { setView("email"); setMode("login"); setError(""); }} style={({ pressed }) => [styles.submitBtn, pressed && { opacity: 0.85 }]}>
-                <LinearGradient colors={[Colors.goldLight, Colors.gold]} style={styles.submitBtnInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                  <Ionicons name="log-in-outline" size={18} color={Colors.background} />
-                  <Text style={styles.submitBtnText}>{lang === "tr" ? "Giriş Yap" : "Log In"}</Text>
-                </LinearGradient>
-              </Pressable>
-              <Pressable onPress={handleResendMail} style={styles.resendBtn}>
-                <Text style={styles.resendBtnText}>{lang === "tr" ? "Maili tekrar gönder" : "Resend email"}</Text>
-              </Pressable>
             </Animated.View>
           )}
 
@@ -660,38 +619,4 @@ const styles = StyleSheet.create({
   },
   submitBtnText: { fontSize: 15, fontFamily: "Lora_700Bold", color: Colors.background },
 
-  verifyCard: {
-    width: "100%",
-    backgroundColor: Colors.surface,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.gold + "30",
-    padding: 28,
-    alignItems: "center",
-    gap: 16,
-  },
-  verifyIconWrap: {
-    width: 72, height: 72,
-    borderRadius: 36,
-    backgroundColor: Colors.gold + "15",
-    borderWidth: 1,
-    borderColor: Colors.gold + "40",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  verifyTitle: {
-    fontSize: 20,
-    fontFamily: "Lora_700Bold",
-    color: Colors.text,
-    textAlign: "center",
-  },
-  verifyBody: {
-    fontSize: 14,
-    fontFamily: "Lora_400Regular",
-    color: Colors.textSecondary,
-    textAlign: "center",
-    lineHeight: 22,
-  },
-  resendBtn: { paddingVertical: 8 },
-  resendBtnText: { fontSize: 13, fontFamily: "Lora_400Regular_Italic", color: Colors.textDim, textDecorationLine: "underline" },
 });

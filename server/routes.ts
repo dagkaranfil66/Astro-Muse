@@ -100,8 +100,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const proto = req.headers["x-forwarded-proto"] || req.protocol;
       const host = req.headers["x-forwarded-host"] || req.get("host");
       const baseUrl = `${proto}://${host}`;
-      await sendVerificationEmail(key, name.trim(), verifyToken, baseUrl);
-      return res.json({ success: true, message: "Doğrulama maili gönderildi" });
+      sendVerificationEmail(key, name.trim(), verifyToken, baseUrl).catch(() => {});
+      return res.json({ success: true, user: { id: user.id, name: user.name, email: key } });
     } catch (err) {
       console.error("Register error:", err);
       return res.status(500).json({ error: "Kayıt sırasında hata oluştu" });
@@ -132,7 +132,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) return res.status(401).json({ error: "E-posta veya şifre hatalı" });
       const match = await bcrypt.compare(password, user.passwordHash);
       if (!match) return res.status(401).json({ error: "E-posta veya şifre hatalı" });
-      if (!user.verified) return res.status(403).json({ error: "unverified", message: "Lütfen önce e-postanızı doğrulayın" });
       return res.json({ success: true, user: { id: user.id, name: user.name, email: user.email } });
     } catch (err) {
       console.error("Login error:", err);
