@@ -1,7 +1,9 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import * as Notifications from "expo-notifications";
 import React, { useEffect } from "react";
+import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -14,13 +16,79 @@ import { Colors } from "@/constants/colors";
 
 SplashScreen.preventAutoHideAsync();
 
+if (Platform.OS !== "web") {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
+
+async function setupDailyNotification() {
+  if (Platform.OS === "web") return;
+  try {
+    const { status } = await Notifications.requestPermissionsAsync();
+    if (status !== "granted") return;
+
+    if (Platform.OS === "android") {
+      await Notifications.setNotificationChannelAsync("daily-horoscope", {
+        name: "Günlük Burç",
+        importance: Notifications.AndroidImportance.HIGH,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: "#E7B008",
+      });
+    }
+
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    const alreadySet = scheduled.some(
+      (n) => n.content.data?.type === "daily-horoscope"
+    );
+    if (!alreadySet) {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "✦ Tengri'nin Günlük Mesajı",
+          body: "Bugünkü mistik rehberliğiniz hazır! Yıldızlar sizi bekliyor...",
+          data: { type: "daily-horoscope" },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DAILY,
+          hour: 9,
+          minute: 0,
+        },
+      });
+    }
+  } catch (e) {
+    console.warn("Notification setup error:", e);
+  }
+}
+
 function RootLayoutNav() {
+  useEffect(() => {
+    setupDailyNotification();
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS === "web") return;
+    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
+      const type = response.notification.request.content.data?.type;
+      if (type === "daily-horoscope") {
+        router.push("/daily-horoscope");
+      }
+    });
+    return () => sub.remove();
+  }, []);
+
   return (
     <Stack screenOptions={{ headerBackTitle: "Geri", headerShown: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="reading/[service]" options={{ headerShown: false, presentation: "card" }} />
       <Stack.Screen name="purchase" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="auth" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="daily-horoscope" options={{ headerShown: false, presentation: "modal" }} />
     </Stack>
   );
 }

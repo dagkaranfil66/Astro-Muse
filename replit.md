@@ -10,6 +10,7 @@ Turkish mystical guidance app with AI-powered readings (tengristar.com).
 - **Password confirmation** on registration
 - **Daily spin wheel** (app/spin.tsx) — 24h cooldown, random gold prizes
 - **Photo upload**: El falı = kamera + galeri (tek foto); Kahve falı = 3 fotoğraf (kamera + galeri)
+- **Daily Horoscope** (app/daily-horoscope.tsx) — zodiac sign selector, AI teaser (free), full reading (3✦); daily 9AM push notification
 - Streaming AI readings via OpenAI GPT-5.2
 - Social sharing: WhatsApp, Instagram, Facebook, Twitter/X, clipboard
 - TR/EN language support

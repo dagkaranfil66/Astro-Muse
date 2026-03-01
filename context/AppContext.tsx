@@ -38,6 +38,8 @@ interface AppContextValue {
   remainingReadings: number;
   consumeTrial: () => void;
   purchase: () => void;
+  zodiacSign: string | null;
+  setZodiacSign: (sign: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -49,6 +51,7 @@ const KEYS = {
   lastSpin: 'tengri_last_spin',
   trialCount: 'tengri_trial_count',
   isPurchased: 'tengri_is_purchased',
+  zodiac: 'tengri_zodiac',
 };
 
 function isSpinAvailable(lastSpin: string | null): boolean {
@@ -66,17 +69,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [lastSpinDate, setLastSpinDate] = useState<string | null>(null);
   const [trialCount, setTrialCount] = useState(0);
   const [isPurchased, setIsPurchased] = useState(false);
+  const [zodiacSign, setZodiacState] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
-        const [goldStr, readStr, profStr, spinStr, tcStr, ipStr] = await Promise.all([
+        const [goldStr, readStr, profStr, spinStr, tcStr, ipStr, zodStr] = await Promise.all([
           AsyncStorage.getItem(KEYS.gold),
           AsyncStorage.getItem(KEYS.readings),
           AsyncStorage.getItem(KEYS.profile),
           AsyncStorage.getItem(KEYS.lastSpin),
           AsyncStorage.getItem(KEYS.trialCount),
           AsyncStorage.getItem(KEYS.isPurchased),
+          AsyncStorage.getItem(KEYS.zodiac),
         ]);
         if (goldStr !== null) setGoldBalance(parseInt(goldStr, 10));
         if (readStr) setReadings(JSON.parse(readStr));
@@ -84,6 +89,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (spinStr) setLastSpinDate(spinStr);
         if (tcStr) setTrialCount(parseInt(tcStr, 10));
         if (ipStr) setIsPurchased(ipStr === 'true');
+        if (zodStr) setZodiacState(zodStr);
       } catch (e) {
         console.error('AppContext load error', e);
       } finally {
@@ -156,6 +162,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addGold(30);
   };
 
+  const setZodiacSign = async (sign: string) => {
+    setZodiacState(sign);
+    await AsyncStorage.setItem(KEYS.zodiac, sign);
+  };
+
   const remainingReadings = isPurchased ? 30 : Math.max(0, 5 - trialCount);
 
   const value = useMemo(() => ({
@@ -178,7 +189,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     remainingReadings,
     consumeTrial,
     purchase,
-  }), [goldBalance, readings, userProfile, isLoaded, trialCount, isPurchased, lastSpinDate]);
+    zodiacSign,
+    setZodiacSign,
+  }), [goldBalance, readings, userProfile, isLoaded, trialCount, isPurchased, lastSpinDate, zodiacSign]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

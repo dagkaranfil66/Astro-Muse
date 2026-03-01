@@ -346,6 +346,46 @@ function ServiceCard({ serviceId, index, label, desc, onPress }: {
   );
 }
 
+// ────────── Daily Horoscope Card ──────────
+function DailyHoroscopeCard() {
+  const { zodiacSign } = useApp();
+  const { lang } = useLang();
+  const signEmoji: Record<string, string> = {
+    Koç: "♈", Boğa: "♉", İkizler: "♊", Yengeç: "♋",
+    Aslan: "♌", Başak: "♍", Terazi: "♎", Akrep: "♏",
+    Yay: "♐", Oğlak: "♑", Kova: "♒", Balık: "♓",
+  };
+  const signColor: Record<string, string> = {
+    Koç: "#E05555", Boğa: "#6B9E3A", İkizler: "#E0C040", Yengeç: "#7EB8E8",
+    Aslan: "#E08C00", Başak: "#7EB880", Terazi: "#C878D8", Akrep: "#8B2020",
+    Yay: "#D8782A", Oğlak: "#6B8B9E", Kova: "#4878C8", Balık: "#7878D8",
+  };
+  const color = zodiacSign ? (signColor[zodiacSign] ?? Colors.gold) : Colors.gold;
+
+  return (
+    <Animated.View entering={FadeInDown.delay(230).springify()}>
+      <Pressable onPress={() => router.push("/daily-horoscope")} style={styles.dailyCard}>
+        <LinearGradient colors={[color + "22", color + "0A"]} style={styles.dailyCardInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+          <View style={styles.dailyLeft}>
+            <Text style={[styles.dailyEmoji, { color }]}>{zodiacSign ? signEmoji[zodiacSign] : "☽"}</Text>
+            <View>
+              <Text style={[styles.dailyTitle, { color }]}>
+                {zodiacSign ? `${zodiacSign} · Günlük Yorum` : (lang === "tr" ? "Günlük Burcunuz" : "Daily Horoscope")}
+              </Text>
+              <Text style={styles.dailySub}>
+                {zodiacSign ? "Mistik mesajınız hazır" : (lang === "tr" ? "Burcunuzu seçin" : "Select your sign")}
+              </Text>
+            </View>
+          </View>
+          <View style={[styles.dailyBadge, { borderColor: color + "40", backgroundColor: color + "15" }]}>
+            <Text style={[styles.dailyBadgeText, { color }]}>3✦</Text>
+          </View>
+        </LinearGradient>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
 // ────────── Main Screen ──────────
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -445,6 +485,8 @@ export default function HomeScreen() {
             </Pressable>
           </Animated.View>
         )}
+
+        <DailyHoroscopeCard />
 
         <Animated.Text entering={FadeInDown.delay(260)} style={styles.sectionTitle}>
           {t.services}
@@ -608,4 +650,13 @@ const styles = StyleSheet.create({
   cardRight: { alignItems: "flex-end", gap: 6 },
   goldBadge: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3 },
   goldBadgeText: { fontSize: 11, fontFamily: "Lora_700Bold" },
+
+  dailyCard: { marginBottom: 14, borderRadius: 14, overflow: "hidden", borderWidth: 1, borderColor: Colors.cardBorder },
+  dailyCardInner: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 13, paddingHorizontal: 14 },
+  dailyLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
+  dailyEmoji: { fontSize: 28 },
+  dailyTitle: { fontSize: 13, fontFamily: "Lora_700Bold", letterSpacing: 0.2 },
+  dailySub: { fontSize: 11, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary, marginTop: 1 },
+  dailyBadge: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3 },
+  dailyBadgeText: { fontSize: 11, fontFamily: "Lora_700Bold" },
 });

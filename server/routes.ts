@@ -117,6 +117,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/daily-horoscope-teaser", async (req: Request, res: Response) => {
+    try {
+      const { zodiacSign } = req.body;
+      if (!zodiacSign) return res.status(400).json({ error: "Burç gerekli" });
+
+      const systemPrompt = `Sen Tengri'nin bilge burç ustasısın. Kullanıcının bugünkü burç yorumunu 2-3 cümleyle özetle. Gizemli, çekici ve merak uyandırıcı bir dil kullan. Tam yorumu okumak için devamını beklemeleri gerektiğini ima et. Türkçe yaz.`;
+      const userMessage = `${zodiacSign} burcu için bugünün kısa mistik mesajını ver.`;
+
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+
+      const openai = getOpenAIClient();
+      const stream = await openai.chat.completions.create({
+        model: "gpt-5.2",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userMessage },
+        ],
+        stream: true,
+        max_completion_tokens: 120,
+      });
+
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content || "";
+        if (content) res.write(`data: ${JSON.stringify({ content })}\n\n`);
+      }
+      res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+      res.end();
+    } catch (error) {
+      console.error("Daily horoscope teaser error:", error);
+      if (res.headersSent) {
+        res.write(`data: ${JSON.stringify({ error: "Teaser alınamadı" })}\n\n`);
+        res.end();
+      } else {
+        res.status(500).json({ error: "Teaser alınamadı" });
+      }
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

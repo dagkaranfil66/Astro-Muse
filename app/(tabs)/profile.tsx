@@ -6,7 +6,6 @@ import {
   ScrollView,
   Pressable,
   Platform,
-  Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -71,22 +70,10 @@ export default function ProfileScreen() {
   }, {});
   const topService = Object.entries(serviceBreakdown).sort((a, b) => b[1] - a[1])[0];
 
-  const handleLogout = () => {
-    Alert.alert(
-      lang === "tr" ? "Çıkış Yap" : "Logout",
-      lang === "tr" ? "Hesabınızdan çıkmak istediğinize emin misiniz?" : "Are you sure you want to logout?",
-      [
-        { text: lang === "tr" ? "İptal" : "Cancel", style: "cancel" },
-        {
-          text: lang === "tr" ? "Çıkış Yap" : "Logout",
-          style: "destructive",
-          onPress: async () => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            await clearUserProfile();
-          },
-        },
-      ]
-    );
+  const handleLogout = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await clearUserProfile();
+    router.replace("/auth");
   };
 
   return (

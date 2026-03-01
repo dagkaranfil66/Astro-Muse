@@ -6,7 +6,6 @@ import {
   ScrollView,
   Pressable,
   Platform,
-  Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -35,42 +34,56 @@ const SERVICE_NAMES_TR: Record<string, string> = {
   tarot: "Tarot", dogum: "Doğum Haritası",
 };
 
-function GoldPackageCard({ pkg, onBuy, buying }: {
+function GoldPackageCard({ pkg, onBuy, buying, boughtId }: {
   pkg: typeof GOLD_PACKAGES[0];
   onBuy: (pkg: typeof GOLD_PACKAGES[0]) => void;
   buying: boolean;
+  boughtId: string | null;
 }) {
   const scale = useSharedValue(1);
   const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const isThisBought = boughtId === pkg.id;
 
   return (
     <Pressable
       onPressIn={() => { scale.value = withSpring(0.97); }}
       onPressOut={() => { scale.value = withSpring(1); }}
       onPress={() => onBuy(pkg)}
-      disabled={buying}
+      disabled={buying || !!boughtId}
     >
       <Animated.View style={[styles.pkgCard, pkg.popular && styles.pkgCardPopular, style]}>
-        {pkg.popular && (
+        {pkg.popular && !isThisBought && (
           <View style={styles.popularBadge}>
             <Text style={styles.popularBadgeText}>EN POPÜLER</Text>
           </View>
         )}
-        <LinearGradient colors={pkg.gradient} style={styles.pkgCardInner}>
+        <LinearGradient colors={isThisBought ? ["#0D2A1A", "#0A2010"] : pkg.gradient} style={styles.pkgCardInner}>
           <View style={styles.pkgLeft}>
-            <View style={styles.goldIconWrap}>
-              <Text style={styles.goldIconText}>✦</Text>
+            <View style={[styles.goldIconWrap, isThisBought && styles.goldIconWrapSuccess]}>
+              <Text style={styles.goldIconText}>{isThisBought ? "✓" : "✦"}</Text>
             </View>
             <View>
-              <Text style={styles.pkgGold}>{pkg.gold} Altın</Text>
-              <Text style={styles.pkgPerGold}>{pkg.perGold}/altın</Text>
+              <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>{pkg.gold} Altın</Text>
+              <Text style={styles.pkgPerGold}>{isThisBought ? "Eklendi!" : pkg.perGold + "/altın"}</Text>
             </View>
           </View>
           <View style={styles.pkgRight}>
-            <Text style={styles.pkgPrice}>{pkg.price}</Text>
-            <View style={styles.pkgBuyBtn}>
-              <Text style={styles.pkgBuyBtnText}>Satın Al</Text>
-            </View>
+            {isThisBought ? (
+              <View style={[styles.pkgBuyBtn, styles.pkgBuyBtnSuccess]}>
+                <Text style={[styles.pkgBuyBtnText, { color: "#fff" }]}>Tamamlandı</Text>
+              </View>
+            ) : buying ? (
+              <View style={[styles.pkgBuyBtn, styles.pkgBuyBtnBuying]}>
+                <Text style={styles.pkgBuyBtnText}>İşleniyor...</Text>
+              </View>
+            ) : (
+              <>
+                <Text style={styles.pkgPrice}>{pkg.price}</Text>
+                <View style={styles.pkgBuyBtn}>
+                  <Text style={styles.pkgBuyBtnText}>Satın Al</Text>
+                </View>
+              </>
+            )}
           </View>
         </LinearGradient>
       </Animated.View>
@@ -83,6 +96,8 @@ export default function PurchaseScreen() {
   const { addGold, goldBalance } = useApp();
   const { lang } = useLang();
   const [buying, setBuying] = useState(false);
+  const [boughtId, setBoughtId] = useState<string | null>(null);
+  const [boughtGold, setBoughtGold] = useState(0);
 
   const glowOp = useSharedValue(0.2);
   React.useEffect(() => {
@@ -94,35 +109,19 @@ export default function PurchaseScreen() {
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const handleBuy = (pkg: typeof GOLD_PACKAGES[0]) => {
-    if (buying) return;
+    if (buying || boughtId) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert(
-      lang === "tr" ? "Altın Satın Al" : "Buy Gold",
-      lang === "tr"
-        ? `${pkg.gold} altın için ${pkg.price} ödeyeceksiniz.\n\nDevam etmek istiyor musunuz?`
-        : `You'll pay ${pkg.price} for ${pkg.gold} gold.\n\nContinue?`,
-      [
-        { text: lang === "tr" ? "İptal" : "Cancel", style: "cancel" },
-        {
-          text: lang === "tr" ? "Satın Al" : "Purchase",
-          onPress: () => {
-            setBuying(true);
-            setTimeout(() => {
-              addGold(pkg.gold);
-              setBuying(false);
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-              Alert.alert(
-                lang === "tr" ? "Tebrikler! 🎉" : "Congratulations! 🎉",
-                lang === "tr"
-                  ? `${pkg.gold} altın hesabınıza eklendi! Toplam bakiyeniz: ${goldBalance + pkg.gold} altın.`
-                  : `${pkg.gold} gold added! New balance: ${goldBalance + pkg.gold} gold.`
-              );
-              router.back();
-            }, 800);
-          },
-        },
-      ]
-    );
+    setBuying(true);
+    setTimeout(() => {
+      addGold(pkg.gold);
+      setBuying(false);
+      setBoughtId(pkg.id);
+      setBoughtGold(pkg.gold);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setTimeout(() => {
+        router.back();
+      }, 1800);
+    }, 1000);
   };
 
   const costEntries = Object.entries(SERVICE_GOLD_COST).sort((a, b) => a[1] - b[1]);
@@ -142,42 +141,53 @@ export default function PurchaseScreen() {
           <Ionicons name="close" size={22} color={Colors.textSecondary} />
         </Pressable>
 
-        <Animated.View entering={FadeIn.duration(500)} style={styles.header}>
-          <Text style={styles.headerSub}>✦ TENGRI ✦</Text>
-          <Text style={styles.headerTitle}>
-            {lang === "tr" ? "Altın Satın Al" : "Buy Gold"}
-          </Text>
-          <Text style={styles.headerDesc}>
-            {lang === "tr"
-              ? "Mistik okumalar için altın kullanın. Her hizmetin kendine özel fiyatı var."
-              : "Use gold for mystic readings. Each service has its own price."}
-          </Text>
-        </Animated.View>
+        {boughtId ? (
+          <Animated.View entering={ZoomIn.springify()} style={styles.successBanner}>
+            <LinearGradient colors={["#0D2A1A", "#0A2010"]} style={styles.successBannerInner}>
+              <Text style={styles.successIcon}>✦</Text>
+              <Text style={styles.successTitle}>
+                {lang === "tr" ? `${boughtGold} Altın Eklendi!` : `${boughtGold} Gold Added!`}
+              </Text>
+              <Text style={styles.successSub}>
+                {lang === "tr" ? "Mistik yolculuğunuz devam ediyor..." : "Your mystical journey continues..."}
+              </Text>
+            </LinearGradient>
+          </Animated.View>
+        ) : (
+          <Animated.View entering={FadeIn.duration(500)} style={styles.header}>
+            <Text style={styles.headerSub}>✦ TENGRI ✦</Text>
+            <Text style={styles.headerTitle}>
+              {lang === "tr" ? "Altın Satın Al" : "Buy Gold"}
+            </Text>
+            <Text style={styles.headerDesc}>
+              {lang === "tr"
+                ? "Mistik okumalar için altın kullanın. Her hizmetin kendine özel fiyatı var."
+                : "Use gold for mystic readings. Each service has its own price."}
+            </Text>
+          </Animated.View>
+        )}
 
-        {/* Current balance */}
         <Animated.View entering={ZoomIn.delay(100).springify()} style={styles.balanceCard}>
           <LinearGradient colors={["#141420", "#0D1526"]} style={styles.balanceCardInner}>
             <Text style={styles.balanceIcon}>✦</Text>
             <View>
               <Text style={styles.balanceLabel}>{lang === "tr" ? "Mevcut Bakiyeniz" : "Current Balance"}</Text>
-              <Text style={styles.balanceValue}>{goldBalance} <Text style={styles.balanceUnit}>{lang === "tr" ? "altın" : "gold"}</Text></Text>
+              <Text style={styles.balanceValue}>{boughtId ? goldBalance : goldBalance} <Text style={styles.balanceUnit}>{lang === "tr" ? "altın" : "gold"}</Text></Text>
             </View>
           </LinearGradient>
         </Animated.View>
 
-        {/* Packages */}
         <Animated.View entering={FadeInDown.delay(150).springify()} style={styles.section}>
           <Text style={styles.sectionTitle}>
             {lang === "tr" ? "✦ Altın Paketleri" : "✦ Gold Packages"}
           </Text>
           {GOLD_PACKAGES.map((pkg, i) => (
             <Animated.View key={pkg.id} entering={FadeInDown.delay(200 + i * 60).springify()}>
-              <GoldPackageCard pkg={pkg} onBuy={handleBuy} buying={buying} />
+              <GoldPackageCard pkg={pkg} onBuy={handleBuy} buying={buying} boughtId={boughtId} />
             </Animated.View>
           ))}
         </Animated.View>
 
-        {/* Service Price Guide */}
         <Animated.View entering={FadeInDown.delay(400).springify()} style={styles.section}>
           <Text style={styles.sectionTitle}>
             {lang === "tr" ? "✦ Hizmet Fiyatları" : "✦ Service Prices"}
@@ -199,12 +209,11 @@ export default function PurchaseScreen() {
           <View style={styles.freeTierNote}>
             <Ionicons name="gift-outline" size={14} color={Colors.success} />
             <Text style={styles.freeTierNoteText}>
-              {lang === "tr" ? "Başlangıçta 5 ücretsiz altın hediye!" : "Start with 5 free gold!"}
+              {lang === "tr" ? "Başlangıçta ücretsiz altın hediye!" : "Start with free gold!"}
             </Text>
           </View>
         </Animated.View>
 
-        {/* Legal */}
         <Text style={styles.legal}>
           {lang === "tr"
             ? "Taahhüt yok • İstediğiniz zaman kullanın\ntengristar.com • Gizlilik Politikası"
@@ -221,6 +230,12 @@ const styles = StyleSheet.create({
   inner: { paddingHorizontal: 18, gap: 16 },
 
   closeBtn: { alignSelf: "flex-end", width: 36, height: 36, alignItems: "center", justifyContent: "center" },
+
+  successBanner: { borderRadius: 16, borderWidth: 1, borderColor: Colors.success + "40", overflow: "hidden" },
+  successBannerInner: { alignItems: "center", padding: 24, gap: 8 },
+  successIcon: { fontSize: 40, color: Colors.success },
+  successTitle: { fontSize: 22, fontFamily: "Lora_700Bold", color: Colors.success, textAlign: "center" },
+  successSub: { fontSize: 13, fontFamily: "Lora_400Regular_Italic", color: Colors.success + "90", textAlign: "center" },
 
   header: { alignItems: "center", gap: 8, paddingVertical: 8 },
   headerSub: { fontSize: 10, fontFamily: "Lora_400Regular", color: Colors.gold, letterSpacing: 6 },
@@ -244,12 +259,15 @@ const styles = StyleSheet.create({
   popularBadgeText: { fontSize: 9, fontFamily: "Lora_700Bold", color: Colors.background, letterSpacing: 1 },
   pkgLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
   goldIconWrap: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.gold + "20", borderWidth: 1, borderColor: Colors.gold + "40", alignItems: "center", justifyContent: "center" },
+  goldIconWrapSuccess: { backgroundColor: Colors.success + "20", borderColor: Colors.success + "40" },
   goldIconText: { fontSize: 20, color: Colors.gold },
   pkgGold: { fontSize: 17, fontFamily: "Lora_700Bold", color: Colors.text },
   pkgPerGold: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textSecondary },
   pkgRight: { alignItems: "flex-end", gap: 8 },
   pkgPrice: { fontSize: 18, fontFamily: "Lora_700Bold", color: Colors.gold },
   pkgBuyBtn: { backgroundColor: Colors.gold, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10 },
+  pkgBuyBtnBuying: { backgroundColor: Colors.textDim },
+  pkgBuyBtnSuccess: { backgroundColor: Colors.success },
   pkgBuyBtnText: { fontSize: 12, fontFamily: "Lora_700Bold", color: Colors.background },
 
   costTier: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
