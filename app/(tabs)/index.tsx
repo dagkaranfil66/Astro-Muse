@@ -26,6 +26,7 @@ import Animated, {
   interpolateColor,
   Extrapolation,
   FadeInDown,
+  FadeIn,
   ZoomIn,
 } from "react-native-reanimated";
 import { Colors } from "@/constants/colors";
@@ -179,7 +180,6 @@ function MandalaRing({ radius, dotCount, color, duration, reverse }: {
 // ────────── Tengri Logo ──────────
 function AnimatedLogo() {
   const floatY = useSharedValue(0);
-  const logoScale = useSharedValue(0.8);
   const phase = useSharedValue(0);
 
   React.useEffect(() => {
@@ -187,9 +187,6 @@ function AnimatedLogo() {
       withSequence(withTiming(-10, { duration: 4000 }), withTiming(0, { duration: 4000 })),
       -1, false
     );
-    logoScale.value = withSpring(1, { damping: 10, stiffness: 70 });
-    // Phase 0 = contracted+pink, Phase 1 = expanded+blue
-    // Color AND scale change together — very smooth cross-fade
     phase.value = withRepeat(
       withSequence(withTiming(1, { duration: 10000 }), withTiming(0, { duration: 10000 })),
       -1, false
@@ -197,7 +194,7 @@ function AnimatedLogo() {
   }, []);
 
   const floatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: floatY.value }, { scale: logoScale.value }],
+    transform: [{ translateY: floatY.value }],
   }));
   const glowStyle = useAnimatedStyle(() => ({
     transform: [{ scale: 1.0 + phase.value * 0.22 }],
@@ -450,7 +447,9 @@ export default function HomeScreen() {
       >
         {/* Logo Hero */}
         <Animated.View style={[styles.hero, headerFade]}>
-          <AnimatedLogo />
+          <Animated.View entering={FadeIn.duration(400)}>
+            <AnimatedLogo />
+          </Animated.View>
           <Animated.Text entering={ZoomIn.delay(500).springify()} style={styles.heroTitle}>
             {t.appTagline}
           </Animated.Text>

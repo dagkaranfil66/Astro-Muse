@@ -3,7 +3,7 @@ import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import * as Notifications from "expo-notifications";
 import React, { useEffect } from "react";
-import { Platform } from "react-native";
+import { Platform, View, Image, StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -13,6 +13,7 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import { useFonts, CinzelDecorative_400Regular, CinzelDecorative_700Bold } from "@expo-google-fonts/cinzel-decorative";
 import { Lora_400Regular, Lora_400Regular_Italic, Lora_700Bold } from "@expo-google-fonts/lora";
 import { Colors } from "@/constants/colors";
+import { LinearGradient } from "expo-linear-gradient";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -103,12 +104,22 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]);
+    SplashScreen.hideAsync();
+  }, []);
 
-  if (!fontsLoaded) return null;
+  if (!fontsLoaded) {
+    return (
+      <View style={splashStyles.container}>
+        <LinearGradient colors={["#08051A", "#070D1A", "#0D0820"]} style={StyleSheet.absoluteFill} />
+        <Image
+          source={require("@/assets/images/tengri-logo.png")}
+          style={splashStyles.logo}
+          resizeMode="contain"
+          fadeDuration={0}
+        />
+      </View>
+    );
+  }
 
   return (
     <ErrorBoundary>
@@ -126,3 +137,8 @@ export default function RootLayout() {
     </ErrorBoundary>
   );
 }
+
+const splashStyles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#08051A", alignItems: "center", justifyContent: "center" },
+  logo: { width: 160, height: 160 },
+});
