@@ -29,10 +29,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Colors } from "@/constants/colors";
 import { useLang } from "@/context/LanguageContext";
 import { useApp } from "@/context/AppContext";
+import { getApiUrl } from "@/lib/query-client";
 
 WebBrowser.maybeCompleteAuthSession();
 
-type AuthView = "choice" | "email" | "social";
+type AuthView = "choice" | "email" | "social" | "verify";
 
 const SOCIAL_PROVIDERS = [
   {
@@ -42,22 +43,6 @@ const SOCIAL_PROVIDERS = [
     color: "#DB4437",
     id: "google",
     bg: "#DB443710",
-  },
-  {
-    label: "Facebook ile Giriş Yap",
-    labelEn: "Continue with Facebook",
-    icon: "logo-facebook" as const,
-    color: "#1877F2",
-    id: "facebook",
-    bg: "#1877F210",
-  },
-  {
-    label: "Apple ile Giriş Yap",
-    labelEn: "Continue with Apple",
-    icon: "logo-apple" as const,
-    color: "#F2F2F2",
-    id: "apple",
-    bg: "#F2F2F210",
   },
   {
     label: "E-posta ile Giriş Yap",
@@ -246,16 +231,58 @@ export default function AuthScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     try {
-      const userName = name || email.split("@")[0];
-      await finishLogin(userName, email);
+      const apiBase = new URL("", getApiUrl()).toString().replace(/\/$/, "");
+      if (mode === "register") {
+        const res = await fetch(`${apiBase}/api/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error || (lang === "tr" ? "Kayıt başarısız" : "Registration failed"));
+          setLoading(false);
+          return;
+        }
+        setLoading(false);
+        setView("verify");
+      } else {
+        const res = await fetch(`${apiBase}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim(), password }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          if (data.error === "unverified") {
+            setError(lang === "tr" ? "Lütfen önce e-postanızı doğrulayın" : "Please verify your email first");
+          } else {
+            setError(data.error || (lang === "tr" ? "Giriş başarısız" : "Login failed"));
+          }
+          setLoading(false);
+          return;
+        }
+        await finishLogin(data.user.name, data.user.email);
+      }
     } catch {
-      setError(lang === "tr" ? "Bir hata oluştu" : "An error occurred");
+      setError(lang === "tr" ? "Sunucuya bağlanılamadı" : "Could not reach server");
       setLoading(false);
     }
   };
 
+  const handleResendMail = async () => {
+    try {
+      const apiBase = new URL("", getApiUrl()).toString().replace(/\/$/, "");
+      await fetch(`${apiBase}/api/auth/resend`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+    } catch {}
+  };
+
   const goBack = () => {
-    if (view === "email" || view === "social") {
+    if (view === "email" || view === "social" || view === "verify") {
       setView("choice");
       setError("");
       setSelectedProvider(null);
@@ -331,6 +358,31 @@ export default function AuthScreen() {
                   ? "Devam ederek Gizlilik Politikası ve Kullanım Koşullarını kabul etmiş olursunuz."
                   : "By continuing you accept our Privacy Policy and Terms of Use."}
               </Text>
+            </Animated.View>
+          )}
+
+          {view === "verify" && (
+            <Animated.View entering={ZoomIn.springify()} style={styles.verifyCard}>
+              <View style={styles.verifyIconWrap}>
+                <Ionicons name="mail" size={36} color={Colors.gold} />
+              </View>
+              <Text style={styles.verifyTitle}>
+                {lang === "tr" ? "Mailinizi Kontrol Edin" : "Check Your Email"}
+              </Text>
+              <Text style={styles.verifyBody}>
+                {lang === "tr"
+                  ? `${email} adresine doğrulama bağlantısı gönderdik. Bağlantıya tıklayarak hesabınızı onaylayın, ardından giriş yapın.`
+                  : `We sent a verification link to ${email}. Click the link to confirm your account, then log in.`}
+              </Text>
+              <Pressable onPress={() => { setView("email"); setMode("login"); setError(""); }} style={({ pressed }) => [styles.submitBtn, pressed && { opacity: 0.85 }]}>
+                <LinearGradient colors={[Colors.goldLight, Colors.gold]} style={styles.submitBtnInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                  <Ionicons name="log-in-outline" size={18} color={Colors.background} />
+                  <Text style={styles.submitBtnText}>{lang === "tr" ? "Giriş Yap" : "Log In"}</Text>
+                </LinearGradient>
+              </Pressable>
+              <Pressable onPress={handleResendMail} style={styles.resendBtn}>
+                <Text style={styles.resendBtnText}>{lang === "tr" ? "Maili tekrar gönder" : "Resend email"}</Text>
+              </Pressable>
             </Animated.View>
           )}
 
@@ -607,4 +659,39 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   submitBtnText: { fontSize: 15, fontFamily: "Lora_700Bold", color: Colors.background },
+
+  verifyCard: {
+    width: "100%",
+    backgroundColor: Colors.surface,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.gold + "30",
+    padding: 28,
+    alignItems: "center",
+    gap: 16,
+  },
+  verifyIconWrap: {
+    width: 72, height: 72,
+    borderRadius: 36,
+    backgroundColor: Colors.gold + "15",
+    borderWidth: 1,
+    borderColor: Colors.gold + "40",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  verifyTitle: {
+    fontSize: 20,
+    fontFamily: "Lora_700Bold",
+    color: Colors.text,
+    textAlign: "center",
+  },
+  verifyBody: {
+    fontSize: 14,
+    fontFamily: "Lora_400Regular",
+    color: Colors.textSecondary,
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  resendBtn: { paddingVertical: 8 },
+  resendBtnText: { fontSize: 13, fontFamily: "Lora_400Regular_Italic", color: Colors.textDim, textDecorationLine: "underline" },
 });
