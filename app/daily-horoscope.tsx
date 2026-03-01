@@ -22,6 +22,8 @@ import Animated, {
   withRepeat,
   withTiming,
   withSpring,
+  withSequence,
+  withDelay,
 } from "react-native-reanimated";
 import { fetch } from "expo/fetch";
 import { Colors } from "@/constants/colors";
@@ -117,14 +119,76 @@ function ZodiacSelector({ onSelect }: { onSelect: (sign: string) => void }) {
   );
 }
 
-function StarGlow() {
-  const op = useSharedValue(0.3);
+const STAR_CONFIGS = [
+  { symbol: "✦", x: "10%", y: 80, size: 16, duration: 2800, delay: 0, color: "#C8A0DC" },
+  { symbol: "⋆", x: "82%", y: 120, size: 12, duration: 3400, delay: 600, color: "#7EB8E8" },
+  { symbol: "✧", x: "5%", y: 220, size: 10, duration: 2200, delay: 1200, color: "#E0C040" },
+  { symbol: "★", x: "88%", y: 300, size: 14, duration: 3800, delay: 400, color: "#C878D8" },
+  { symbol: "✦", x: "50%", y: 50, size: 11, duration: 2600, delay: 900, color: "#9B59B6" },
+  { symbol: "⋆", x: "70%", y: 200, size: 9, duration: 3200, delay: 200, color: "#7EB8E8" },
+  { symbol: "✧", x: "25%", y: 350, size: 13, duration: 2900, delay: 700, color: "#C8A0DC" },
+  { symbol: "★", x: "92%", y: 160, size: 10, duration: 3600, delay: 1500, color: "#E08C00" },
+];
+
+function FloatingStar({ cfg }: { cfg: typeof STAR_CONFIGS[0] }) {
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(0);
+
   useEffect(() => {
-    op.value = withRepeat(withTiming(0.7, { duration: 2200 }), -1, true);
+    opacity.value = withDelay(
+      cfg.delay,
+      withRepeat(
+        withSequence(
+          withTiming(0.7, { duration: cfg.duration * 0.4 }),
+          withTiming(0.15, { duration: cfg.duration * 0.3 }),
+          withTiming(0.9, { duration: cfg.duration * 0.3 }),
+        ),
+        -1, true
+      )
+    );
+    translateY.value = withDelay(
+      cfg.delay,
+      withRepeat(
+        withSequence(
+          withTiming(-10, { duration: cfg.duration * 0.5 }),
+          withTiming(10, { duration: cfg.duration * 0.5 }),
+        ),
+        -1, true
+      )
+    );
   }, []);
-  const style = useAnimatedStyle(() => ({ opacity: op.value }));
+
+  const style = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
   return (
-    <Animated.View style={[styles.starGlow, style]} />
+    <Animated.Text
+      style={[
+        style,
+        {
+          position: "absolute",
+          left: cfg.x,
+          top: cfg.y,
+          fontSize: cfg.size,
+          color: cfg.color,
+          pointerEvents: "none",
+        } as any,
+      ]}
+    >
+      {cfg.symbol}
+    </Animated.Text>
+  );
+}
+
+function FloatingStars() {
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {STAR_CONFIGS.map((cfg, i) => (
+        <FloatingStar key={i} cfg={cfg} />
+      ))}
+    </View>
   );
 }
 
@@ -207,7 +271,7 @@ export default function DailyHoroscopeScreen() {
     return (
       <View style={styles.container}>
         <LinearGradient colors={["#08051A", "#070D1A", "#0D0820"]} style={StyleSheet.absoluteFill} />
-        <StarGlow />
+        <FloatingStars />
         <ScrollView
           contentContainerStyle={[styles.inner, { paddingTop: topPad + 12, paddingBottom: botPad + 24 }]}
           showsVerticalScrollIndicator={false}
@@ -224,7 +288,7 @@ export default function DailyHoroscopeScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient colors={["#08051A", "#070D1A", "#0D0820"]} style={StyleSheet.absoluteFill} />
-      <StarGlow />
+      <FloatingStars />
 
       <ScrollView
         contentContainerStyle={[styles.inner, { paddingTop: topPad + 12, paddingBottom: botPad + 24 }]}
@@ -274,7 +338,7 @@ export default function DailyHoroscopeScreen() {
             {teaserDone && !fullReading && !fullLoading && (
               <Animated.View entering={ZoomIn.delay(200).springify()} style={styles.ctaWrap}>
                 <Pressable onPress={handleReadFull} style={styles.ctaBtn}>
-                  <LinearGradient colors={[signColor, signColor + "CC"]} style={styles.ctaBtnInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                  <LinearGradient colors={["#6B2FC0", "#4A1A8A"]} style={styles.ctaBtnInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
                     <Text style={styles.ctaBtnText}>Devamını Oku</Text>
                     <View style={styles.ctaCostBadge}>
                       <Text style={styles.ctaCostText}>3 ✦</Text>
@@ -317,10 +381,6 @@ export default function DailyHoroscopeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  starGlow: {
-    position: "absolute", width: 280, height: 280, borderRadius: 140,
-    backgroundColor: Colors.gold, opacity: 0.04, top: 60, alignSelf: "center",
-  },
   inner: { paddingHorizontal: 18, gap: 18 },
 
   headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
