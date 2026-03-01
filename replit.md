@@ -6,7 +6,8 @@ Turkish mystical guidance app with AI-powered readings (tengristar.com).
 - 11 AI-powered services: Astroloji, Kahve Falı, El Falı, Tarot, Şamanizm, Numeroloji, Ruh, Doğum, Rüya, Burçlar, Aşk
 - Gold coin economy: 10 free start coins, per-service pricing, 4 purchase packages
 - **Auth gate**: Users must register/login to use any service
-- **Social login**: Google, Facebook, Apple, E-posta ile giriş seçenekleri
+- **Social login**: Google ve E-posta ile giriş (Facebook/Apple kaldırıldı)
+- **Email verification**: Server-side user registration + nodemailer email doğrulama
 - **Password confirmation** on registration
 - **Daily spin wheel** (app/spin.tsx) — 24h cooldown, random gold prizes
 - **Photo upload**: El falı = kamera + galeri (tek foto); Kahve falı = 3 fotoğraf (kamera + galeri)
@@ -25,6 +26,7 @@ Turkish mystical guidance app with AI-powered readings (tengristar.com).
 - **Frontend**: Expo / React Native with Expo Router
 - **Backend**: Express.js on port 5000
 - **AI**: OpenAI via Replit AI Integrations (priority: OPENAI_API_KEY_ → OPENAI_API_KEY → AI_INTEGRATIONS)
+- **Payments**: RevenueCat (`react-native-purchases`) — 4 gold packages (tengri_starter/standard/premium/vip); EXPO_PUBLIC_REVENUECAT_TEST/IOS/ANDROID_API_KEY env vars set
 - **Storage**: AsyncStorage (local)
 - **Fonts**: CinzelDecorative (ASCII/decorative), Lora (Turkish content)
 

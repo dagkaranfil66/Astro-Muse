@@ -14,8 +14,10 @@ import { useFonts, CinzelDecorative_400Regular, CinzelDecorative_700Bold } from 
 import { Lora_400Regular, Lora_400Regular_Italic, Lora_700Bold } from "@expo-google-fonts/lora";
 import { Colors } from "@/constants/colors";
 import { LinearGradient } from "expo-linear-gradient";
+import { initializeRevenueCat, SubscriptionProvider } from "@/lib/revenuecat";
 
 SplashScreen.preventAutoHideAsync();
+initializeRevenueCat();
 
 if (Platform.OS !== "web") {
   Notifications.setNotificationHandler({
@@ -124,15 +126,17 @@ export default function RootLayout() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <AppProvider>
-          <LanguageProvider>
-            <GestureHandlerRootView style={{ flex: 1, backgroundColor: Colors.background }}>
-              <KeyboardProvider>
-                <RootLayoutNav />
-              </KeyboardProvider>
-            </GestureHandlerRootView>
-          </LanguageProvider>
-        </AppProvider>
+        <SubscriptionProvider>
+          <AppProvider>
+            <LanguageProvider>
+              <GestureHandlerRootView style={{ flex: 1, backgroundColor: Colors.background }}>
+                <KeyboardProvider>
+                  <RootLayoutNav />
+                </KeyboardProvider>
+              </GestureHandlerRootView>
+            </LanguageProvider>
+          </AppProvider>
+        </SubscriptionProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );
