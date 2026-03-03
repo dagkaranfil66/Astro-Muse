@@ -1,7 +1,6 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import * as Notifications from "expo-notifications";
 import React, { useEffect } from "react";
 import { Platform, View, Image, StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -15,24 +14,40 @@ import { Lora_400Regular, Lora_400Regular_Italic, Lora_700Bold } from "@expo-goo
 import { Colors } from "@/constants/colors";
 import { LinearGradient } from "expo-linear-gradient";
 import { initializeRevenueCat, SubscriptionProvider } from "@/lib/revenuecat";
+import type * as NotificationsType from "expo-notifications";
 
 SplashScreen.preventAutoHideAsync();
 initializeRevenueCat();
 
+// expo-notifications was removed from Expo Go on Android in SDK 53.
+// Use dynamic require() so Android Expo Go doesn't crash.
+let Notifications: typeof NotificationsType | null = null;
 if (Platform.OS !== "web") {
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-      shouldShowBanner: true,
-      shouldShowList: true,
-    }),
-  });
+  try {
+    Notifications = require("expo-notifications");
+  } catch {
+    // Expo Go on Android — notifications not available
+  }
+}
+
+if (Notifications) {
+  try {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+  } catch {
+    // ignore if unavailable
+  }
 }
 
 async function setupDailyNotification() {
-  if (Platform.OS === "web") return;
+  if (!Notifications || Platform.OS === "web") return;
   try {
     const { status } = await Notifications.requestPermissionsAsync();
     if (status !== "granted") return;
@@ -75,14 +90,19 @@ function RootLayoutNav() {
   }, []);
 
   useEffect(() => {
-    if (Platform.OS === "web") return;
-    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
-      const type = response.notification.request.content.data?.type;
-      if (type === "daily-horoscope") {
-        router.push("/daily-horoscope");
-      }
-    });
-    return () => sub.remove();
+    if (!Notifications || Platform.OS === "web") return;
+    let sub: ReturnType<typeof Notifications.addNotificationResponseReceivedListener> | null = null;
+    try {
+      sub = Notifications.addNotificationResponseReceivedListener((response) => {
+        const type = response.notification.request.content.data?.type;
+        if (type === "daily-horoscope") {
+          router.push("/daily-horoscope");
+        }
+      });
+    } catch {
+      // ignore
+    }
+    return () => { sub?.remove(); };
   }, []);
 
   return (
@@ -92,12 +112,13 @@ function RootLayoutNav() {
       <Stack.Screen name="purchase" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="auth" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="daily-horoscope" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="spin" options={{ headerShown: false, presentation: "modal" }} />
     </Stack>
   );
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     CinzelDecorative_400Regular,
     CinzelDecorative_700Bold,
     Lora_400Regular,
@@ -106,10 +127,12 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    SplashScreen.hideAsync();
-  }, []);
+    if (fontsLoaded || fontError) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded && !fontError) {
     return (
       <View style={splashStyles.container}>
         <LinearGradient colors={["#08051A", "#070D1A", "#0D0820"]} style={StyleSheet.absoluteFill} />
