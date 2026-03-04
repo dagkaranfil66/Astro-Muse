@@ -2,13 +2,13 @@ const { getDefaultConfig } = require("expo/metro-config");
 
 const config = getDefaultConfig(__dirname);
 
-// Exclude .local (Replit skills/temp dirs) from Metro's watcher.
-// This prevents crashes when Replit deletes temporary skill subdirectories
-// while Metro is still watching them.
-config.watchFolders = [];
+// Exclude Replit temp/cache dirs from Metro's file watcher to prevent
+// crashes when Replit deletes temporary directories while Metro is watching.
 config.resolver.blockList = [
   /[/\\]\.local[/\\].*/,
   /[/\\]\.git[/\\].*/,
+  /[/\\]\.cache[/\\].*/,
+  /[/\\]\.upm[/\\].*/,
 ];
 
 module.exports = config;

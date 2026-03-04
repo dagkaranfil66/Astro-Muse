@@ -3,6 +3,7 @@ modules = ["nodejs-22", "javascript"]
 
 [nix]
 channel = "stable-24_05"
+packages = ["glib"]
 
 [deployment]
 deploymentTarget = "cloudrun"
