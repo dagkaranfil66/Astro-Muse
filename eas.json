@@ -9,6 +9,9 @@
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleDebug"
+      },
+      "ios": {
+        "simulator": false
       }
     },
     "preview": {
@@ -16,6 +19,9 @@
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleRelease"
+      },
+      "ios": {
+        "simulator": false
       }
     },
     "production": {
@@ -23,6 +29,9 @@
       "android": {
         "buildType": "app-bundle",
         "gradleCommand": ":app:bundleRelease"
+      },
+      "ios": {
+        "credentialsSource": "remote"
       }
     }
   },
@@ -31,6 +40,11 @@
       "android": {
         "serviceAccountKeyPath": "./google-service-account.json",
         "track": "internal"
+      },
+      "ios": {
+        "appleId": "YOUR_APPLE_ID@email.com",
+        "ascAppId": "YOUR_APP_STORE_CONNECT_APP_ID",
+        "appleTeamId": "YOUR_APPLE_TEAM_ID"
       }
     }
   }

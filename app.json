@@ -15,7 +15,13 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.tengriastrolojifalburlarmistikyolculuk.app"
+      "bundleIdentifier": "com.tengriastrolojifalburlarmistikyolculuk.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Fal yorumu için fotoğraf çekmenize olanak tanır.",
+        "NSPhotoLibraryUsageDescription": "Fal yorumu için galerinizden fotoğraf seçmenize olanak tanır.",
+        "NSPhotoLibraryAddUsageDescription": "Okumalarınızı fotoğraf olarak kaydetmenize olanak tanır."
+      }
     },
     "android": {
       "package": "com.tengriastrolojifalburlarmistikyolculuk.app",
