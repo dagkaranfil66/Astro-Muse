@@ -12,8 +12,10 @@ export const SERVICE_GOLD_COST: Record<string, number> = {
   dogum: 3,
 };
 
-// 10 altın = 69,99 ₺ (6,99 ₺/altın)
-// 30 altın = 199,99 ₺ (6,67 ₺/altın — %5 indirim)
+// 10  altın = 69,99 ₺  (6,99 ₺/altın — baz)
+// 30  altın = 199,99 ₺ (6,67 ₺/altın — %5 indirim)
+// 50  altın = 299,99 ₺ (6,00 ₺/altın — %14 indirim)
+// 100 altın = 499,99 ₺ (5,00 ₺/altın — %28 indirim)
 export const GOLD_PACKAGES = [
   {
     id: "tengri_basic",
@@ -35,7 +37,29 @@ export const GOLD_PACKAGES = [
     perGold: "6,67 ₺",
     discount: 5,
     gradient: ["#1A1030", "#0D1526"] as [string, string],
+    popular: false,
+  },
+  {
+    id: "tengri_premium",
+    nameKey: "pkgPremium",
+    label: "Premium",
+    gold: 50,
+    price: "299,99 ₺",
+    perGold: "6,00 ₺",
+    discount: 14,
+    gradient: ["#1A0A20", "#0D1526"] as [string, string],
     popular: true,
+  },
+  {
+    id: "tengri_vip",
+    nameKey: "pkgVip",
+    label: "VIP",
+    gold: 100,
+    price: "499,99 ₺",
+    perGold: "5,00 ₺",
+    discount: 28,
+    gradient: ["#1A0805", "#0D1526"] as [string, string],
+    popular: false,
   },
 ];
 
