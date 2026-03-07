@@ -45,10 +45,8 @@ const PKG_DISPLAY: Record<string, {
   label: string;
   discount: number;
 }> = {
-  tengri_starter:  { gradient: ["#1A1A30", "#0D1526"], popular: false, gold: 20,  label: "Başlangıç", discount: 0  },
-  tengri_standard: { gradient: ["#1A1030", "#0D1526"], popular: true,  gold: 50,  label: "Standart",  discount: 12 },
-  tengri_premium:  { gradient: ["#1A0A20", "#0D1526"], popular: false, gold: 100, label: "Premium",   discount: 20 },
-  tengri_vip:      { gradient: ["#1A0805", "#0D1526"], popular: false, gold: 200, label: "VIP",       discount: 30 },
+  tengri_basic: { gradient: ["#1A1A30", "#0D1526"], popular: false, gold: 10, label: "Başlangıç", discount: 0 },
+  tengri_plus:  { gradient: ["#1A1030", "#0D1526"], popular: true,  gold: 30, label: "Avantajlı", discount: 5 },
 };
 
 // ─── Auth Gate (not logged in) ─────────────────────────────────────────────
@@ -300,7 +298,7 @@ export default function PurchaseScreen() {
 
   const isLoggedIn = !!userProfile;
 
-  const ORDER = ["tengri_starter", "tengri_standard", "tengri_premium", "tengri_vip"];
+  const ORDER = ["tengri_basic", "tengri_plus"];
   const sortedRcPkgs = [...packages].sort(
     (a, b) => ORDER.indexOf(a.identifier) - ORDER.indexOf(b.identifier)
   );
@@ -422,7 +420,7 @@ export default function PurchaseScreen() {
               {lang === "tr" ? "✦ Altın Paketleri" : "✦ Gold Packages"}
             </Text>
             <Text style={styles.sectionPricingNote}>
-              {lang === "tr" ? "Baz fiyat: 49,99 ₺ / 20 altın (2,50 ₺/altın)" : "Base price: ₺49.99 / 20 gold (₺2.50/gold)"}
+              {lang === "tr" ? "10 altın — 69,99 ₺  •  30 altın — 199,99 ₺" : "10 gold — ₺69.99  •  30 gold — ₺199.99"}
             </Text>
 
             {rcLoading ? (

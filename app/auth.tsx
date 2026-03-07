@@ -37,14 +37,6 @@ type AuthView = "choice" | "email" | "social";
 
 const SOCIAL_PROVIDERS = [
   {
-    label: "Google ile Giriş Yap",
-    labelEn: "Continue with Google",
-    icon: "logo-google" as const,
-    color: "#DB4437",
-    id: "google",
-    bg: "#DB443710",
-  },
-  {
     label: "E-posta ile Giriş Yap",
     labelEn: "Continue with Email",
     icon: "mail-outline" as const,
