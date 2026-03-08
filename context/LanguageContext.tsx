@@ -30,7 +30,7 @@ const translations = {
     buyPackage: 'Paket satın al',
     connectionError: 'Bağlantı hatası oluştu. Lütfen tekrar deneyin.',
     services_list: {
-      astroloji: { label: 'Türk Astrolojisi', desc: 'Gökyüzünün kadim işaretleri hayat yolunuzu aydınlatır' },
+      astroloji: { label: 'Astroloji', desc: 'Gökyüzünün kadim işaretleri hayat yolunuzu aydınlatır' },
       kahve: { label: 'Kahve Falı', desc: 'Türk kahvesi telveleri kaderin sırlarını fısıldar' },
       el: { label: 'El Falı', desc: 'Avuç çizgilerinizde yazılı yaşam haritanızı okuyun' },
       tarot: { label: 'Tarot', desc: 'Tengri yolundan ilham alan kartların gizemli mesajları' },
@@ -84,7 +84,7 @@ const translations = {
     buyPackage: 'Buy package',
     connectionError: 'Connection error. Please try again.',
     services_list: {
-      astroloji: { label: 'Turkish Astrology', desc: 'Ancient signs of the heavens illuminate your life\'s path' },
+      astroloji: { label: 'Astrology', desc: 'Ancient signs of the heavens illuminate your life\'s path' },
       kahve: { label: 'Coffee Fortune', desc: 'Turkish coffee grounds whisper the secrets of fate' },
       el: { label: 'Palm Reading', desc: 'Read the life map written in the lines of your palm' },
       tarot: { label: 'Tarot', desc: "Mysterious messages from cards inspired by Tengri's path" },
