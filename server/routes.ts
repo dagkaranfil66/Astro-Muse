@@ -160,25 +160,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!process.env.RESEND_API_KEY) {
         console.log(`[DEV] Password reset code for ${key}: ${code}`);
       }
-      await sendEmail(key, "TENGRI – Şifre Sıfırlama Kodu 🔐", `
+      await sendEmail(key, "TENGRI – Şifre Sıfırlama Kodu / Password Reset Code 🔐", `
         <div style="background:#08051A;padding:40px;font-family:Georgia,serif;color:#E8D9B0;max-width:520px;margin:0 auto;border-radius:16px;">
           <h1 style="color:#C8A020;font-size:26px;text-align:center;letter-spacing:4px;margin-bottom:4px;">✦ TENGRI</h1>
           <hr style="border:none;border-top:1px solid #C8A02040;margin:16px 0 28px;">
-          <p style="font-size:16px;margin-bottom:16px;">Merhaba <strong>${user.name}</strong>,</p>
-          <p style="font-size:14px;color:#B8A9D0;line-height:1.7;margin-bottom:8px;">TENGRI hesabınız için bir <strong style="color:#E8D9B0;">şifre sıfırlama talebi</strong> aldık.</p>
-          <p style="font-size:14px;color:#B8A9D0;line-height:1.7;margin-bottom:28px;">Aşağıdaki doğrulama kodunu kullanarak yeni bir şifre oluşturabilirsiniz.</p>
+
+          <p style="font-size:16px;margin-bottom:16px;">Merhaba / Hello, <strong>${user.name}</strong>,</p>
+
+          <p style="font-size:14px;color:#B8A9D0;line-height:1.7;margin-bottom:4px;">TENGRI hesabınız için bir <strong style="color:#E8D9B0;">şifre sıfırlama talebi</strong> aldık.</p>
+          <p style="font-size:13px;color:#9B8EC4;line-height:1.7;margin-bottom:8px;font-style:italic;">We received a <strong style="color:#B8A9D0;">password reset request</strong> for your TENGRI account.</p>
+
+          <p style="font-size:14px;color:#B8A9D0;line-height:1.7;margin-bottom:4px;">Aşağıdaki doğrulama kodunu kullanarak yeni bir şifre oluşturabilirsiniz.</p>
+          <p style="font-size:13px;color:#9B8EC4;line-height:1.7;margin-bottom:28px;font-style:italic;">Use the verification code below to create a new password.</p>
+
           <hr style="border:none;border-top:1px solid #C8A02040;margin-bottom:24px;">
-          <p style="text-align:center;color:#9B8EC4;font-size:13px;letter-spacing:2px;margin-bottom:12px;">🔐 ŞİFRE SIFIRLAMA KODUNUZ</p>
+          <p style="text-align:center;color:#9B8EC4;font-size:13px;letter-spacing:2px;margin-bottom:12px;">🔐 ŞİFRE SIFIRLAMA KODUNUZ / YOUR PASSWORD RESET CODE</p>
           <div style="text-align:center;margin:0 0 24px;">
             <div style="display:inline-block;background:linear-gradient(90deg,#C8A020,#9B6820);color:#08051A;padding:20px 56px;border-radius:12px;font-size:40px;font-weight:bold;letter-spacing:10px;">${code}</div>
           </div>
           <hr style="border:none;border-top:1px solid #C8A02040;margin-bottom:24px;">
-          <p style="font-size:14px;color:#B8A9D0;line-height:1.7;margin-bottom:8px;">Bu kod <strong style="color:#E8D9B0;">15 dakika boyunca geçerlidir.</strong></p>
-          <p style="font-size:14px;color:#B8A9D0;line-height:1.7;margin-bottom:8px;">Eğer bu isteği siz yapmadıysanız bu e-postayı güvenle yok sayabilirsiniz. Hesabınız güvende kalacaktır.</p>
-          <p style="font-size:14px;color:#B8A9D0;line-height:1.7;margin-bottom:28px;">Herhangi bir sorunuz olursa bizimle iletişime geçebilirsiniz.</p>
+
+          <p style="font-size:14px;color:#B8A9D0;line-height:1.7;margin-bottom:4px;">Bu kod <strong style="color:#E8D9B0;">15 dakika boyunca geçerlidir.</strong></p>
+          <p style="font-size:13px;color:#9B8EC4;line-height:1.7;margin-bottom:12px;font-style:italic;">This code is <strong style="color:#B8A9D0;">valid for 15 minutes.</strong></p>
+
+          <p style="font-size:14px;color:#B8A9D0;line-height:1.7;margin-bottom:4px;">Eğer bu isteği siz yapmadıysanız bu e-postayı güvenle yok sayabilirsiniz. Hesabınız güvende kalacaktır.</p>
+          <p style="font-size:13px;color:#9B8EC4;line-height:1.7;margin-bottom:12px;font-style:italic;">If you did not make this request, you can safely ignore this email. Your account will remain secure.</p>
+
+          <p style="font-size:14px;color:#B8A9D0;line-height:1.7;margin-bottom:4px;">Herhangi bir sorunuz olursa bizimle iletişime geçebilirsiniz.</p>
+          <p style="font-size:13px;color:#9B8EC4;line-height:1.7;margin-bottom:28px;font-style:italic;">If you have any questions, feel free to contact us.</p>
+
           <p style="font-size:14px;color:#B8A9D0;line-height:1.7;margin-bottom:4px;">Mistik yolculuğunuzda size rehberlik etmek için buradayız.</p>
+          <p style="font-size:13px;color:#9B8EC4;line-height:1.7;margin-bottom:20px;font-style:italic;">We are here to guide you on your mystical journey.</p>
+
           <p style="font-size:15px;color:#C8A020;font-weight:bold;margin-bottom:4px;">TENGRI</p>
-          <p style="font-size:13px;color:#9B8EC4;margin-bottom:4px;">Kadim Bilgeliği Keşfet 🔮</p>
+          <p style="font-size:13px;color:#9B8EC4;margin-bottom:4px;">Kadim Bilgeliği Keşfet / Discover Ancient Wisdom 🔮</p>
           <a href="https://tengristar.com" style="font-size:13px;color:#C8A020;text-decoration:none;">https://tengristar.com</a>
         </div>
       `);
