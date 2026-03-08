@@ -21,32 +21,59 @@ import { initializeRevenueCat, SubscriptionProvider } from "@/lib/revenuecat";
 import type * as NotificationsType from "expo-notifications";
 
 const { width: SW, height: SH } = Dimensions.get("window");
-const PARTICLE_COLORS = [Colors.gold, "#9B59B6", "#1ABFB8", "#C8B47A", "#5B9BD5"];
-const SPLASH_PARTICLES = Array.from({ length: 18 }, (_, i) => ({
-  x: SW * 0.05 + Math.random() * (SW * 0.90),
-  y: SH * 0.04 + Math.random() * (SH * 0.88),
-  size: 7 + Math.random() * 12,
-  color: PARTICLE_COLORS[i % PARTICLE_COLORS.length],
+
+// Yıldız birleşim hedefi: logo merkezi (yaklaşık)
+const LOGO_CX = SW / 2;
+const LOGO_CY = SH / 2 - 52;
+
+const P_COLORS = [Colors.gold, "#9B59B6", "#1ABFB8", "#C8B47A", "#5B9BD5", "#FF6B9D"];
+const SPLASH_PARTICLES = Array.from({ length: 22 }, (_, i) => ({
+  x: SW * 0.04 + Math.random() * (SW * 0.92),
+  y: SH * 0.03 + Math.random() * (SH * 0.90),
+  size: 8 + Math.random() * 13,
+  color: P_COLORS[i % P_COLORS.length],
 }));
 
+// Her yıldız kendi animasyon stilini hesaplar — paylaşılan converge değerini kullanır
+function SplashStar({ x, y, size, color, appear, converge }: {
+  x: number; y: number; size: number; color: string;
+  appear: ReturnType<typeof useSharedValue<number>>;
+  converge: ReturnType<typeof useSharedValue<number>>;
+}) {
+  const dx = LOGO_CX - x;
+  const dy = LOGO_CY - y;
+  const style = useAnimatedStyle(() => ({
+    opacity: appear.value * Math.max(0, 1 - converge.value * 1.5),
+    transform: [
+      { translateX: dx * converge.value },
+      { translateY: dy * converge.value },
+      { scale: 1 - converge.value * 0.6 },
+    ],
+  }));
+  return (
+    <Animated.Text style={[{ position: "absolute", left: x - size / 2, top: y - size / 2, fontSize: size, color }, style]}>
+      ✦
+    </Animated.Text>
+  );
+}
+
 function AnimatedSplashScreen({ fontsReady, onDone }: { fontsReady: boolean; onDone: () => void }) {
-  const containerOp  = useSharedValue(1);
-  const particlesOp  = useSharedValue(0);
-  const logoScale    = useSharedValue(0.5);
-  const logoOp       = useSharedValue(0);
-  const titleOp      = useSharedValue(0);
-  const titleSpacing = useSharedValue(14);
-  const w1Op = useSharedValue(0); const w1Y = useSharedValue(16);
-  const w2Op = useSharedValue(0); const w2Y = useSharedValue(16);
-  const w3Op = useSharedValue(0); const w3Y = useSharedValue(16);
+  const appear      = useSharedValue(0);   // yıldızlar belirir
+  const converge    = useSharedValue(0);   // yıldızlar merkeze akar
+  const logoOp      = useSharedValue(0);
+  const logoScale   = useSharedValue(0.45);
+  const titleOp     = useSharedValue(0);
+  const titleSp     = useSharedValue(14);
+  const sl1Op       = useSharedValue(0);  const sl1Y = useSharedValue(14);
+  const sl2Op       = useSharedValue(0);  const sl2Y = useSharedValue(14);
+  const containerOp = useSharedValue(1);
 
   const timerDone = useRef(false);
   const fontsDone = useRef(fontsReady);
 
   const doFinish = useCallback(() => {
-    containerOp.value = withTiming(0, { duration: 320 }, () => { runOnJS(onDone)(); });
+    containerOp.value = withTiming(0, { duration: 280 }, () => { runOnJS(onDone)(); });
   }, []);
-
   const maybeFinish = useCallback(() => {
     if (timerDone.current && fontsDone.current) doFinish();
   }, []);
@@ -56,55 +83,63 @@ function AnimatedSplashScreen({ fontsReady, onDone }: { fontsReady: boolean; onD
   }, [fontsReady]);
 
   useEffect(() => {
-    particlesOp.value = withTiming(0.75, { duration: 550 });
+    // 1. Yıldızlar beliriyor (0–300ms)
+    appear.value = withTiming(1, { duration: 300 });
 
-    logoScale.value = withDelay(280, withTiming(1,  { duration: 520, easing: Easing.out(Easing.back(1.3)) }));
-    logoOp.value    = withDelay(280, withTiming(1,  { duration: 380 }));
+    // 2. Yıldızlar merkeze akıyor (280–750ms)
+    converge.value = withDelay(280, withTiming(1, { duration: 470, easing: Easing.in(Easing.quad) }));
 
-    titleOp.value      = withDelay(720, withTiming(1,  { duration: 300 }));
-    titleSpacing.value = withDelay(720, withTiming(5,  { duration: 420 }));
+    // 3. Logo oluşuyor (380–820ms) — yıldızlar birleşirken
+    logoOp.value    = withDelay(380, withTiming(1, { duration: 400 }));
+    logoScale.value = withDelay(380, withTiming(1, { duration: 480, easing: Easing.out(Easing.back(1.25)) }));
 
-    w1Op.value = withDelay(1060, withTiming(1, { duration: 220 }));
-    w1Y.value  = withDelay(1060, withTiming(0, { duration: 220, easing: Easing.out(Easing.quad) }));
+    // 4. "✦ T E N G R I ✦" açılıyor (740–1000ms)
+    titleOp.value = withDelay(740, withTiming(1, { duration: 280 }));
+    titleSp.value  = withDelay(740, withTiming(4, { duration: 380 }));
 
-    w2Op.value = withDelay(1210, withTiming(1, { duration: 220 }));
-    w2Y.value  = withDelay(1210, withTiming(0, { duration: 220, easing: Easing.out(Easing.quad) }));
+    // 5. Slogan satır 1 (960–1180ms)
+    sl1Op.value = withDelay(960, withTiming(1, { duration: 220 }));
+    sl1Y.value  = withDelay(960, withTiming(0, { duration: 220, easing: Easing.out(Easing.quad) }));
 
-    w3Op.value = withDelay(1360, withTiming(1, { duration: 220 }));
-    w3Y.value  = withDelay(1360, withTiming(0, { duration: 220, easing: Easing.out(Easing.quad) }, () => {
+    // 6. Slogan satır 2 (1110–1330ms) → tetikleyici
+    sl2Op.value = withDelay(1110, withTiming(1, { duration: 220 }));
+    sl2Y.value  = withDelay(1110, withTiming(0, { duration: 220, easing: Easing.out(Easing.quad) }, () => {
       timerDone.current = true;
       runOnJS(maybeFinish)();
     }));
   }, []);
 
   const containerStyle = useAnimatedStyle(() => ({ opacity: containerOp.value }));
-  const particlesStyle = useAnimatedStyle(() => ({ opacity: particlesOp.value }));
   const logoStyle      = useAnimatedStyle(() => ({ opacity: logoOp.value, transform: [{ scale: logoScale.value }] }));
-  const titleStyle     = useAnimatedStyle(() => ({ opacity: titleOp.value, letterSpacing: titleSpacing.value }));
-  const w1Style = useAnimatedStyle(() => ({ opacity: w1Op.value, transform: [{ translateY: w1Y.value }] }));
-  const w2Style = useAnimatedStyle(() => ({ opacity: w2Op.value, transform: [{ translateY: w2Y.value }] }));
-  const w3Style = useAnimatedStyle(() => ({ opacity: w3Op.value, transform: [{ translateY: w3Y.value }] }));
+  const titleStyle     = useAnimatedStyle(() => ({ opacity: titleOp.value, letterSpacing: titleSp.value }));
+  const sl1Style = useAnimatedStyle(() => ({ opacity: sl1Op.value, transform: [{ translateY: sl1Y.value }] }));
+  const sl2Style = useAnimatedStyle(() => ({ opacity: sl2Op.value, transform: [{ translateY: sl2Y.value }] }));
 
   return (
-    <Animated.View style={[{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#08051A" }, containerStyle]}>
+    <Animated.View style={[{ flex: 1, backgroundColor: "#06030F" }, containerStyle]}>
       <LinearGradient colors={["#06030F", "#070D1A", "#0D0820"]} style={StyleSheet.absoluteFill} />
 
+      {/* Yıldız parçacıkları — merkeze akar */}
       {SPLASH_PARTICLES.map((p, i) => (
-        <Animated.Text key={i} style={[{ position: "absolute", left: p.x, top: p.y, fontSize: p.size, color: p.color }, particlesStyle]}>✦</Animated.Text>
+        <SplashStar key={i} x={p.x} y={p.y} size={p.size} color={p.color} appear={appear} converge={converge} />
       ))}
 
-      <Animated.View style={logoStyle}>
-        <Image source={require("@/assets/images/tengri-logo.png")} style={ss.logo} resizeMode="contain" />
-      </Animated.View>
+      {/* Merkezi içerik */}
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <Animated.View style={logoStyle}>
+          <Image source={require("@/assets/images/tengri-logo.png")} style={ss.logo} resizeMode="contain" />
+        </Animated.View>
 
-      <Animated.Text style={[ss.tengriTitle, titleStyle]}>✦  T E N G R I  ✦</Animated.Text>
+        <Animated.Text style={[ss.tengriTitle, titleStyle]}>✦  T E N G R I  ✦</Animated.Text>
 
-      <View style={ss.wordsRow}>
-        <Animated.Text style={[ss.word, w1Style]}>Keşfet</Animated.Text>
-        <Text style={ss.dot}>  ·  </Text>
-        <Animated.Text style={[ss.word, w2Style]}>Oku</Animated.Text>
-        <Text style={ss.dot}>  ·  </Text>
-        <Animated.Text style={[ss.word, w3Style]}>Yorumla</Animated.Text>
+        <View style={ss.sloganBlock}>
+          <Animated.Text style={[ss.sloganLine, sl1Style]}>
+            Telveler, yıldızlar ve kadim semboller…
+          </Animated.Text>
+          <Animated.Text style={[ss.sloganLine, sl2Style]}>
+            Kaderinizin işaretlerini keşfedin.
+          </Animated.Text>
+        </View>
       </View>
     </Animated.View>
   );
@@ -112,10 +147,9 @@ function AnimatedSplashScreen({ fontsReady, onDone }: { fontsReady: boolean; onD
 
 const ss = StyleSheet.create({
   logo:        { width: 130, height: 130 },
-  tengriTitle: { fontFamily: "CinzelDecorative_400Regular", fontSize: 13, color: Colors.gold, marginTop: 20, marginBottom: 18 },
-  wordsRow:    { flexDirection: "row", alignItems: "center" },
-  word:        { fontFamily: "Lora_400Regular_Italic", fontSize: 15, color: "#C8B47A", letterSpacing: 0.5 },
-  dot:         { fontSize: 15, color: "#4A5A7A" },
+  tengriTitle: { fontFamily: "CinzelDecorative_400Regular", fontSize: 12, color: Colors.gold, marginTop: 22, marginBottom: 20, letterSpacing: 14 },
+  sloganBlock: { alignItems: "center", gap: 6, paddingHorizontal: 32 },
+  sloganLine:  { fontFamily: "Lora_400Regular_Italic", fontSize: 13, color: "#C8B47A", textAlign: "center", lineHeight: 21 },
 });
 
 SplashScreen.preventAutoHideAsync();
