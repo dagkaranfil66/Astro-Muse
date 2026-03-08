@@ -12,6 +12,7 @@ Turkish mystical guidance app with AI-powered readings (tengristar.com).
 - **Password confirmation** on registration
 - **Daily spin wheel** (app/spin.tsx) — 24h cooldown, random gold prizes
 - **Photo upload**: El falı = kamera + galeri (tek foto); Kahve falı = 3 fotoğraf (kamera + galeri)
+- **AI Kamera Okuma**: Kahve Falı'nda "Kameradan Fal Al" — canlı viewfinder, fincan çerçeve kılavuzu, tek çekimle anında okuma (expo-camera@~17.0.10)
 - **Daily Horoscope** (app/daily-horoscope.tsx) — zodiac sign selector, AI teaser (free), full reading (3✦); daily 9AM push notification
 - Streaming AI readings via OpenAI GPT-5.2
 - Social sharing: WhatsApp, Instagram, Facebook, Twitter/X, clipboard
@@ -43,6 +44,8 @@ Turkish mystical guidance app with AI-powered readings (tengristar.com).
 - `app/purchase.tsx` — Gold purchase packages
 - `app/daily-reading.tsx` — Daily free teaser reading screen with upsell CTA
 - `components/InsufficientGoldModal.tsx` — Bottom sheet modal when gold is insufficient
+- `components/CameraKahveModal.tsx` — Full-screen live camera viewfinder for Kahve Falı (native only)
+- `components/CameraKahveModal.web.tsx` — Web stub (camera not supported on web)
 - `context/AppContext.tsx` — Gold balance, readings, user profile, spin wheel state, daily free tracking
 - `context/LanguageContext.tsx` — TR/EN translations
 - `constants/serviceConfig.ts` — Gold costs, packages

@@ -40,6 +40,7 @@ import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
 import { getApiUrl } from "@/lib/query-client";
 import InsufficientGoldModal from "@/components/InsufficientGoldModal";
+import CameraKahveModal from "@/components/CameraKahveModal";
 
 const { width } = Dimensions.get("window");
 
@@ -527,6 +528,7 @@ export default function ReadingScreen() {
   const [photo, setPhoto] = useState<{ uri: string; base64: string; type: string } | null>(null);
   const [kahvePhotos, setKahvePhotos] = useState<{ uri: string; base64: string; type: string }[]>([]);
   const [showGoldModal, setShowGoldModal] = useState(false);
+  const [showCameraModal, setShowCameraModal] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   const sendButtonScale = useSharedValue(1);
@@ -592,7 +594,12 @@ export default function ReadingScreen() {
     if (img) setPhoto(img);
   };
 
-  const handleRead = async () => {
+  const handleCameraCapture = (capturedPhoto: { uri: string; base64: string; type: string }) => {
+    setKahvePhotos([capturedPhoto]);
+    handleRead([capturedPhoto]);
+  };
+
+  const handleRead = async (photosOverride?: { uri: string; base64: string; type: string }[]) => {
     if (!canRead) { setShowGoldModal(true); return; }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -606,8 +613,9 @@ export default function ReadingScreen() {
     try {
       const baseUrl = getApiUrl();
       const body: Record<string, any> = { service, userInput: userInput || "Benim için mistik bir okuma yap." };
-      if (isKahve && kahvePhotos.length > 0) {
-        body.images = kahvePhotos.map((p) => ({ base64: p.base64, type: p.type }));
+      const photosToUse = photosOverride ?? kahvePhotos;
+      if (isKahve && photosToUse.length > 0) {
+        body.images = photosToUse.map((p) => ({ base64: p.base64, type: p.type }));
       } else if (isEl && photo?.base64) {
         body.imageBase64 = photo.base64;
         body.imageType = photo.type;
@@ -707,6 +715,44 @@ export default function ReadingScreen() {
           {!readingText && !isLoading && (
             <Animated.View entering={FadeIn.duration(500)}>
               {renderIntro()}
+            </Animated.View>
+          )}
+
+          {/* Kahve: Camera quick-read CTA */}
+          {service === "kahve" && !readingText && !isLoading && (
+            <Animated.View entering={FadeInDown.delay(150).springify()}>
+              <Pressable
+                onPress={() => {
+                  if (!canRead) { setShowGoldModal(true); return; }
+                  setShowCameraModal(true);
+                }}
+                style={[styles.cameraReadCTA, { borderColor: base.color + "60", backgroundColor: base.color + "12" }]}
+              >
+                <View style={[styles.cameraReadIcon, { backgroundColor: base.color + "20", borderColor: base.color + "40" }]}>
+                  <Ionicons name="camera" size={28} color={base.color} />
+                </View>
+                <View style={styles.cameraReadText}>
+                  <Text style={[styles.cameraReadTitle, { color: base.color }]}>
+                    {lang === "tr" ? "Kameradan Fal Al" : "Camera Reading"}
+                  </Text>
+                  <Text style={styles.cameraReadSub}>
+                    {lang === "tr"
+                      ? "Fincanı kameraya tut, anında oku →"
+                      : "Point camera at cup, instant read →"}
+                  </Text>
+                </View>
+                <View style={[styles.cameraReadBadge, { backgroundColor: base.color }]}>
+                  <Text style={styles.cameraReadBadgeText}>YENİ</Text>
+                </View>
+              </Pressable>
+
+              <View style={styles.kahveDivider}>
+                <View style={[styles.kahveDividerLine, { backgroundColor: base.color + "25" }]} />
+                <Text style={[styles.kahveDividerText, { color: base.color + "80" }]}>
+                  {lang === "tr" ? "veya fotoğraf yükle" : "or upload photos"}
+                </Text>
+                <View style={[styles.kahveDividerLine, { backgroundColor: base.color + "25" }]} />
+              </View>
             </Animated.View>
           )}
 
@@ -875,6 +921,13 @@ export default function ReadingScreen() {
         goldBalance={goldBalance}
         serviceColor={base.color}
       />
+
+      <CameraKahveModal
+        visible={showCameraModal}
+        onClose={() => setShowCameraModal(false)}
+        onCapture={handleCameraCapture}
+        color={base.color}
+      />
     </View>
   );
 }
@@ -985,6 +1038,59 @@ const styles = StyleSheet.create({
   photoRemoveBtn: { position: "absolute", top: -8, right: -8, backgroundColor: Colors.background, borderRadius: 12 },
 
   // Kahve photo section (main content area)
+  cameraReadCTA: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 4,
+  },
+  cameraReadIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cameraReadText: { flex: 1, gap: 3 },
+  cameraReadTitle: {
+    fontFamily: "Lora_700Bold",
+    fontSize: 15,
+    letterSpacing: 0.2,
+  },
+  cameraReadSub: {
+    fontFamily: "Lora_400Regular",
+    fontSize: 12,
+    color: Colors.textSecondary,
+    lineHeight: 17,
+  },
+  cameraReadBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    alignSelf: "flex-start",
+  },
+  cameraReadBadgeText: {
+    fontFamily: "Lora_700Bold",
+    fontSize: 9,
+    color: "#000",
+    letterSpacing: 0.8,
+  },
+  kahveDivider: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginVertical: 14,
+  },
+  kahveDividerLine: { flex: 1, height: 1 },
+  kahveDividerText: {
+    fontFamily: "Lora_400Regular_Italic",
+    fontSize: 12,
+  },
+
   kahveSectionWrap: {
     marginHorizontal: 0, marginBottom: 12,
     backgroundColor: Colors.surface,
