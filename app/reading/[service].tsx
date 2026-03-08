@@ -572,25 +572,27 @@ function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string
 
   const handleInstagram = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    await copyToClipboard(shareText);
-    setIgCopied(true);
-    setTimeout(() => setIgCopied(false), 4000);
-    try {
-      const igApp = Platform.OS === "ios" ? "instagram://" : "instagram://app";
-      const canOpen = await Linking.canOpenURL(igApp);
-      if (canOpen) {
-        await Linking.openURL(igApp);
-      } else {
-        await Linking.openURL("https://www.instagram.com/");
+    if (Platform.OS === "web") {
+      const ok = await copyToClipboard(shareText);
+      if (ok) {
+        setIgCopied(true);
+        setTimeout(() => setIgCopied(false), 3000);
       }
+      return;
+    }
+    try {
+      await Share.share({ message: shareText });
     } catch {
-      Share.share({ message: shareText });
+      const ok = await copyToClipboard(shareText);
+      if (ok) {
+        setIgCopied(true);
+        setTimeout(() => setIgCopied(false), 3000);
+      }
     }
   };
 
   const SHARE_BTNS = [
     { label: "WhatsApp", icon: "logo-whatsapp" as const, color: "#25D366", url: `https://wa.me/?text=${encodedFull}` },
-    { label: "Facebook", icon: "logo-facebook" as const, color: "#1877F2", url: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedFull}` },
     { label: "Twitter/X", icon: "logo-twitter" as const, color: "#1DA1F2", url: `https://twitter.com/intent/tweet?text=${encodedFull}` },
   ];
 
@@ -601,7 +603,7 @@ function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string
         <Text style={styles.sharePanelTitle}>{t.share}</Text>
       </View>
       <View style={styles.shareButtons}>
-        {/* Instagram — copy + open */}
+        {/* Instagram — native share sheet on mobile, clipboard on web */}
         <Pressable
           onPress={handleInstagram}
           style={[styles.shareBtn, { borderColor: "#E1306C" + "40", backgroundColor: "#E1306C" + "10" }]}
@@ -632,7 +634,7 @@ function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string
           </Text>
         </Pressable>
       </View>
-      {igCopied && (
+      {igCopied && Platform.OS === "web" && (
         <Text style={styles.igHint}>
           {lang === "tr" ? "✓ Metin kopyalandı — Instagram'da yapıştırın" : "✓ Text copied — paste it in Instagram"}
         </Text>
