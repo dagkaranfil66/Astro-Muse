@@ -45,7 +45,7 @@ async function sendEmail(to: string, subject: string, html: string) {
     return;
   }
   const from = process.env.RESEND_API_KEY
-    ? "Tengri <noreply@tengristar.com>"
+    ? "Tengri <tengri@tengristar.com>"
     : '"Tengri ✦" <noreply@tengri.dev>';
   const info = await transport.sendMail({ from, to, subject, html });
   if (!process.env.RESEND_API_KEY) {
