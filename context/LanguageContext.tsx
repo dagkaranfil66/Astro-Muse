@@ -6,7 +6,7 @@ type Lang = 'tr' | 'en';
 const translations = {
   tr: {
     appTagline: 'MİSTİK REHBERLİK',
-    appDesc: 'Tarot, kahve falı ve kadim Türk astrolojisi ile\nkaderinizin işaretlerini keşfedin.',
+    appDesc: 'Yıldızlar, telveler ve kadim semboller…\nKaderinizin gizli işaretlerini keşfedin.',
     poweredBy: 'Yapay Zeka Destekli',
     services: 'Hizmetlerimiz',
     trialsLeft: (n: number) => `${n} ücretsiz deneme hakkınız var`,
@@ -60,7 +60,7 @@ const translations = {
   },
   en: {
     appTagline: 'Mystic Guidance',
-    appDesc: 'Explore the signs of your destiny through tarot,\ncoffee reading and ancient Turkish astrology.',
+    appDesc: 'Stars, coffee grounds and ancient symbols…\nDiscover the hidden signs of your destiny.',
     poweredBy: 'AI Powered',
     services: 'Our Services',
     trialsLeft: (n: number) => `${n} free readings remaining`,
