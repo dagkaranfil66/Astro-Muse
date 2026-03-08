@@ -92,53 +92,96 @@ function CosmicSymbol({ cfg }: { cfg: typeof COSMIC_SYMBOLS[0] }) {
 }
 
 // ────────── Shooting Stars ──────────
-const SHOOTING_STARS = Array.from({ length: 7 }, (_, i) => ({
-  startX: Math.random() * width * 1.2 - width * 0.1,
-  startY: Math.random() * height * 0.5,
-  angle: 20 + Math.random() * 25,
-  duration: 2800 + Math.random() * 3500,
-  delay: i * 2000 + Math.random() * 4000,
-  length: 60 + Math.random() * 80,
-}));
+const SHOOTING_STARS = Array.from({ length: 12 }, (_, i) => {
+  const isGold = i % 3 === 0;
+  return {
+    startX: -120 + Math.random() * (width + 80),
+    startY: -30  + Math.random() * (height * 0.72),
+    angle:  18   + Math.random() * 22,
+    duration: 1400 + Math.random() * 1800,
+    delay: i * 1600 + Math.random() * 3200,
+    length: 110 + Math.random() * 120,
+    travel: 420 + Math.random() * 220,
+    headSize: 2.5 + Math.random() * 2,
+    isGold,
+  };
+});
 
 function ShootingStar({ cfg }: { cfg: typeof SHOOTING_STARS[0] }) {
   const progress = useSharedValue(0);
-  const opacity = useSharedValue(0);
+  const opacity  = useSharedValue(0);
 
   React.useEffect(() => {
-    const total = cfg.duration + cfg.delay + 800;
+    const cycle = cfg.duration + cfg.delay + 1200;
     const loop = () => {
       progress.value = 0;
-      opacity.value = 0;
+      opacity.value  = 0;
       opacity.value = withDelay(cfg.delay, withSequence(
-        withTiming(1, { duration: 250 }),
-        withDelay(cfg.duration - 400, withTiming(0, { duration: 400 }))
+        withTiming(1, { duration: 180 }),
+        withDelay(cfg.duration - 360, withTiming(0, { duration: 360 }))
       ));
-      progress.value = withDelay(cfg.delay, withTiming(1, { duration: cfg.duration }));
+      progress.value = withDelay(cfg.delay, withTiming(1, { duration: cfg.duration, easing: Easing.out(Easing.quad) }));
     };
     loop();
-    const id = setInterval(loop, total);
+    const id = setInterval(loop, cycle);
     return () => clearInterval(id);
   }, []);
 
   const rad = (cfg.angle * Math.PI) / 180;
-  const style = useAnimatedStyle(() => ({
+  const dx  = Math.cos(rad) * cfg.travel;
+  const dy  = Math.sin(rad) * cfg.travel;
+
+  const trailStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
     transform: [
-      { translateX: progress.value * Math.cos(rad) * 250 },
-      { translateY: progress.value * Math.sin(rad) * 250 },
+      { translateX: progress.value * dx },
+      { translateY: progress.value * dy },
+    ],
+  }));
+  const headStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [
+      { translateX: progress.value * dx + Math.cos(rad) * cfg.length * 0.82 },
+      { translateY: progress.value * dy + Math.sin(rad) * cfg.length * 0.82 },
     ],
   }));
 
+  const headColor = cfg.isGold ? "rgba(255,220,80,1)" : "rgba(255,255,255,1)";
+  const tailColor = cfg.isGold
+    ? ["rgba(200,160,32,0)", "rgba(220,180,60,0.55)", "rgba(255,220,80,0.95)"]
+    : ["rgba(30,60,120,0)", "rgba(160,120,240,0.6)", "rgba(255,255,255,0.95)"];
+
   return (
-    <Animated.View style={[{ position: "absolute", top: cfg.startY, left: cfg.startX }, style]}>
-      <LinearGradient
-        colors={["rgba(91,155,213,0)", "rgba(139,92,246,0.75)", "rgba(255,255,255,1)"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={[styles.shootingStar, { width: cfg.length, transform: [{ rotate: `${cfg.angle}deg` }] }]}
-      />
-    </Animated.View>
+    <View style={{ position: "absolute", top: cfg.startY, left: cfg.startX }}>
+      {/* Kuyruk */}
+      <Animated.View style={trailStyle}>
+        <LinearGradient
+          colors={tailColor as [string, string, string]}
+          start={{ x: 0, y: 0.5 }}
+          end={{ x: 1, y: 0.5 }}
+          style={{
+            width: cfg.length,
+            height: 1.8,
+            borderRadius: 2,
+            transform: [{ rotate: `${cfg.angle}deg` }],
+          }}
+        />
+      </Animated.View>
+      {/* Parlak baş */}
+      <Animated.View style={[{
+        position: "absolute",
+        width: cfg.headSize * 2,
+        height: cfg.headSize * 2,
+        borderRadius: cfg.headSize,
+        backgroundColor: headColor,
+        shadowColor: headColor,
+        shadowOpacity: 0.9,
+        shadowRadius: cfg.headSize * 2.5,
+        shadowOffset: { width: 0, height: 0 },
+        top: -(cfg.headSize),
+        left: -(cfg.headSize),
+      }, headStyle]} />
+    </View>
   );
 }
 
