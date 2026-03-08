@@ -1,5 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "node:http";
+import * as fs from "fs";
+import * as path from "path";
 import OpenAI from "openai";
 import bcrypt from "bcryptjs";
 import crypto from "node:crypto";
@@ -153,6 +155,12 @@ const serviceSystemPrompts: Record<string, string> = {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+
+  app.get("/privacy", (_req: Request, res: Response) => {
+    const templatePath = path.resolve(process.cwd(), "server", "templates", "privacy.html");
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(fs.readFileSync(templatePath, "utf-8"));
+  });
 
   app.post("/api/auth/register", async (req: Request, res: Response) => {
     try {
