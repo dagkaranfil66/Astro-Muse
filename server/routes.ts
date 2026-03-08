@@ -8,7 +8,7 @@ import crypto from "node:crypto";
 import nodemailer from "nodemailer";
 import { db } from "./db";
 import { users } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 let _testTransport: nodemailer.Transporter | null = null;
 
@@ -201,56 +201,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rows = await db.select().from(users).where(eq(users.email, key)).limit(1);
       if (rows.length === 0) return res.status(401).json({ error: "E-posta veya şifre hatalı" });
       const user = rows[0];
-      if (!user.passwordHash) return res.status(401).json({ error: "Bu hesap sosyal giriş ile oluşturuldu. Apple veya Google ile giriş yapın." });
       const match = await bcrypt.compare(password, user.passwordHash);
       if (!match) return res.status(401).json({ error: "E-posta veya şifre hatalı" });
       return res.json({ success: true, user: { id: user.id, name: user.name, email: user.email } });
     } catch (err) {
       console.error("Login error:", err);
-      return res.status(500).json({ error: "Giriş sırasında hata oluştu" });
-    }
-  });
-
-  app.post("/api/auth/social", async (req: Request, res: Response) => {
-    try {
-      const { provider, providerId, email, name } = req.body;
-      if (!provider || !providerId || !name) {
-        return res.status(400).json({ error: "Eksik bilgi" });
-      }
-
-      // 1. Find by provider + providerId (returning user)
-      let rows = await db.select().from(users)
-        .where(and(eq(users.provider, provider), eq(users.providerId, providerId)))
-        .limit(1);
-      if (rows.length > 0) {
-        const u = rows[0];
-        return res.json({ user: { id: u.id, name: u.name, email: u.email } });
-      }
-
-      // 2. Find by email (link provider to existing email account)
-      if (email) {
-        rows = await db.select().from(users).where(eq(users.email, email.toLowerCase())).limit(1);
-        if (rows.length > 0) {
-          await db.update(users).set({ provider, providerId }).where(eq(users.id, rows[0].id));
-          return res.json({ user: { id: rows[0].id, name: rows[0].name, email: rows[0].email } });
-        }
-      }
-
-      // 3. Create new social user
-      const finalEmail = email ? email.toLowerCase() : `${provider}_${providerId}@tengri.social`;
-      const [newUser] = await db.insert(users).values({
-        name: name.trim(),
-        email: finalEmail,
-        passwordHash: null,
-        verifyToken: "",
-        verified: true,
-        provider,
-        providerId,
-      } as any).returning();
-
-      return res.json({ user: { id: newUser.id, name: newUser.name, email: newUser.email } });
-    } catch (err: any) {
-      console.error("Social auth error:", err);
       return res.status(500).json({ error: "Giriş sırasında hata oluştu" });
     }
   });
