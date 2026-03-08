@@ -7,6 +7,7 @@ import {
   Pressable,
   Platform,
   ActivityIndicator,
+  Linking,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -26,7 +27,7 @@ import Animated, {
 import { Colors } from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
-import { GOLD_PACKAGES, SERVICE_GOLD_COST, FREE_START_GOLD } from "@/constants/serviceConfig";
+import { SERVICE_GOLD_COST, FREE_START_GOLD } from "@/constants/serviceConfig";
 import { useSubscription, PACKAGE_GOLD_MAP } from "@/lib/revenuecat";
 import type { PurchasesPackage } from "react-native-purchases";
 
@@ -221,92 +222,12 @@ function GoldPackageCard({
   );
 }
 
-// ─── Fallback Package Card ────────────────────────────────────────────────
-function FallbackPackageCard({
-  pkg,
-  onBuy,
-  buying,
-  boughtId,
-}: {
-  pkg: typeof GOLD_PACKAGES[0];
-  onBuy: (pkg: typeof GOLD_PACKAGES[0]) => void;
-  buying: boolean;
-  boughtId: string | null;
-}) {
-  const scale = useSharedValue(1);
-  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-  const isThisBought = boughtId === pkg.id;
-
-  return (
-    <Pressable
-      onPressIn={() => { scale.value = withSpring(0.97); }}
-      onPressOut={() => { scale.value = withSpring(1); }}
-      onPress={() => onBuy(pkg)}
-      disabled={buying || !!boughtId}
-    >
-      <Animated.View style={[styles.pkgCard, pkg.popular && styles.pkgCardPopular, animStyle]}>
-        {pkg.popular && !isThisBought && (
-          <View style={styles.popularBadge}>
-            <Text style={styles.popularBadgeText}>⭐ EN POPÜLER</Text>
-          </View>
-        )}
-        {pkg.discount > 0 && !isThisBought && (
-          <View style={styles.discountBadge}>
-            <Text style={styles.discountBadgeText}>%{pkg.discount} İNDİRİM</Text>
-          </View>
-        )}
-        <LinearGradient colors={isThisBought ? ["#0D2A1A", "#0A2010"] : pkg.gradient} style={styles.pkgCardInner}>
-          <View style={styles.pkgLeft}>
-            <View style={[styles.goldIconWrap, isThisBought && styles.goldIconWrapSuccess]}>
-              <Text style={styles.goldIconText}>{isThisBought ? "✓" : "✦"}</Text>
-            </View>
-            <View style={{ flexShrink: 1 }}>
-              <Text style={styles.pkgLabel}>{pkg.label}</Text>
-              {(pkg as any).bonus > 0 && !isThisBought ? (
-                <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]} numberOfLines={1}>
-                  {pkg.gold} <Text style={styles.pkgGoldUnit}>Altın</Text>
-                  <Text style={styles.pkgGoldBonus}> + {(pkg as any).bonus} Bonus Altın</Text>
-                </Text>
-              ) : (
-                <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>
-                  {pkg.gold} <Text style={styles.pkgGoldUnit}>{isThisBought ? "✓ Eklendi" : "Altın"}</Text>
-                </Text>
-              )}
-              <Text style={styles.pkgPerGold}>
-                {isThisBought ? "Eklendi!" : `${pkg.perGold}/altın`}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.pkgRight}>
-            {isThisBought ? (
-              <View style={[styles.pkgBuyBtn, styles.pkgBuyBtnSuccess]}>
-                <Text style={[styles.pkgBuyBtnText, { color: "#fff" }]}>Tamam</Text>
-              </View>
-            ) : buying ? (
-              <View style={[styles.pkgBuyBtn, styles.pkgBuyBtnBuying]}>
-                <ActivityIndicator size="small" color="#fff" />
-              </View>
-            ) : (
-              <View>
-                <Text style={styles.pkgPrice}>{pkg.price}</Text>
-                <View style={styles.pkgBuyBtn}>
-                  <Text style={styles.pkgBuyBtnText}>Satın Al</Text>
-                </View>
-              </View>
-            )}
-          </View>
-        </LinearGradient>
-      </Animated.View>
-    </Pressable>
-  );
-}
-
 // ─── Main Screen ──────────────────────────────────────────────────────────
 export default function PurchaseScreen() {
   const insets = useSafeAreaInsets();
   const { addGold, goldBalance, userProfile, canSpin } = useApp();
   const { lang } = useLang();
-  const { packages, isLoading: rcLoading, purchase } = useSubscription();
+  const { packages, isLoading: rcLoading, purchase, restore, isRestoring } = useSubscription();
 
   const [buying, setBuying] = useState(false);
   const [boughtId, setBoughtId] = useState<string | null>(null);
@@ -352,19 +273,15 @@ export default function PurchaseScreen() {
     }
   };
 
-  const handleFallbackBuy = (pkg: typeof GOLD_PACKAGES[0]) => {
-    if (!isLoggedIn || buying || boughtId) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setBuying(true);
-    setTimeout(() => {
-      const total = pkg.gold + ((pkg as any).bonus ?? 0);
-      addGold(total);
-      setBuying(false);
-      setBoughtId(pkg.id);
-      setBoughtGold(total);
+  const handleRestore = async () => {
+    if (isRestoring) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      await restore();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setTimeout(() => router.back(), 1800);
-    }, 1000);
+    } catch {
+      // silent — RC shows its own errors
+    }
   };
 
   const costEntries = Object.entries(SERVICE_GOLD_COST).sort((a, b) => a[1] - b[1]);
@@ -462,11 +379,17 @@ export default function PurchaseScreen() {
                 </Animated.View>
               ))
             ) : (
-              GOLD_PACKAGES.map((pkg, i) => (
-                <Animated.View key={pkg.id} entering={FadeInDown.delay(200 + i * 60).springify()}>
-                  <FallbackPackageCard pkg={pkg} onBuy={handleFallbackBuy} buying={buying} boughtId={boughtId} />
-                </Animated.View>
-              ))
+              <Animated.View entering={FadeIn.duration(400)} style={styles.rcErrorWrap}>
+                <Ionicons name="cloud-offline-outline" size={32} color={Colors.textDim} />
+                <Text style={styles.rcErrorTitle}>
+                  {lang === "tr" ? "Paketler yüklenemedi" : "Packages unavailable"}
+                </Text>
+                <Text style={styles.rcErrorDesc}>
+                  {lang === "tr"
+                    ? "İnternet bağlantınızı kontrol edip tekrar deneyin."
+                    : "Check your internet connection and try again."}
+                </Text>
+              </Animated.View>
             )}
 
             {!!purchaseError && (
@@ -528,11 +451,46 @@ export default function PurchaseScreen() {
           </View>
         </Animated.View>
 
-        <Text style={styles.legal}>
-          {lang === "tr"
-            ? "Taahhüt yok • İstediğiniz zaman kullanın\ntengristar.com • Gizlilik Politikası"
-            : "No commitment • Use anytime\ntengristar.com • Privacy Policy"}
-        </Text>
+        {isLoggedIn && (
+          <Pressable
+            onPress={handleRestore}
+            disabled={isRestoring}
+            style={({ pressed }) => [styles.restoreBtn, pressed && { opacity: 0.7 }]}
+          >
+            {isRestoring ? (
+              <ActivityIndicator size="small" color={Colors.textDim} />
+            ) : (
+              <Text style={styles.restoreBtnText}>
+                {lang === "tr" ? "Satın Almaları Geri Yükle" : "Restore Purchases"}
+              </Text>
+            )}
+          </Pressable>
+        )}
+
+        <View style={styles.legalRow}>
+          <Text style={styles.legal}>
+            {lang === "tr"
+              ? "Taahhüt yok • İstediğiniz zaman kullanın"
+              : "No commitment • Use anytime"}
+          </Text>
+          <Pressable
+            onPress={() => Linking.openURL("https://tengristar.com/privacy")}
+            hitSlop={8}
+          >
+            <Text style={styles.legalLink}>
+              {lang === "tr" ? "Gizlilik Politikası" : "Privacy Policy"}
+            </Text>
+          </Pressable>
+          <Text style={styles.legal}> • </Text>
+          <Pressable
+            onPress={() => Linking.openURL("https://tengristar.com/terms")}
+            hitSlop={8}
+          >
+            <Text style={styles.legalLink}>
+              {lang === "tr" ? "Kullanım Koşulları" : "Terms of Use"}
+            </Text>
+          </Pressable>
+        </View>
       </ScrollView>
     </View>
   );
@@ -614,7 +572,16 @@ const styles = StyleSheet.create({
   freeTierNote: { flexDirection: "row", alignItems: "center", gap: 8, paddingTop: 4 },
   freeTierNoteText: { fontSize: 12, fontFamily: "Lora_400Regular_Italic", color: Colors.success },
 
+  rcErrorWrap: { alignItems: "center", gap: 10, paddingVertical: 28, paddingHorizontal: 24, borderRadius: 14, borderWidth: 1, borderColor: Colors.cardBorder, backgroundColor: Colors.surface + "80" },
+  rcErrorTitle: { fontSize: 15, fontFamily: "Lora_700Bold", color: Colors.textSecondary, textAlign: "center" },
+  rcErrorDesc: { fontSize: 12, fontFamily: "Lora_400Regular_Italic", color: Colors.textDim, textAlign: "center", lineHeight: 18 },
+
+  restoreBtn: { alignSelf: "center", paddingVertical: 10, paddingHorizontal: 20, borderRadius: 10, borderWidth: 1, borderColor: Colors.textDim + "40", minHeight: 36, alignItems: "center", justifyContent: "center" },
+  restoreBtnText: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textDim, textDecorationLine: "underline" },
+
+  legalRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 2 },
   legal: { fontSize: 10, fontFamily: "Lora_400Regular", color: Colors.textDim, textAlign: "center", lineHeight: 16 },
+  legalLink: { fontSize: 10, fontFamily: "Lora_400Regular", color: Colors.gold + "90", textAlign: "center", lineHeight: 16, textDecorationLine: "underline" },
 });
 
 const ag = StyleSheet.create({
