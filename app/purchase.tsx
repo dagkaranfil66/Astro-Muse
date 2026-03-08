@@ -47,10 +47,10 @@ const PKG_DISPLAY: Record<string, {
   desc: string;
   descEn: string;
 }> = {
-  tengri_basic:   { gradient: ["#1A1A30", "#0D1526"], popular: false, gold: 10,  label: "Başlangıç", discount: 0,  desc: "5 okuma için yeterli altın",           descEn: "Enough gold for 5 readings" },
-  tengri_plus:    { gradient: ["#1A1030", "#0D1526"], popular: false, gold: 30,  label: "Avantajlı", discount: 5,  desc: "15 okuma · %5 daha avantajlı",         descEn: "15 readings · 5% better value" },
-  tengri_premium: { gradient: ["#1A0A20", "#0D1526"], popular: true,  gold: 50,  label: "Premium",   discount: 14, desc: "25 okuma · en iyi fiyat/altın oranı", descEn: "25 readings · best value" },
-  tengri_vip:     { gradient: ["#1A0805", "#0D1526"], popular: false, gold: 100, label: "VIP",       discount: 28, desc: "50 okuma · maksimum tasarruf",         descEn: "50 readings · maximum savings" },
+  tengri_basic:   { gradient: ["#1A1A30", "#0D1526"], popular: false, gold: 10,  label: "Başlangıç", discount: 0,  desc: "5 okuma",                  descEn: "5 readings" },
+  tengri_plus:    { gradient: ["#1A1030", "#0D1526"], popular: false, gold: 30,  label: "Avantajlı", discount: 5,  desc: "15 okuma · %5 avantajlı",  descEn: "15 readings · 5% off" },
+  tengri_premium: { gradient: ["#1A0A20", "#0D1526"], popular: true,  gold: 50,  label: "Premium",   discount: 14, desc: "25 okuma · en iyi fiyat",  descEn: "25 readings · best value" },
+  tengri_vip:     { gradient: ["#1A0805", "#0D1526"], popular: false, gold: 100, label: "VIP",       discount: 28, desc: "50 okuma · max tasarruf",  descEn: "50 readings · max savings" },
 };
 
 // ─── Auth Gate (not logged in) ─────────────────────────────────────────────
@@ -176,12 +176,12 @@ function GoldPackageCard({
             <View style={[styles.goldIconWrap, isThisBought && styles.goldIconWrapSuccess]}>
               <Text style={styles.goldIconText}>{isThisBought ? "✓" : "✦"}</Text>
             </View>
-            <View>
+            <View style={{ flexShrink: 1 }}>
               <Text style={styles.pkgLabel}>{display.label}</Text>
               <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>
                 {display.gold} <Text style={styles.pkgGoldUnit}>altın</Text>
               </Text>
-              <Text style={styles.pkgDesc}>
+              <Text style={styles.pkgDesc} numberOfLines={1}>
                 {isThisBought ? "✓ Hesabınıza eklendi" : (lang === "tr" ? display.desc : display.descEn)}
               </Text>
             </View>
