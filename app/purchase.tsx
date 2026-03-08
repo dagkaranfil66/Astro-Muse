@@ -37,20 +37,21 @@ const SERVICE_NAMES_TR: Record<string, string> = {
   tarot: "Tarot", dogum: "Doğum Haritası",
 };
 
-// RC package display data — gold amounts now match GOLD_PACKAGES
+// RC package display data
 const PKG_DISPLAY: Record<string, {
   gradient: [string, string];
   popular: boolean;
   gold: number;
+  bonus: number;
   label: string;
   discount: number;
   desc: string;
   descEn: string;
 }> = {
-  tengri_basic:   { gradient: ["#1A1A30", "#0D1526"], popular: false, gold: 10,  label: "Başlangıç", discount: 0,  desc: "5 okuma",                  descEn: "5 readings" },
-  tengri_plus:    { gradient: ["#1A1030", "#0D1526"], popular: false, gold: 30,  label: "Avantajlı", discount: 5,  desc: "15 okuma · %5 avantajlı",  descEn: "15 readings · 5% off" },
-  tengri_premium: { gradient: ["#1A0A20", "#0D1526"], popular: true,  gold: 50,  label: "Premium",   discount: 14, desc: "25 okuma · en iyi fiyat",  descEn: "25 readings · best value" },
-  tengri_vip:     { gradient: ["#1A0805", "#0D1526"], popular: false, gold: 100, label: "VIP",       discount: 28, desc: "50 okuma · max tasarruf",  descEn: "50 readings · max savings" },
+  tengri_basic:   { gradient: ["#1A1A30", "#0D1526"], popular: false, gold: 20,  bonus: 0,  label: "Başlangıç", discount: 0,  desc: "5 okuma için yeterli",       descEn: "Good for 5 readings" },
+  tengri_plus:    { gradient: ["#1A1030", "#0D1526"], popular: false, gold: 50,  bonus: 5,  label: "Avantajlı", discount: 27, desc: "+5 bonus altın",              descEn: "+5 bonus gold" },
+  tengri_premium: { gradient: ["#1A0A20", "#0D1526"], popular: true,  gold: 120, bonus: 20, label: "Premium",   discount: 43, desc: "+20 bonus altın",             descEn: "+20 bonus gold" },
+  tengri_vip:     { gradient: ["#1A0805", "#0D1526"], popular: false, gold: 300, bonus: 60, label: "VIP",       discount: 56, desc: "+60 bonus altın",             descEn: "+60 bonus gold" },
 };
 
 // ─── Auth Gate (not logged in) ─────────────────────────────────────────────
@@ -145,6 +146,7 @@ function GoldPackageCard({
     gradient: ["#1A1A30", "#0D1526"] as [string, string],
     popular: false,
     gold: PACKAGE_GOLD_MAP[rcPkg.identifier] ?? 0,
+    bonus: 0,
     label: rcPkg.identifier,
     discount: 0,
     desc: "",
@@ -178,9 +180,16 @@ function GoldPackageCard({
             </View>
             <View style={{ flexShrink: 1 }}>
               <Text style={styles.pkgLabel}>{display.label}</Text>
-              <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>
-                {display.gold} <Text style={styles.pkgGoldUnit}>altın</Text>
-              </Text>
+              <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
+                <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>
+                  {display.gold} <Text style={styles.pkgGoldUnit}>altın</Text>
+                </Text>
+                {display.bonus > 0 && !isThisBought && (
+                  <View style={styles.bonusBadge}>
+                    <Text style={styles.bonusBadgeText}>+{display.bonus} BONUS</Text>
+                  </View>
+                )}
+              </View>
               <Text style={styles.pkgDesc} numberOfLines={1}>
                 {isThisBought ? "✓ Hesabınıza eklendi" : (lang === "tr" ? display.desc : display.descEn)}
               </Text>
@@ -249,11 +258,18 @@ function FallbackPackageCard({
             <View style={[styles.goldIconWrap, isThisBought && styles.goldIconWrapSuccess]}>
               <Text style={styles.goldIconText}>{isThisBought ? "✓" : "✦"}</Text>
             </View>
-            <View>
+            <View style={{ flexShrink: 1 }}>
               <Text style={styles.pkgLabel}>{pkg.label}</Text>
-              <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>
-                {pkg.gold} <Text style={styles.pkgGoldUnit}>altın</Text>
-              </Text>
+              <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
+                <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>
+                  {pkg.gold} <Text style={styles.pkgGoldUnit}>altın</Text>
+                </Text>
+                {(pkg as any).bonus > 0 && !isThisBought && (
+                  <View style={styles.bonusBadge}>
+                    <Text style={styles.bonusBadgeText}>+{(pkg as any).bonus} BONUS</Text>
+                  </View>
+                )}
+              </View>
               <Text style={styles.pkgPerGold}>
                 {isThisBought ? "Eklendi!" : `${pkg.perGold}/altın`}
               </Text>
@@ -339,10 +355,11 @@ export default function PurchaseScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setBuying(true);
     setTimeout(() => {
-      addGold(pkg.gold);
+      const total = pkg.gold + ((pkg as any).bonus ?? 0);
+      addGold(total);
       setBuying(false);
       setBoughtId(pkg.id);
-      setBoughtGold(pkg.gold);
+      setBoughtGold(total);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setTimeout(() => router.back(), 1800);
     }, 1000);
@@ -568,6 +585,8 @@ const styles = StyleSheet.create({
   pkgGoldUnit: { fontSize: 13, fontFamily: "Lora_400Regular", color: Colors.textSecondary },
   pkgPerGold: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textSecondary, marginTop: 1 },
   pkgDesc: { fontSize: 11, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary, marginTop: 2 },
+  bonusBadge: { backgroundColor: "#C8A02022", borderWidth: 1, borderColor: "#C8A02055", borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2 },
+  bonusBadgeText: { fontSize: 9, fontFamily: "Lora_700Bold", color: Colors.gold, letterSpacing: 0.3 },
   pkgRight: { alignItems: "flex-end", gap: 6 },
   pkgPrice: { fontSize: 18, fontFamily: "Lora_700Bold", color: Colors.gold, textAlign: "right" },
   pkgBuyBtn: { backgroundColor: Colors.gold, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, minWidth: 88, alignItems: "center" },

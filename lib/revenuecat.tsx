@@ -10,12 +10,12 @@ const DROID_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY ?? "";
 
 export const RC_ENTITLEMENT = "altın";
 
-// Map RevenueCat package lookup_key → gold amount
+// Map RevenueCat package lookup_key → total gold amount (base + bonus)
 export const PACKAGE_GOLD_MAP: Record<string, number> = {
-  tengri_basic:    10,
-  tengri_plus:     30,
-  tengri_premium:  50,
-  tengri_vip:      100,
+  tengri_basic:    20,
+  tengri_plus:     55,
+  tengri_premium:  140,
+  tengri_vip:      360,
 };
 
 function getApiKey(): string {

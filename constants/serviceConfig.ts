@@ -12,18 +12,19 @@ export const SERVICE_GOLD_COST: Record<string, number> = {
   dogum: 4,
 };
 
-// 10  altın = 69,99 ₺  (6,99 ₺/altın — baz)
-// 30  altın = 199,99 ₺ (6,67 ₺/altın — %5 indirim)
-// 50  altın = 299,99 ₺ (6,00 ₺/altın — %14 indirim)
-// 100 altın = 499,99 ₺ (5,00 ₺/altın — %28 indirim)
+// 20 altın  = 49,99 ₺  (2,50 ₺/altın — baz)
+// 50+5=55   = 99,99 ₺  (1,82 ₺/altın — %27 indirim)
+// 120+20=140 = 199,99 ₺ (1,43 ₺/altın — %43 indirim)
+// 300+60=360 = 399,99 ₺ (1,11 ₺/altın — %56 indirim)
 export const GOLD_PACKAGES = [
   {
     id: "tengri_basic",
     nameKey: "pkgBasic",
     label: "Başlangıç",
-    gold: 10,
-    price: "69,99 ₺",
-    perGold: "6,99 ₺",
+    gold: 20,
+    bonus: 0,
+    price: "49,99 ₺",
+    perGold: "2,50 ₺",
     discount: 0,
     gradient: ["#1A1A30", "#0D1526"] as [string, string],
     popular: false,
@@ -32,10 +33,11 @@ export const GOLD_PACKAGES = [
     id: "tengri_plus",
     nameKey: "pkgPlus",
     label: "Avantajlı",
-    gold: 30,
-    price: "199,99 ₺",
-    perGold: "6,67 ₺",
-    discount: 5,
+    gold: 50,
+    bonus: 5,
+    price: "99,99 ₺",
+    perGold: "1,82 ₺",
+    discount: 27,
     gradient: ["#1A1030", "#0D1526"] as [string, string],
     popular: false,
   },
@@ -43,10 +45,11 @@ export const GOLD_PACKAGES = [
     id: "tengri_premium",
     nameKey: "pkgPremium",
     label: "Premium",
-    gold: 50,
-    price: "299,99 ₺",
-    perGold: "6,00 ₺",
-    discount: 14,
+    gold: 120,
+    bonus: 20,
+    price: "199,99 ₺",
+    perGold: "1,43 ₺",
+    discount: 43,
     gradient: ["#1A0A20", "#0D1526"] as [string, string],
     popular: true,
   },
@@ -54,10 +57,11 @@ export const GOLD_PACKAGES = [
     id: "tengri_vip",
     nameKey: "pkgVip",
     label: "VIP",
-    gold: 100,
-    price: "499,99 ₺",
-    perGold: "5,00 ₺",
-    discount: 28,
+    gold: 300,
+    bonus: 60,
+    price: "399,99 ₺",
+    perGold: "1,11 ₺",
+    discount: 56,
     gradient: ["#1A0805", "#0D1526"] as [string, string],
     popular: false,
   },
