@@ -8,6 +8,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
+  Image,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -23,6 +24,8 @@ import Animated, {
   withRepeat,
   withSequence,
   withTiming,
+  Easing,
+  interpolateColor,
   ZoomIn,
 } from "react-native-reanimated";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -46,42 +49,77 @@ const SOCIAL_PROVIDERS = [
   },
 ];
 
-function MysticOrb() {
-  const scale = useSharedValue(1);
-  const opacity = useSharedValue(0.6);
-  const rotate = useSharedValue(0);
+function TengriWelcomeOrb() {
+  const glowPhase  = useSharedValue(0);
+  const ring1Rot   = useSharedValue(0);   // altın, saat yönü
+  const ring2Rot   = useSharedValue(0);   // teal, ters
+  const ring3Rot   = useSharedValue(0);   // mor, saat yönü hızlı
+  const logoBreath = useSharedValue(1);
 
   React.useEffect(() => {
-    scale.value = withRepeat(
-      withSequence(withTiming(1.15, { duration: 2500 }), withTiming(1, { duration: 2500 })),
-      -1, false
-    );
-    opacity.value = withRepeat(
-      withSequence(withTiming(1, { duration: 2000 }), withTiming(0.4, { duration: 2000 })),
-      -1, false
-    );
-    rotate.value = withRepeat(withTiming(360, { duration: 8000 }), -1, false);
+    glowPhase.value  = withRepeat(withSequence(withTiming(1, { duration: 3000 }), withTiming(0, { duration: 3000 })), -1, false);
+    ring1Rot.value   = withRepeat(withTiming(360,  { duration: 24000, easing: Easing.linear }), -1, false);
+    ring2Rot.value   = withRepeat(withTiming(-360, { duration: 16000, easing: Easing.linear }), -1, false);
+    ring3Rot.value   = withRepeat(withTiming(360,  { duration: 10000, easing: Easing.linear }), -1, false);
+    logoBreath.value = withRepeat(withSequence(withTiming(1.07, { duration: 3500, easing: Easing.inOut(Easing.sin) }), withTiming(1, { duration: 3500, easing: Easing.inOut(Easing.sin) })), -1, false);
   }, []);
 
-  const orbStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
+  const glowStyle  = useAnimatedStyle(() => ({
+    opacity: 0.10 + glowPhase.value * 0.22,
+    backgroundColor: interpolateColor(glowPhase.value, [0, 1], ["#2A0A5E", "#5B2D9E"]),
+    transform: [{ scale: 1 + glowPhase.value * 0.18 }],
   }));
-  const ringStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotate.value}deg` }],
-  }));
+  const ring1Style  = useAnimatedStyle(() => ({ transform: [{ rotate: `${ring1Rot.value}deg`  }] }));
+  const ring2Style  = useAnimatedStyle(() => ({ transform: [{ rotate: `${ring2Rot.value}deg`  }] }));
+  const ring3Style  = useAnimatedStyle(() => ({ transform: [{ rotate: `${ring3Rot.value}deg`  }] }));
+  const logoStyle   = useAnimatedStyle(() => ({ transform: [{ scale: logoBreath.value }] }));
+
+  const makeRing = (radius: number, count: number, color: string, big: boolean) =>
+    Array.from({ length: count }, (_, i) => {
+      const angle = (i / count) * 2 * Math.PI;
+      const size  = radius * 2 + 12;
+      return (
+        <Text key={i} style={{
+          position: "absolute",
+          fontSize: big && i % 3 === 0 ? 10 : 7,
+          color,
+          opacity: big && i % 3 === 0 ? 1 : 0.5,
+          left: size / 2 + Math.cos(angle) * radius - (big && i % 3 === 0 ? 5 : 3.5),
+          top:  size / 2 + Math.sin(angle) * radius - (big && i % 3 === 0 ? 5 : 3.5),
+        }}>✦</Text>
+      );
+    });
+
+  const R1 = 88, R2 = 68, R3 = 50;
 
   return (
     <View style={styles.orbContainer}>
-      <Animated.View style={[styles.orbGlow, orbStyle]} />
-      <Animated.View style={[styles.orbRing, ringStyle]}>
-        {[0, 45, 90, 135, 180, 225, 270, 315].map((deg, i) => (
-          <View key={i} style={[styles.orbDot, { transform: [{ rotate: `${deg}deg` }, { translateX: 44 }] }]} />
-        ))}
+      {/* Derin mor ışıma */}
+      <Animated.View style={[styles.orbGlow, glowStyle]} />
+
+      {/* Dış halka — altın yıldızlar */}
+      <Animated.View style={[{ position: "absolute", width: R1 * 2 + 12, height: R1 * 2 + 12, alignItems: "center", justifyContent: "center" }, ring1Style]}>
+        {makeRing(R1, 16, Colors.gold, true)}
       </Animated.View>
-      <View style={styles.orbCenter}>
-        <Ionicons name="moon-outline" size={32} color={Colors.gold} />
-      </View>
+
+      {/* Orta halka — teal nokta */}
+      <Animated.View style={[{ position: "absolute", width: R2 * 2 + 12, height: R2 * 2 + 12, alignItems: "center", justifyContent: "center" }, ring2Style]}>
+        {makeRing(R2, 12, "#1ABFB8", false)}
+      </Animated.View>
+
+      {/* İç halka — mor */}
+      <Animated.View style={[{ position: "absolute", width: R3 * 2 + 12, height: R3 * 2 + 12, alignItems: "center", justifyContent: "center" }, ring3Style]}>
+        {makeRing(R3, 8, "#9B59B6", false)}
+      </Animated.View>
+
+      {/* Tengri logosu — ortada, nefes alan */}
+      <Animated.View style={[styles.orbCenter, logoStyle]}>
+        <Image
+          source={require("@/assets/images/tengri-logo.png")}
+          style={{ width: 72, height: 72 }}
+          resizeMode="contain"
+        />
+      </Animated.View>
     </View>
   );
 }
@@ -287,14 +325,14 @@ export default function AuthScreen() {
             <Ionicons name={(view === "email" || view === "social") ? "chevron-back" : "close"} size={22} color={Colors.textSecondary} />
           </Pressable>
 
-          <MysticOrb />
+          <TengriWelcomeOrb />
 
           <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.titleBlock}>
             <Text style={styles.title}>
               {lang === "tr" ? "Tengri'ye Hoş Geldiniz" : "Welcome to Tengri"}
             </Text>
             <Text style={styles.subtitle}>
-              {lang === "tr" ? "Mistik yolculuğunuz başlıyor" : "Your mystic journey begins"}
+              {lang === "tr" ? "Gökyüzü sizi bekliyor" : "The sky awaits you"}
             </Text>
           </Animated.View>
 
@@ -471,36 +509,25 @@ const styles = StyleSheet.create({
   },
 
   orbContainer: {
-    width: 120, height: 120,
+    width: 200, height: 200,
     alignItems: "center", justifyContent: "center",
-    marginTop: 24, marginBottom: 8,
+    marginTop: 16, marginBottom: 4,
   },
   orbGlow: {
     position: "absolute",
-    width: 100, height: 100,
-    borderRadius: 50,
-    backgroundColor: Colors.gold,
+    width: 160, height: 160,
+    borderRadius: 80,
+    backgroundColor: "#3D1A6E",
     opacity: 0.15,
   },
-  orbRing: {
-    position: "absolute",
-    width: 100, height: 100,
-    alignItems: "center", justifyContent: "center",
-  },
-  orbDot: {
-    position: "absolute",
-    width: 5, height: 5,
-    borderRadius: 3,
-    backgroundColor: Colors.gold,
-    opacity: 0.6,
-  },
   orbCenter: {
-    width: 60, height: 60,
-    borderRadius: 30,
+    width: 88, height: 88,
+    borderRadius: 44,
     backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.gold + "40",
+    borderWidth: 1.5,
+    borderColor: Colors.gold + "55",
     alignItems: "center", justifyContent: "center",
+    overflow: "hidden",
   },
 
   titleBlock: { alignItems: "center", marginBottom: 32, marginTop: 8 },
@@ -513,9 +540,10 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 13,
-    fontFamily: "Lora_400Regular",
-    color: Colors.textSecondary,
+    fontFamily: "Lora_400Regular_Italic",
+    color: "#C8B47A",
     textAlign: "center",
+    letterSpacing: 0.3,
   },
 
   socialBlock: { width: "100%", gap: 12 },
