@@ -6,7 +6,7 @@ import {
   ScrollView,
   Pressable,
   Platform,
-  Alert,
+  Modal,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -51,9 +51,50 @@ function GoldCoin({ size = 32 }: { size?: number }) {
   }, []);
   const style = useAnimatedStyle(() => ({ transform: [{ rotate: `${rotate.value}deg` }] }));
   return (
-    <Animated.View style={[{ width: size, height: size, borderRadius: size / 2, backgroundColor: Colors.gold, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: Colors.goldLight }, style]}>
-      <Text style={{ fontSize: size * 0.45, color: Colors.background }}>✦</Text>
+    <Animated.View style={[{ width: size, height: size, alignItems: "center", justifyContent: "center" }, style]}>
+      <Text style={{ fontSize: size * 0.65 }}>✦</Text>
     </Animated.View>
+  );
+}
+
+function DeleteConfirmModal({
+  visible,
+  lang,
+  onCancel,
+  onConfirm,
+  loading,
+}: {
+  visible: boolean;
+  lang: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+  loading: boolean;
+}) {
+  return (
+    <Modal transparent visible={visible} animationType="fade" onRequestClose={onCancel}>
+      <View style={modal.overlay}>
+        <View style={modal.card}>
+          <View style={modal.iconWrap}>
+            <Ionicons name="warning-outline" size={32} color="#FF4444" />
+          </View>
+          <Text style={modal.title}>{lang === "tr" ? "Hesabı Sil" : "Delete Account"}</Text>
+          <Text style={modal.body}>
+            {lang === "tr"
+              ? "Hesabınız ve tüm verileriniz kalıcı olarak silinecek.\nBu işlem geri alınamaz."
+              : "Your account and all data will be permanently deleted.\nThis cannot be undone."}
+          </Text>
+          <View style={modal.btnRow}>
+            <Pressable onPress={onCancel} style={modal.cancelBtn} disabled={loading}>
+              <Text style={modal.cancelText}>{lang === "tr" ? "İptal" : "Cancel"}</Text>
+            </Pressable>
+            <Pressable onPress={onConfirm} style={[modal.deleteBtn, loading && { opacity: 0.6 }]} disabled={loading}>
+              <Ionicons name="trash-outline" size={14} color="#fff" />
+              <Text style={modal.deleteText}>{loading ? "…" : (lang === "tr" ? "Sil" : "Delete")}</Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -61,6 +102,9 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { goldBalance, readings, userProfile, clearUserProfile, totalSpent } = useApp();
   const { t, lang } = useLang();
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -78,42 +122,35 @@ export default function ProfileScreen() {
     router.replace("/auth");
   };
 
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      lang === "tr" ? "Hesabı Sil" : "Delete Account",
-      lang === "tr"
-        ? "Hesabınız kalıcı olarak silinecek. Bu işlem geri alınamaz. Emin misiniz?"
-        : "Your account will be permanently deleted. This cannot be undone. Are you sure?",
-      [
-        { text: lang === "tr" ? "İptal" : "Cancel", style: "cancel" },
-        {
-          text: lang === "tr" ? "Hesabı Sil" : "Delete Account",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const apiBase = new URL("", getApiUrl()).toString().replace(/\/$/, "");
-              await fetch(`${apiBase}/api/auth/delete-account`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: userProfile?.email }),
-              });
-              await clearUserProfile();
-              router.replace("/auth");
-            } catch {
-              Alert.alert(
-                lang === "tr" ? "Hata" : "Error",
-                lang === "tr" ? "Hesap silinemedi. Tekrar deneyin." : "Could not delete account. Please try again."
-              );
-            }
-          },
-        },
-      ]
-    );
+  const handleDeleteConfirm = async () => {
+    setDeleting(true);
+    try {
+      const apiBase = getApiUrl().replace(/\/$/, "");
+      await fetch(`${apiBase}/api/auth/delete-account`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: userProfile?.email }),
+      });
+      await clearUserProfile();
+      setShowDeleteModal(false);
+      router.replace("/auth");
+    } catch {
+      setDeleting(false);
+      setShowDeleteModal(false);
+    }
   };
 
   return (
     <View style={styles.container}>
       <LinearGradient colors={["#08051A", "#070D1A", "#0D0820"]} style={StyleSheet.absoluteFill} />
+
+      <DeleteConfirmModal
+        visible={showDeleteModal}
+        lang={lang}
+        onCancel={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteConfirm}
+        loading={deleting}
+      />
 
       <ScrollView
         contentContainerStyle={[styles.content, { paddingTop: topPad + 16, paddingBottom: botPad + 100 }]}
@@ -260,7 +297,13 @@ export default function ProfileScreen() {
                 <Ionicons name="log-out-outline" size={16} color={Colors.error} />
                 <Text style={styles.logoutText}>{lang === "tr" ? "Çıkış Yap" : "Logout"}</Text>
               </Pressable>
-              <Pressable onPress={handleDeleteAccount} style={styles.deleteBtn}>
+              <Pressable
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  setShowDeleteModal(true);
+                }}
+                style={styles.deleteBtn}
+              >
                 <Ionicons name="trash-outline" size={15} color="#FF4444" />
                 <Text style={styles.deleteBtnText}>{lang === "tr" ? "Hesabımı Sil" : "Delete My Account"}</Text>
               </Pressable>
@@ -330,4 +373,17 @@ const styles = StyleSheet.create({
   logoutText: { fontSize: 14, fontFamily: "Lora_700Bold", color: Colors.error },
   deleteBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1, borderColor: "#FF444420", backgroundColor: "transparent" },
   deleteBtnText: { fontSize: 12, fontFamily: "Lora_400Regular", color: "#FF4444" },
+});
+
+const modal = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.75)", alignItems: "center", justifyContent: "center", padding: 32 },
+  card: { backgroundColor: "#0F0B22", borderRadius: 20, borderWidth: 1, borderColor: "#FF444430", padding: 28, width: "100%", maxWidth: 360, alignItems: "center", gap: 14 },
+  iconWrap: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#FF444415", borderWidth: 1, borderColor: "#FF444440", alignItems: "center", justifyContent: "center" },
+  title: { fontSize: 18, fontFamily: "Lora_700Bold", color: "#FF6666", textAlign: "center" },
+  body: { fontSize: 13, fontFamily: "Lora_400Regular", color: Colors.textSecondary, textAlign: "center", lineHeight: 20 },
+  btnRow: { flexDirection: "row", gap: 12, marginTop: 4, width: "100%" },
+  cancelBtn: { flex: 1, paddingVertical: 13, borderRadius: 12, borderWidth: 1, borderColor: Colors.cardBorder, backgroundColor: Colors.surface, alignItems: "center" },
+  cancelText: { fontSize: 14, fontFamily: "Lora_700Bold", color: Colors.text },
+  deleteBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 13, borderRadius: 12, backgroundColor: "#CC2222" },
+  deleteText: { fontSize: 14, fontFamily: "Lora_700Bold", color: "#fff" },
 });
