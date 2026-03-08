@@ -28,6 +28,7 @@ import Animated, {
   FadeInDown,
   FadeIn,
   ZoomIn,
+  Easing,
 } from "react-native-reanimated";
 import Svg, { Circle, Line, Path } from "react-native-svg";
 import { Colors } from "@/constants/colors";
@@ -178,10 +179,79 @@ function MandalaRing({ radius, dotCount, color, duration, reverse }: {
   );
 }
 
+// ────────── Star Ring ──────────
+function StarRing({ radius, count, color, duration, reverse }: {
+  radius: number; count: number; color: string; duration: number; reverse?: boolean;
+}) {
+  const rotate = useSharedValue(0);
+  React.useEffect(() => {
+    rotate.value = withRepeat(
+      withTiming(reverse ? -360 : 360, { duration, easing: Easing.linear }),
+      -1, false
+    );
+  }, []);
+  const style = useAnimatedStyle(() => ({ transform: [{ rotate: `${rotate.value}deg` }] }));
+  const size = radius * 2 + 24;
+  return (
+    <Animated.View style={[{ width: size, height: size, position: "absolute", alignItems: "center", justifyContent: "center" }, style]}>
+      {Array.from({ length: count }, (_, i) => {
+        const angle = (i / count) * 2 * Math.PI;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+        const big = i % 3 === 0;
+        return (
+          <Text key={i} style={{
+            position: "absolute",
+            fontSize: big ? 11 : 7,
+            color,
+            opacity: big ? 0.95 : 0.45,
+            left: size / 2 + x - (big ? 5.5 : 3.5),
+            top:  size / 2 + y - (big ? 5.5 : 3.5),
+          }}>✦</Text>
+        );
+      })}
+    </Animated.View>
+  );
+}
+
+// ────────── Twinkle Stars ──────────
+function TwinkleStar({ left, top, sz, delay, dur }: { left: number; top: number; sz: number; delay: number; dur: number }) {
+  const op = useSharedValue(0.05);
+  React.useEffect(() => {
+    op.value = withDelay(delay, withRepeat(
+      withSequence(withTiming(1, { duration: dur, easing: Easing.out(Easing.sin) }), withTiming(0.05, { duration: dur, easing: Easing.in(Easing.sin) })),
+      -1, false
+    ));
+  }, []);
+  const style = useAnimatedStyle(() => ({ opacity: op.value }));
+  return (
+    <Animated.Text style={[{ position: "absolute", fontSize: sz, color: Colors.gold, left, top }, style]}>✦</Animated.Text>
+  );
+}
+
+function TwinkleStars({ centerX, centerY }: { centerX: number; centerY: number }) {
+  const stars = React.useMemo(() =>
+    Array.from({ length: 12 }, (_, i) => {
+      const angle = (i / 12) * 2 * Math.PI + i * 0.52;
+      const r = 118 + (i % 4) * 7;
+      const sz = i % 4 === 0 ? 10 : i % 3 === 0 ? 8 : 6;
+      return {
+        left: centerX + Math.cos(angle) * r - sz / 2,
+        top:  centerY + Math.sin(angle) * r - sz / 2,
+        sz,
+        delay: i * 380,
+        dur: 900 + (i % 5) * 280,
+      };
+    }), []
+  );
+  return <>{stars.map((s, i) => <TwinkleStar key={i} {...s} />)}</>;
+}
+
 // ────────── Tengri Logo ──────────
 function AnimatedLogo() {
-  const floatY = useSharedValue(0);
-  const phase = useSharedValue(0);
+  const floatY  = useSharedValue(0);
+  const phase   = useSharedValue(0);
+  const breathe = useSharedValue(1);
 
   React.useEffect(() => {
     floatY.value = withRepeat(
@@ -192,10 +262,19 @@ function AnimatedLogo() {
       withSequence(withTiming(1, { duration: 10000 }), withTiming(0, { duration: 10000 })),
       -1, false
     );
+    breathe.value = withRepeat(
+      withSequence(
+        withTiming(1.055, { duration: 3800, easing: Easing.inOut(Easing.sin) }),
+        withTiming(1.000, { duration: 3800, easing: Easing.inOut(Easing.sin) })
+      ), -1, false
+    );
   }, []);
 
   const floatStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: floatY.value }],
+  }));
+  const breatheStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: breathe.value }],
   }));
   const glowStyle = useAnimatedStyle(() => ({
     transform: [{ scale: 1.0 + phase.value * 0.22 }],
@@ -207,19 +286,33 @@ function AnimatedLogo() {
     backgroundColor: interpolateColor(phase.value, [0, 1], ["#FF69B4", "#9B59B6"]),
   }));
 
+  const CX = 110, CY = 110;
+
   return (
     <View style={styles.logoContainer}>
       <Animated.View style={[styles.logoGlowOuter, glowStyle]} />
       <Animated.View style={[styles.logoGlowMid, glowMidStyle]} />
+
+      {/* Renkli mandala halkaları */}
       <MandalaRing radius={90} dotCount={24} color="#5B9BD5" duration={12000} />
       <MandalaRing radius={72} dotCount={16} color="#FF6B9D" duration={9000} reverse />
       <MandalaRing radius={108} dotCount={8} color="#9B59B6" duration={18000} />
+
+      {/* ✦ Altın yıldız halkası — yavaş, ters yönde döner */}
+      <StarRing radius={112} count={16} color={Colors.gold} duration={28000} reverse />
+
+      {/* Etrafta titreşen yıldızlar */}
+      <TwinkleStars centerX={CX} centerY={CY} />
+
+      {/* Logo — float + nefes alma */}
       <Animated.View style={floatStyle}>
-        <Image
-          source={require("@/assets/images/tengri-logo.png")}
-          style={styles.logoImage}
-          resizeMode="contain"
-        />
+        <Animated.View style={breatheStyle}>
+          <Image
+            source={require("@/assets/images/tengri-logo.png")}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
+        </Animated.View>
       </Animated.View>
     </View>
   );
