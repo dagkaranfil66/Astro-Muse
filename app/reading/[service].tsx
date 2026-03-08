@@ -80,14 +80,8 @@ const SERVICE_IMAGES: Record<string, any> = {
   ask:        require("@/assets/images/services/ask.png"),
 };
 
-// Hero banner — shows the service image with gradient overlay + optional animated content
-function ServiceHeroBanner({
-  serviceId, color, children,
-}: {
-  serviceId: string;
-  color: string;
-  children?: React.ReactNode;
-}) {
+// Hero banner — shows the service image with Ken Burns animation + gradient overlay
+function ServiceHeroBanner({ serviceId, color }: { serviceId: string; color: string }) {
   const scale = useSharedValue(1.06);
   React.useEffect(() => {
     scale.value = withRepeat(
@@ -107,16 +101,12 @@ function ServiceHeroBanner({
         style={StyleSheet.absoluteFill}
         locations={[0, 0.6, 1]}
       />
-      {children && (
-        <View style={sHero.overlay}>{children}</View>
-      )}
     </View>
   );
 }
 const sHero = StyleSheet.create({
-  wrap: { width: "100%", height: 180, borderRadius: 18, overflow: "hidden", marginBottom: 16, position: "relative" },
+  wrap: { width: "100%", height: 180, borderRadius: 18, overflow: "hidden", marginBottom: 16 },
   img: { width: "100%", height: "100%", position: "absolute" },
-  overlay: { position: "absolute", bottom: 0, left: 0, right: 0, top: 0, alignItems: "center", justifyContent: "flex-end", paddingBottom: 14 },
 });
 
 // ────────── Star field background ──────────
@@ -138,35 +128,9 @@ function Star({ top, left, dur, init }: { top: number; left: number; dur: number
 
 // ────────── Service-specific Intro Animations ──────────
 function KahveIntro({ color }: { color: string }) {
-  const steam1 = useSharedValue(0);
-  const steam2 = useSharedValue(0);
-
-  React.useEffect(() => {
-    steam1.value = withRepeat(
-      withSequence(withTiming(-22, { duration: 1500 }), withTiming(0, { duration: 0 })), -1, false
-    );
-    steam2.value = withDelay(500, withRepeat(
-      withSequence(withTiming(-18, { duration: 1800 }), withTiming(0, { duration: 0 })), -1, false
-    ));
-  }, []);
-
-  const s1Style = useAnimatedStyle(() => ({ transform: [{ translateY: steam1.value }], opacity: Math.max(0, 1 - Math.abs(steam1.value) / 22) }));
-  const s2Style = useAnimatedStyle(() => ({ transform: [{ translateY: steam2.value }], opacity: Math.max(0, 1 - Math.abs(steam2.value) / 18) }));
-
   return (
     <View style={styles.serviceIntro}>
-      <ServiceHeroBanner serviceId="kahve" color={color}>
-        <View style={{ alignItems: "center" }}>
-          <View style={{ flexDirection: "row", gap: 10, marginBottom: 2 }}>
-            <Animated.View style={[styles.steam, { backgroundColor: "#fff" }, s1Style]} />
-            <Animated.View style={[styles.steam, { backgroundColor: "#fff", height: 14 }, s2Style]} />
-            <Animated.View style={[styles.steam, { backgroundColor: "#fff" }, s1Style]} />
-          </View>
-          <View style={[styles.cupOuter, { borderColor: "#ffffff60" }]}>
-            <Ionicons name="cafe" size={36} color="#fff" />
-          </View>
-        </View>
-      </ServiceHeroBanner>
+      <ServiceHeroBanner serviceId="kahve" color={color} />
       <Text style={styles.introServiceTitle}>Kahve Falı</Text>
       <Text style={styles.introDesc}>Fincanınızın fotoğrafını yükleyin{"\n"}veya gördüğünüz sembolleri yazın.</Text>
     </View>
@@ -174,29 +138,9 @@ function KahveIntro({ color }: { color: string }) {
 }
 
 function ElIntro({ color }: { color: string }) {
-  const glow = useSharedValue(0.3);
-
-  React.useEffect(() => {
-    glow.value = withRepeat(
-      withSequence(withTiming(1, { duration: 1200 }), withTiming(0.2, { duration: 1200 })), -1, false
-    );
-  }, []);
-
-  const glowStyle = useAnimatedStyle(() => ({ opacity: glow.value }));
-
   return (
     <View style={styles.serviceIntro}>
-      <ServiceHeroBanner serviceId="el" color={color}>
-        <View style={{ alignItems: "center", justifyContent: "center" }}>
-          <Animated.View style={[{
-            width: 70, height: 70, borderRadius: 35,
-            backgroundColor: color + "30", position: "absolute",
-          }, glowStyle]} />
-          <View style={[styles.handContainer, { borderColor: "#ffffff50" }]}>
-            <Ionicons name="hand-left" size={42} color="#fff" />
-          </View>
-        </View>
-      </ServiceHeroBanner>
+      <ServiceHeroBanner serviceId="el" color={color} />
       <Text style={styles.introServiceTitle}>El Falı</Text>
       <Text style={styles.introDesc}>Avucunuzun fotoğrafını yükleyin ya da çizgilerinizi anlatın. Kader haritanız okunacak.</Text>
     </View>
@@ -428,39 +372,9 @@ function KahvePhotoSection({
 }
 
 function DogumIntro({ color }: { color: string }) {
-  const rotate = useSharedValue(0);
-
-  React.useEffect(() => {
-    rotate.value = withRepeat(withTiming(360, { duration: 20000 }), -1, false);
-  }, []);
-
-  const ringStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${rotate.value}deg` }] }));
-  const zodiac = ["♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓"];
-
   return (
     <View style={styles.serviceIntro}>
-      <ServiceHeroBanner serviceId="dogum" color={color}>
-        <View style={{ alignItems: "center", justifyContent: "center" }}>
-          <View style={[styles.zodiacWheel, { borderColor: "#ffffff25", width: 100, height: 100 }]}>
-            <Animated.View style={[styles.zodiacRing, ringStyle]}>
-              {zodiac.map((sign, i) => {
-                const angle = (i / 12) * 2 * Math.PI;
-                const r = 40;
-                return (
-                  <Text key={i} style={[styles.zodiacSign, {
-                    color: "#fff",
-                    position: "absolute",
-                    fontSize: 10,
-                    left: 50 + Math.cos(angle) * r - 7,
-                    top: 50 + Math.sin(angle) * r - 7,
-                  }]}>{sign}</Text>
-                );
-              })}
-            </Animated.View>
-            <Ionicons name="planet" size={28} color="#fff" />
-          </View>
-        </View>
-      </ServiceHeroBanner>
+      <ServiceHeroBanner serviceId="dogum" color={color} />
       <Text style={styles.introServiceTitle}>Doğum Haritası</Text>
       <Text style={styles.introDesc}>Doğum tarihiniz, saatiniz ve şehrinizi girerek kişisel yıldız haritanızı çıkarın.</Text>
     </View>
@@ -468,33 +382,9 @@ function DogumIntro({ color }: { color: string }) {
 }
 
 function RuyaIntro({ color }: { color: string }) {
-  const float = useSharedValue(0);
-  const moonGlow = useSharedValue(0.5);
-
-  React.useEffect(() => {
-    float.value = withRepeat(
-      withSequence(withTiming(-10, { duration: 2500 }), withTiming(0, { duration: 2500 })), -1, false
-    );
-    moonGlow.value = withRepeat(
-      withSequence(withTiming(0.9, { duration: 2000 }), withTiming(0.2, { duration: 2000 })), -1, false
-    );
-  }, []);
-
-  const floatStyle = useAnimatedStyle(() => ({ transform: [{ translateY: float.value }] }));
-  const glowStyle = useAnimatedStyle(() => ({ opacity: moonGlow.value }));
-
   return (
     <View style={styles.serviceIntro}>
-      <ServiceHeroBanner serviceId="ruya" color={color}>
-        <View style={{ alignItems: "center", justifyContent: "center" }}>
-          <Animated.View style={[{ width: 60, height: 60, borderRadius: 30, backgroundColor: color + "40", position: "absolute" }, glowStyle]} />
-          <Animated.View style={floatStyle}>
-            <View style={[styles.dreamCloud, { borderColor: "#ffffff40" }]}>
-              <Ionicons name="moon" size={36} color="#fff" />
-            </View>
-          </Animated.View>
-        </View>
-      </ServiceHeroBanner>
+      <ServiceHeroBanner serviceId="ruya" color={color} />
       <Text style={styles.introServiceTitle}>Rüya Yorumu</Text>
       <Text style={styles.introDesc}>Gördüğünüz rüyayı anlatın. Şamanist gelenek ile rüyanızın mistik mesajını çözelim.</Text>
     </View>
@@ -502,33 +392,9 @@ function RuyaIntro({ color }: { color: string }) {
 }
 
 function BurclarIntro({ color }: { color: string }) {
-  const rotate = useSharedValue(0);
-  const glow = useSharedValue(0.4);
-
-  React.useEffect(() => {
-    rotate.value = withRepeat(
-      withSequence(withTiming(8, { duration: 3000 }), withTiming(-8, { duration: 3000 })), -1, true
-    );
-    glow.value = withRepeat(
-      withSequence(withTiming(0.9, { duration: 1800 }), withTiming(0.2, { duration: 1800 })), -1, false
-    );
-  }, []);
-
-  const rStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${rotate.value}deg` }] }));
-  const gStyle = useAnimatedStyle(() => ({ opacity: glow.value }));
-
   return (
     <View style={styles.serviceIntro}>
-      <ServiceHeroBanner serviceId="burclar" color={color}>
-        <View style={{ alignItems: "center", justifyContent: "center" }}>
-          <Animated.View style={[{ width: 66, height: 66, borderRadius: 33, backgroundColor: color + "40", position: "absolute" }, gStyle]} />
-          <Animated.View style={rStyle}>
-            <View style={[styles.zodiacIcon, { borderColor: "#ffffff40" }]}>
-              <Ionicons name="telescope" size={38} color="#fff" />
-            </View>
-          </Animated.View>
-        </View>
-      </ServiceHeroBanner>
+      <ServiceHeroBanner serviceId="burclar" color={color} />
       <Text style={styles.introServiceTitle}>Burçlar</Text>
       <Text style={styles.introDesc}>Burcunuzu yazın ve bu haftaya özel mistik yorumunuzu alın. Aşk, kariyer ve ruhsal rehberlik.</Text>
     </View>
@@ -536,68 +402,19 @@ function BurclarIntro({ color }: { color: string }) {
 }
 
 function AskIntro({ color }: { color: string }) {
-  const pulse1 = useSharedValue(1);
-  const pulse2 = useSharedValue(1);
-
-  React.useEffect(() => {
-    pulse1.value = withRepeat(
-      withSequence(withTiming(1.25, { duration: 700 }), withTiming(1, { duration: 700 })), -1, false
-    );
-    pulse2.value = withDelay(350, withRepeat(
-      withSequence(withTiming(1.2, { duration: 700 }), withTiming(1, { duration: 700 })), -1, false
-    ));
-  }, []);
-
-  const s1 = useAnimatedStyle(() => ({ transform: [{ scale: pulse1.value }] }));
-  const s2 = useAnimatedStyle(() => ({ transform: [{ scale: pulse2.value }] }));
-
   return (
     <View style={styles.serviceIntro}>
-      <ServiceHeroBanner serviceId="ask" color={color}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: -8, justifyContent: "center" }}>
-          <Animated.View style={[styles.heartWrap, { borderColor: "#ffffff40" }, s1]}>
-            <Ionicons name="heart" size={28} color="#fff" />
-          </Animated.View>
-          <View style={styles.heartJoin}>
-            <Ionicons name="sparkles" size={14} color={Colors.gold} />
-          </View>
-          <Animated.View style={[styles.heartWrap, { borderColor: "#ffffff40" }, s2]}>
-            <Ionicons name="heart" size={28} color="#fff" />
-          </Animated.View>
-        </View>
-      </ServiceHeroBanner>
+      <ServiceHeroBanner serviceId="ask" color={color} />
       <Text style={styles.introServiceTitle}>Aşkını Bul</Text>
       <Text style={styles.introDesc}>İki burcun uyumunu Tengri'nin bilgeliği ile keşfedin. Aşk, tutku ve ruhsal bağınız okunacak.</Text>
     </View>
   );
 }
 
-function DefaultIntro({ serviceId, color, icon, label, hint }: { serviceId: string; color: string; icon: keyof typeof Ionicons.glyphMap; label: string; hint: string }) {
-  const pulse = useSharedValue(1);
-  const glow = useSharedValue(0.4);
-
-  React.useEffect(() => {
-    pulse.value = withRepeat(
-      withSequence(withTiming(1.08, { duration: 1500 }), withTiming(1, { duration: 1500 })), -1, false
-    );
-    glow.value = withRepeat(
-      withSequence(withTiming(0.8, { duration: 2000 }), withTiming(0.15, { duration: 2000 })), -1, false
-    );
-  }, []);
-
-  const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }));
-  const glowStyle = useAnimatedStyle(() => ({ opacity: glow.value }));
-
+function DefaultIntro({ serviceId, color, label, hint }: { serviceId: string; color: string; icon: keyof typeof Ionicons.glyphMap; label: string; hint: string }) {
   return (
     <View style={styles.serviceIntro}>
-      <ServiceHeroBanner serviceId={serviceId} color={color}>
-        <View style={{ alignItems: "center", justifyContent: "center" }}>
-          <Animated.View style={[{ width: 70, height: 70, borderRadius: 35, backgroundColor: color + "35", position: "absolute" }, glowStyle]} />
-          <Animated.View style={[styles.defaultIconWrap, { borderColor: "#ffffff40" }, pulseStyle]}>
-            <Ionicons name={icon} size={42} color="#fff" />
-          </Animated.View>
-        </View>
-      </ServiceHeroBanner>
+      <ServiceHeroBanner serviceId={serviceId} color={color} />
       <Text style={styles.introServiceTitle}>{label}</Text>
       <Text style={styles.introDesc}>{hint}</Text>
     </View>
