@@ -13,6 +13,8 @@ interface UserRecord {
   verified: boolean;
   verifyToken: string;
   createdAt: string;
+  resetCode?: string;
+  resetCodeExpiry?: number;
 }
 
 const userStore = new Map<string, UserRecord>();
@@ -136,6 +138,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error("Login error:", err);
       return res.status(500).json({ error: "Giriş sırasında hata oluştu" });
+    }
+  });
+
+  app.post("/api/auth/forgot-password", async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+      const key = email?.toLowerCase().trim();
+      const user = userStore.get(key);
+      if (!user) return res.json({ success: true });
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      user.resetCode = code;
+      user.resetCodeExpiry = Date.now() + 15 * 60 * 1000;
+      userStore.set(key, user);
+      const mailer = getMailer();
+      if (!mailer) {
+        console.log(`[DEV] Password reset code for ${key}: ${code}`);
+      } else {
+        await mailer.sendMail({
+          from: `"Tengri ✦" <${process.env.SMTP_USER}>`,
+          to: key,
+          subject: "Tengri — Şifre Sıfırlama Kodu",
+          html: `
+            <div style="background:#08051A;padding:40px;font-family:Georgia,serif;color:#E8D9B0;max-width:480px;margin:0 auto;border-radius:16px;">
+              <h1 style="color:#C8A020;font-size:28px;text-align:center;margin-bottom:8px;">✦ Tengri</h1>
+              <p style="text-align:center;color:#9B8EC4;font-size:14px;margin-bottom:32px;">Şifre Sıfırlama</p>
+              <p style="font-size:16px;">Merhaba <strong>${user.name}</strong>,</p>
+              <p style="font-size:14px;color:#B8A9D0;line-height:1.6;">Şifre sıfırlama kodunuz:</p>
+              <div style="text-align:center;margin:32px 0;">
+                <div style="display:inline-block;background:linear-gradient(90deg,#C8A020,#9B6820);color:#08051A;padding:20px 48px;border-radius:12px;font-size:36px;font-weight:bold;letter-spacing:8px;">${code}</div>
+              </div>
+              <p style="font-size:12px;color:#6B5E8A;text-align:center;">Bu kod 15 dakika geçerlidir. Siz talep etmediyseniz bu e-postayı dikkate almayın.</p>
+            </div>
+          `,
+        });
+      }
+      return res.json({ success: true });
+    } catch (err) {
+      console.error("Forgot password error:", err);
+      return res.status(500).json({ error: "Kod gönderilemedi" });
+    }
+  });
+
+  app.post("/api/auth/reset-password", async (req: Request, res: Response) => {
+    try {
+      const { email, code, newPassword } = req.body;
+      if (!email || !code || !newPassword) return res.status(400).json({ error: "Tüm alanlar gerekli" });
+      const key = email.toLowerCase().trim();
+      const user = userStore.get(key);
+      if (!user || !user.resetCode || !user.resetCodeExpiry) return res.status(400).json({ error: "Geçersiz veya süresi dolmuş kod" });
+      if (Date.now() > user.resetCodeExpiry) return res.status(400).json({ error: "Kodun süresi dolmuş, tekrar isteyin" });
+      if (user.resetCode !== code.trim()) return res.status(400).json({ error: "Kod hatalı" });
+      if (newPassword.length < 6) return res.status(400).json({ error: "Şifre en az 6 karakter olmalı" });
+      user.passwordHash = await bcrypt.hash(newPassword, 10);
+      user.resetCode = undefined;
+      user.resetCodeExpiry = undefined;
+      userStore.set(key, user);
+      return res.json({ success: true });
+    } catch (err) {
+      console.error("Reset password error:", err);
+      return res.status(500).json({ error: "Şifre sıfırlanamadı" });
     }
   });
 

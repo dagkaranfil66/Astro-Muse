@@ -410,6 +410,18 @@ export default function AuthScreen() {
                 </View>
               )}
 
+              {mode === "login" && (
+                <Pressable
+                  onPress={() => router.push("/forgot-password")}
+                  style={styles.forgotBtn}
+                  hitSlop={8}
+                >
+                  <Text style={styles.forgotBtnText}>
+                    {lang === "tr" ? "Şifremi unuttum" : "Forgot password?"}
+                  </Text>
+                </Pressable>
+              )}
+
               {!!error && <Text style={styles.errorText}>{error}</Text>}
 
               <Pressable
@@ -591,6 +603,14 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: 14,
     fontFamily: "Lora_400Regular",
+  },
+
+  forgotBtn: { alignSelf: "flex-end", paddingVertical: 2 },
+  forgotBtnText: {
+    fontSize: 12,
+    fontFamily: "Lora_400Regular",
+    color: Colors.gold,
+    textDecorationLine: "underline",
   },
 
   errorText: {
