@@ -53,20 +53,77 @@ async function sendEmail(to: string, subject: string, html: string) {
   }
 }
 
+function getServerBaseUrl(req: Request): string {
+  if (process.env.REPLIT_DEV_DOMAIN) {
+    return `https://${process.env.REPLIT_DEV_DOMAIN}:5000`;
+  }
+  const proto = req.headers["x-forwarded-proto"] || req.protocol;
+  const host = req.headers["x-forwarded-host"] || req.get("host");
+  return `${proto}://${host}`;
+}
+
 async function sendVerificationEmail(email: string, name: string, token: string, baseUrl: string) {
   const verifyUrl = `${baseUrl}/api/auth/verify?token=${token}`;
-  await sendEmail(email, "Tengri — Hesabınızı Doğrulayın", `
-    <div style="background:#08051A;padding:40px;font-family:Georgia,serif;color:#E8D9B0;max-width:480px;margin:0 auto;border-radius:16px;">
-      <h1 style="color:#C8A020;font-size:28px;text-align:center;margin-bottom:8px;">✦ Tengri</h1>
-      <p style="text-align:center;color:#9B8EC4;font-size:14px;margin-bottom:32px;">Mistik yolculuğunuz başlamak üzere</p>
-      <p style="font-size:16px;">Merhaba <strong>${name}</strong>,</p>
-      <p style="font-size:14px;color:#B8A9D0;line-height:1.6;">Tengri'ye hoş geldiniz. Hesabınızı doğrulamak için aşağıdaki butona tıklayın:</p>
-      <div style="text-align:center;margin:32px 0;">
-        <a href="${verifyUrl}" style="background:linear-gradient(90deg,#C8A020,#9B6820);color:#08051A;padding:16px 36px;border-radius:12px;text-decoration:none;font-weight:bold;font-size:16px;">Hesabı Doğrula</a>
-      </div>
-      <p style="font-size:12px;color:#6B5E8A;text-align:center;">Bu bağlantı 24 saat geçerlidir.</p>
-    </div>
-  `);
+  await sendEmail(email, "✦ Tengri — Mistik Yolculuğunuz Başlıyor", `<!DOCTYPE html>
+<html lang="tr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#06030F;font-family:Georgia,serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#06030F;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:480px;background:linear-gradient(160deg,#0F0825,#0A1230);border:1px solid #C8A02030;border-radius:20px;overflow:hidden;">
+
+        <!-- Header star banner -->
+        <tr><td style="background:linear-gradient(90deg,#1A0F35,#0D1A40,#1A0F35);padding:8px;text-align:center;">
+          <span style="color:#C8A020;font-size:11px;letter-spacing:6px;text-transform:uppercase;">✦ &nbsp; T E N G R I &nbsp; ✦</span>
+        </td></tr>
+
+        <!-- Main content -->
+        <tr><td style="padding:44px 40px 32px;">
+
+          <!-- Title -->
+          <div style="text-align:center;margin-bottom:32px;">
+            <div style="font-size:44px;margin-bottom:8px;">🌌</div>
+            <h1 style="margin:0 0 8px;font-size:26px;color:#E8D9B0;font-weight:bold;">Mistik Kapı Açılıyor</h1>
+            <p style="margin:0;color:#9B8EC4;font-size:14px;line-height:1.6;">Yıldızlar sizi bekliyordu, <strong style="color:#C8A020;">${name}</strong></p>
+          </div>
+
+          <!-- Divider -->
+          <div style="border-top:1px solid #C8A02025;margin:0 0 28px;"></div>
+
+          <!-- Message -->
+          <p style="margin:0 0 12px;font-size:15px;color:#B8A9D0;line-height:1.7;">Tengri'ye katıldığınız için teşekkürler. Kadim bilgelik, yıldız haritaları ve mistik rehberlik artık elinizin altında.</p>
+          <p style="margin:0 0 32px;font-size:14px;color:#8A7AAA;line-height:1.7;">Yolculuğunuza başlamak için hesabınızı doğrulamanız yeterli:</p>
+
+          <!-- CTA Button -->
+          <div style="text-align:center;margin-bottom:32px;">
+            <a href="${verifyUrl}" style="display:inline-block;background:linear-gradient(90deg,#C8A020,#A07015);color:#06030F;padding:18px 48px;border-radius:14px;text-decoration:none;font-weight:bold;font-size:16px;letter-spacing:0.5px;">✦ &nbsp; Hesabımı Doğrula</a>
+          </div>
+
+          <!-- Feature pills -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+            <tr>
+              <td style="padding:4px;" width="33%"><div style="background:#1A1030;border:1px solid #C8A02020;border-radius:10px;padding:12px 8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">☕</div><div style="font-size:11px;color:#8A7AAA;">Kahve Falı</div></div></td>
+              <td style="padding:4px;" width="33%"><div style="background:#1A1030;border:1px solid #C8A02020;border-radius:10px;padding:12px 8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">🔮</div><div style="font-size:11px;color:#8A7AAA;">Tarot</div></div></td>
+              <td style="padding:4px;" width="33%"><div style="background:#1A1030;border:1px solid #C8A02020;border-radius:10px;padding:12px 8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">✋</div><div style="font-size:11px;color:#8A7AAA;">El Falı</div></div></td>
+            </tr>
+          </table>
+
+          <!-- Divider -->
+          <div style="border-top:1px solid #C8A02020;margin:0 0 20px;"></div>
+
+          <p style="margin:0;font-size:12px;color:#5A4E7A;text-align:center;line-height:1.6;">Bu bağlantı <strong>24 saat</strong> geçerlidir.<br>Bu e-postayı siz almadıysanız güvenle silebilirsiniz.</p>
+        </td></tr>
+
+        <!-- Footer -->
+        <tr><td style="background:#08051A;padding:20px;text-align:center;border-top:1px solid #C8A02015;">
+          <p style="margin:0;font-size:11px;color:#4A3E6A;letter-spacing:2px;">tengristar.com &nbsp;✦&nbsp; Kadim Türk Mistisizmi</p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`);
   if (!process.env.RESEND_API_KEY) {
     console.log(`[DEV] Verification link for ${email}: ${verifyUrl}`);
   }
@@ -109,9 +166,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const [user] = await db.insert(users).values({
         name: name.trim(), email: key, passwordHash, verified: false, verifyToken,
       }).returning();
-      const proto = req.headers["x-forwarded-proto"] || req.protocol;
-      const host = req.headers["x-forwarded-host"] || req.get("host");
-      sendVerificationEmail(key, name.trim(), verifyToken, `${proto}://${host}`).catch(() => {});
+      sendVerificationEmail(key, name.trim(), verifyToken, getServerBaseUrl(req)).catch(() => {});
       return res.json({ success: true, user: { id: user.id, name: user.name, email: key } });
     } catch (err) {
       console.error("Register error:", err);
@@ -231,9 +286,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (rows.length === 0) return res.status(404).json({ error: "Kayıtlı kullanıcı bulunamadı" });
       const user = rows[0];
       if (user.verified) return res.json({ success: true, message: "Zaten doğrulandı" });
-      const proto = req.headers["x-forwarded-proto"] || req.protocol;
-      const host = req.headers["x-forwarded-host"] || req.get("host");
-      await sendVerificationEmail(key, user.name, user.verifyToken, `${proto}://${host}`);
+      await sendVerificationEmail(key, user.name, user.verifyToken, getServerBaseUrl(req));
       return res.json({ success: true });
     } catch (err) {
       return res.status(500).json({ error: "Mail gönderilemedi" });
@@ -324,6 +377,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 function verifyPage(title: string, message: string, success: boolean): string {
   const color = success ? "#C8A020" : "#FF6B6B";
-  const icon = success ? "✦" : "✗";
-  return `<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title} — Tengri</title><style>*{box-sizing:border-box;margin:0;padding:0}body{background:#08051A;font-family:Georgia,serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:#12082A;border:1px solid ${color}30;border-radius:20px;padding:48px 40px;text-align:center;max-width:420px;width:100%}.icon{font-size:48px;color:${color};margin-bottom:20px}.title{font-size:24px;color:${color};margin-bottom:12px}.msg{font-size:15px;color:#B8A9D0;line-height:1.6}.footer{margin-top:32px;font-size:12px;color:#6B5E8A}</style></head><body><div class="card"><div class="icon">${icon}</div><h1 class="title">${title}</h1><p class="msg">${message}</p><p class="footer">tengristar.com</p></div></body></html>`;
+  const emoji = success ? "🌟" : "⚠️";
+  const appUrl = process.env.REPLIT_DEV_DOMAIN
+    ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+    : "https://tengristar.com";
+  const btnHtml = success
+    ? `<a href="${appUrl}" style="display:inline-block;margin-top:28px;background:linear-gradient(90deg,#C8A020,#A07015);color:#06030F;padding:16px 40px;border-radius:14px;text-decoration:none;font-weight:bold;font-size:16px;">✦ &nbsp; Tengri'yi Aç</a>`
+    : `<a href="${appUrl}" style="display:inline-block;margin-top:28px;background:#1A1030;color:#B8A9D0;padding:14px 36px;border-radius:14px;text-decoration:none;font-size:15px;border:1px solid #C8A02030;">Ana Sayfaya Dön</a>`;
+  return `<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>${title} — Tengri</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:radial-gradient(ellipse at 50% 0%,#1A0F35 0%,#06030F 70%);font-family:Georgia,serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+    .stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;z-index:0}
+    .star{position:absolute;background:#C8A020;border-radius:50%;animation:twinkle 3s infinite}
+    @keyframes twinkle{0%,100%{opacity:0.2}50%{opacity:0.8}}
+    .card{position:relative;z-index:1;background:linear-gradient(160deg,#0F0825,#0A1230);border:1px solid ${color}30;border-radius:24px;padding:52px 44px;text-align:center;max-width:440px;width:100%;box-shadow:0 0 60px ${color}10}
+    .banner{background:linear-gradient(90deg,#1A0F35,#0D1A40,#1A0F35);margin:-52px -44px 40px;padding:10px;border-radius:24px 24px 0 0;letter-spacing:6px;font-size:11px;color:#C8A020}
+    .emoji{font-size:52px;margin-bottom:16px;display:block}
+    h1{font-size:26px;color:${color};margin-bottom:14px;font-weight:bold}
+    p{font-size:15px;color:#B8A9D0;line-height:1.7;margin-bottom:8px}
+    .footer{margin-top:36px;font-size:11px;color:#4A3E6A;letter-spacing:2px;border-top:1px solid #C8A02015;padding-top:20px}
+  </style>
+</head>
+<body>
+  <div class="stars">
+    <div class="star" style="width:2px;height:2px;top:10%;left:15%;animation-delay:0s"></div>
+    <div class="star" style="width:3px;height:3px;top:20%;left:70%;animation-delay:0.5s"></div>
+    <div class="star" style="width:2px;height:2px;top:35%;left:40%;animation-delay:1s"></div>
+    <div class="star" style="width:2px;height:2px;top:60%;left:85%;animation-delay:1.5s"></div>
+    <div class="star" style="width:3px;height:3px;top:75%;left:25%;animation-delay:0.8s"></div>
+    <div class="star" style="width:2px;height:2px;top:85%;left:55%;animation-delay:1.2s"></div>
+  </div>
+  <div class="card">
+    <div class="banner">✦ &nbsp; T E N G R I &nbsp; ✦</div>
+    <span class="emoji">${emoji}</span>
+    <h1>${title}</h1>
+    <p>${message}</p>
+    ${btnHtml}
+    <div class="footer">tengristar.com &nbsp;✦&nbsp; Kadim Türk Mistisizmi</div>
+  </div>
+</body>
+</html>`;
 }
