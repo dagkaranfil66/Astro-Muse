@@ -30,6 +30,8 @@ import { Colors } from "@/constants/colors";
 import { useLang } from "@/context/LanguageContext";
 import { useApp } from "@/context/AppContext";
 import { getApiUrl } from "@/lib/query-client";
+import * as AppleAuthentication from "expo-apple-authentication";
+import * as Google from "expo-auth-session/providers/google";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -188,6 +190,13 @@ export default function AuthScreen() {
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
 
+  const [googleRequest, googleResponse, googlePromptAsync] = Google.useAuthRequest({
+    clientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    scopes: ["profile", "email"],
+  });
+
   const finishLogin = async (displayName: string, providerEmail: string) => {
     await AsyncStorage.setItem("tengri_user", JSON.stringify({ email: providerEmail, name: displayName }));
     await setUserProfile({ name: displayName, email: providerEmail, joinDate: new Date().toISOString() });
@@ -206,6 +215,84 @@ export default function AuthScreen() {
     const finalEmail = `${selectedProvider!.id}_${Date.now()}@tengri.social`;
     await finishLogin(socialName, finalEmail);
   };
+
+  const handleSocialAuth = async (
+    provider: "apple" | "google",
+    providerId: string,
+    email: string | null,
+    displayName: string | null
+  ) => {
+    setLoading(true);
+    setError("");
+    try {
+      const apiBase = new URL("", getApiUrl()).toString().replace(/\/$/, "");
+      const res = await fetch(`${apiBase}/api/auth/social`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider,
+          providerId,
+          email,
+          name: displayName || (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User"),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        await finishLogin(data.user.name, data.user.email);
+      } else {
+        setError(data.error || (lang === "tr" ? "Giriş başarısız" : "Login failed"));
+        setLoading(false);
+      }
+    } catch {
+      setError(lang === "tr" ? "Sunucuya bağlanılamadı" : "Could not reach server");
+      setLoading(false);
+    }
+  };
+
+  const handleAppleAuth = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+      const firstName = credential.fullName?.givenName ?? "";
+      const lastName = credential.fullName?.familyName ?? "";
+      const fullName = [firstName, lastName].filter(Boolean).join(" ").trim() || null;
+      await handleSocialAuth("apple", credential.user, credential.email ?? null, fullName);
+    } catch (e: any) {
+      if (e.code !== "ERR_REQUEST_CANCELED") {
+        setError(lang === "tr" ? "Apple girişi başarısız" : "Apple sign-in failed");
+      }
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (googleResponse?.type === "success") {
+      const token = googleResponse.authentication?.accessToken;
+      if (token) {
+        fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+          .then((r) => r.json())
+          .then((u) => handleSocialAuth("google", u.sub, u.email ?? null, u.name ?? null))
+          .catch(() => {
+            setError(lang === "tr" ? "Google bilgileri alınamadı" : "Could not get Google profile");
+            setLoading(false);
+          });
+      } else {
+        setError(lang === "tr" ? "Google token alınamadı" : "Could not get Google token");
+        setLoading(false);
+      }
+    } else if (googleResponse?.type === "error") {
+      setError(lang === "tr" ? "Google girişi başarısız" : "Google sign-in failed");
+      setLoading(false);
+    }
+  }, [googleResponse]);
 
   const handleEmailSubmit = async () => {
     setError("");
@@ -309,8 +396,45 @@ export default function AuthScreen() {
 
           {view === "choice" && (
             <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.socialBlock}>
+
+              {/* Sign in with Apple — iOS only */}
+              {Platform.OS === "ios" && (
+                <Animated.View entering={FadeInDown.delay(320).springify()}>
+                  <AppleAuthentication.AppleAuthenticationButton
+                    buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+                    buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
+                    cornerRadius={16}
+                    style={styles.appleBtn}
+                    onPress={handleAppleAuth}
+                  />
+                </Animated.View>
+              )}
+
+              {/* Google Sign In */}
+              <Animated.View entering={FadeInDown.delay(380).springify()}>
+                <Pressable
+                  onPress={() => {
+                    if (!googleRequest) {
+                      setError(lang === "tr" ? "Google girişi henüz yapılandırılmadı" : "Google sign-in not configured yet");
+                      return;
+                    }
+                    setLoading(true);
+                    setError("");
+                    googlePromptAsync();
+                  }}
+                  disabled={loading}
+                  style={({ pressed }) => [styles.socialBtn, pressed && { opacity: 0.8 }]}
+                >
+                  <View style={[styles.socialIconCircle, { backgroundColor: "#EA433518", borderColor: "#EA433535" }]}>
+                    <Ionicons name="logo-google" size={22} color="#EA4335" />
+                  </View>
+                  <Text style={styles.socialBtnLabel}>{lang === "tr" ? "Google ile Giriş Yap" : "Continue with Google"}</Text>
+                  <Ionicons name="chevron-forward" size={16} color={Colors.textDim} />
+                </Pressable>
+              </Animated.View>
+
               {SOCIAL_PROVIDERS.map((p, i) => (
-                <Animated.View key={p.id} entering={FadeInDown.delay(320 + i * 60).springify()}>
+                <Animated.View key={p.id} entering={FadeInDown.delay(440 + i * 60).springify()}>
                   <Pressable
                     onPress={() => {
                       if (p.id === "email") {
@@ -519,6 +643,7 @@ const styles = StyleSheet.create({
   },
 
   socialBlock: { width: "100%", gap: 12 },
+  appleBtn: { height: 52, width: "100%" },
   socialBtn: {
     flexDirection: "row",
     alignItems: "center",
