@@ -349,6 +349,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/reading/daily-free", async (req: Request, res: Response) => {
+    try {
+      const { service, lang } = req.body;
+      if (!service) return res.status(400).json({ error: "Servis gerekli" });
+      const basePrompt = serviceSystemPrompts[service] || serviceSystemPrompts.astroloji;
+      const teaserPrompt = `${basePrompt}
+
+ÖNEMLİ: Bu ücretsiz bir ön okumadır. Maksimum 2-3 cümle yaz. Gizemli, mistik ve merak uyandırıcı bir ton kullan. Kullanıcıyı daha fazlası için teşvik et. Kısa ve öz tut.`;
+      const userMsg = lang === "en"
+        ? "Give me today's brief mystical reading."
+        : "Bugün için kısa mistik okumamı ver.";
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+      const openai = getOpenAIClient();
+      const stream = await openai.chat.completions.create({
+        model: "gpt-5.2",
+        messages: [
+          { role: "system", content: teaserPrompt },
+          { role: "user", content: userMsg },
+        ],
+        stream: true,
+        max_completion_tokens: 150,
+      });
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content || "";
+        if (content) res.write(`data: ${JSON.stringify({ content })}\n\n`);
+      }
+      res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+      res.end();
+    } catch (error) {
+      console.error("Daily free reading error:", error);
+      if (res.headersSent) { res.write(`data: ${JSON.stringify({ error: "Okuma yapılamadı" })}\n\n`); res.end(); }
+      else res.status(500).json({ error: "Okuma yapılamadı" });
+    }
+  });
+
   app.post("/api/daily-horoscope-teaser", async (req: Request, res: Response) => {
     try {
       const { zodiacSign } = req.body;

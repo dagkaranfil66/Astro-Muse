@@ -40,6 +40,8 @@ interface AppContextValue {
   purchase: () => void;
   zodiacSign: string | null;
   setZodiacSign: (sign: string) => Promise<void>;
+  canDailyFree: boolean;
+  markDailyFreeUsed: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -52,6 +54,7 @@ const KEYS = {
   trialCount: 'tengri_trial_count',
   isPurchased: 'tengri_is_purchased',
   zodiac: 'tengri_zodiac',
+  dailyFree: 'tengri_daily_free',
 };
 
 function isSpinAvailable(lastSpin: string | null): boolean {
@@ -67,6 +70,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [userProfile, setProfileState] = useState<UserProfile | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [lastSpinDate, setLastSpinDate] = useState<string | null>(null);
+  const [lastDailyFreeDate, setLastDailyFreeDateState] = useState<string | null>(null);
   const [trialCount, setTrialCount] = useState(0);
   const [isPurchased, setIsPurchased] = useState(false);
   const [zodiacSign, setZodiacState] = useState<string | null>(null);
@@ -74,7 +78,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
-        const [goldStr, readStr, profStr, spinStr, tcStr, ipStr, zodStr] = await Promise.all([
+        const [goldStr, readStr, profStr, spinStr, tcStr, ipStr, zodStr, dfStr] = await Promise.all([
           AsyncStorage.getItem(KEYS.gold),
           AsyncStorage.getItem(KEYS.readings),
           AsyncStorage.getItem(KEYS.profile),
@@ -82,6 +86,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           AsyncStorage.getItem(KEYS.trialCount),
           AsyncStorage.getItem(KEYS.isPurchased),
           AsyncStorage.getItem(KEYS.zodiac),
+          AsyncStorage.getItem(KEYS.dailyFree),
         ]);
         if (goldStr !== null) setGoldBalance(parseInt(goldStr, 10));
         if (readStr) setReadings(JSON.parse(readStr));
@@ -90,6 +95,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (tcStr) setTrialCount(parseInt(tcStr, 10));
         if (ipStr) setIsPurchased(ipStr === 'true');
         if (zodStr) setZodiacState(zodStr);
+        if (dfStr) setLastDailyFreeDateState(dfStr);
       } catch (e) {
         console.error('AppContext load error', e);
       } finally {
@@ -140,6 +146,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const canSpin = isSpinAvailable(lastSpinDate);
+  const canDailyFree = isSpinAvailable(lastDailyFreeDate);
+
+  const markDailyFreeUsed = async () => {
+    const now = new Date().toISOString();
+    setLastDailyFreeDateState(now);
+    await AsyncStorage.setItem(KEYS.dailyFree, now);
+  };
 
   const performSpin = async (prize: number) => {
     const now = new Date().toISOString();
@@ -191,7 +204,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     purchase,
     zodiacSign,
     setZodiacSign,
-  }), [goldBalance, readings, userProfile, isLoaded, trialCount, isPurchased, lastSpinDate, zodiacSign]);
+    canDailyFree,
+    markDailyFreeUsed,
+  }), [goldBalance, readings, userProfile, isLoaded, trialCount, isPurchased, lastSpinDate, zodiacSign, lastDailyFreeDate]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

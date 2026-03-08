@@ -20,8 +20,10 @@ Turkish mystical guidance app with AI-powered readings (tengristar.com).
 
 ## Gold Economy
 - FREE_START_GOLD = 10
-- Service costs: Şamanizm/Burçlar/Ruh = 1✦; Astroloji/Kahve/El/Numeroloji/Rüya/Aşk = 2✦; Tarot/Doğum = 3✦
-- Packages: 10/30/50/100 gold at 69.99/199.99/299.99/499.99 ₺ — RC IDs: tengri_basic/plus/premium/vip
+- Service costs: Şamanizm=2✦, Tarot/Rüya/Burçlar=3✦, all others=4✦
+- Packages: Başlangıç 20✦/49.99₺, Popüler 50+5bonus✦/99.99₺, Premium 120+20bonus✦/199.99₺, Mega 300+60bonus✦/399.99₺ — RC IDs: tengri_basic/plus/premium/vip
+- Daily Free Reading: 1 free teaser/day (150-token), 24h reset — promotes upsell to full reading
+- InsufficientGoldModal: bottom sheet shown when gold is insufficient instead of routing to /purchase
 
 ## Tech Stack
 - **Frontend**: Expo / React Native with Expo Router
@@ -39,7 +41,9 @@ Turkish mystical guidance app with AI-powered readings (tengristar.com).
 - `app/spin.tsx` — Daily spin wheel for gold rewards
 - `app/auth.tsx` — Social login + email/password auth with confirm password
 - `app/purchase.tsx` — Gold purchase packages
-- `context/AppContext.tsx` — Gold balance, readings, user profile, spin wheel state
+- `app/daily-reading.tsx` — Daily free teaser reading screen with upsell CTA
+- `components/InsufficientGoldModal.tsx` — Bottom sheet modal when gold is insufficient
+- `context/AppContext.tsx` — Gold balance, readings, user profile, spin wheel state, daily free tracking
 - `context/LanguageContext.tsx` — TR/EN translations
 - `constants/serviceConfig.ts` — Gold costs, packages
 - `server/routes.ts` — Auth, AI reading streaming endpoint, supports multi-photo for kahve

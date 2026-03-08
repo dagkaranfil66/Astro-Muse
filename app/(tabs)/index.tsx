@@ -343,6 +343,61 @@ function ServiceCard({ serviceId, index, label, desc, onPress }: {
   );
 }
 
+const DAILY_ROTATION = ["samanizm", "tarot", "ruya", "numeroloji", "ask", "burclar", "ruh"];
+const DAILY_META: Record<string, { icon: string; color: string; labelTR: string; labelEN: string }> = {
+  samanizm:   { icon: "🍃", color: "#4CAF7A", labelTR: "Şamanizm",    labelEN: "Shamanism" },
+  tarot:      { icon: "🃏", color: "#E7B008", labelTR: "Tarot",        labelEN: "Tarot" },
+  ruya:       { icon: "☁️", color: "#5B9BD5", labelTR: "Rüya Yorumu",  labelEN: "Dream Reading" },
+  numeroloji: { icon: "✨", color: "#E74C8B", labelTR: "Numeroloji",   labelEN: "Numerology" },
+  ask:        { icon: "💗", color: "#FF4757", labelTR: "Aşkını Bul",   labelEN: "Love Reading" },
+  burclar:    { icon: "🔭", color: "#FF6B9D", labelTR: "Burçlar",      labelEN: "Horoscope" },
+  ruh:        { icon: "👁️", color: "#9B59B6", labelTR: "Ruh Okuma",    labelEN: "Soul Reading" },
+};
+
+// ────────── Daily Free Card ──────────
+function DailyFreeCard() {
+  const { canDailyFree } = useApp();
+  const { lang } = useLang();
+  const todayIdx = new Date().getDay();
+  const serviceId = DAILY_ROTATION[todayIdx] ?? "tarot";
+  const meta = DAILY_META[serviceId] ?? DAILY_META.tarot;
+
+  return (
+    <Animated.View entering={FadeInDown.delay(230).springify()}>
+      <Pressable onPress={() => router.push("/daily-reading" as any)} style={styles.dailyCard}>
+        <LinearGradient
+          colors={[meta.color + "25", meta.color + "08"]}
+          style={styles.dailyCardInner}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+        >
+          <View style={styles.dailyLeft}>
+            <Text style={styles.dailyEmoji}>{meta.icon}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.dailyTitle, { color: meta.color }]}>
+                {lang === "tr" ? "🔮 Günlük Falın Hazır" : "🔮 Daily Reading Ready"}
+              </Text>
+              <Text style={styles.dailySub}>
+                {lang === "tr"
+                  ? `${meta.labelTR} · Bugünün Enerjisini Keşfet`
+                  : `${meta.labelEN} · Discover Today's Energy`}
+              </Text>
+            </View>
+          </View>
+          <View style={[styles.dailyBadge, {
+            borderColor: canDailyFree ? meta.color + "60" : "#FFFFFF20",
+            backgroundColor: canDailyFree ? meta.color + "20" : "#FFFFFF08",
+          }]}>
+            <Text style={[styles.dailyBadgeText, { color: canDailyFree ? meta.color : Colors.textDim }]}>
+              {canDailyFree ? (lang === "tr" ? "ÜCRETSİZ" : "FREE") : (lang === "tr" ? "KULLANILDI" : "USED")}
+            </Text>
+          </View>
+        </LinearGradient>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
 // ────────── Daily Horoscope Card ──────────
 function DailyHoroscopeCard() {
   const { zodiacSign } = useApp();
@@ -360,7 +415,7 @@ function DailyHoroscopeCard() {
   const color = zodiacSign ? (signColor[zodiacSign] ?? Colors.gold) : Colors.gold;
 
   return (
-    <Animated.View entering={FadeInDown.delay(230).springify()}>
+    <Animated.View entering={FadeInDown.delay(260).springify()}>
       <Pressable onPress={() => router.push("/daily-horoscope")} style={styles.dailyCard}>
         <LinearGradient colors={[color + "22", color + "0A"]} style={styles.dailyCardInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
           <View style={styles.dailyLeft}>
@@ -479,12 +534,13 @@ export default function HomeScreen() {
             <Pressable onPress={() => router.push("/purchase")} style={styles.purchaseCta}>
               <LinearGradient colors={["#8B5CF6", "#6B4FBB"]} style={styles.purchaseCtaInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
                 <Text style={{ fontSize: 16 }}>✦</Text>
-                <Text style={styles.purchaseCtaText}>{lang === "tr" ? "Altın Satın Al — 29,99 ₺'den başlar" : "Buy Gold — from ₺29.99"}</Text>
+                <Text style={styles.purchaseCtaText}>{lang === "tr" ? "Altın Satın Al — 49,99 ₺'den başlar" : "Buy Gold — from ₺49.99"}</Text>
               </LinearGradient>
             </Pressable>
           </Animated.View>
         )}
 
+        <DailyFreeCard />
         <DailyHoroscopeCard />
 
         <Animated.Text entering={FadeInDown.delay(260)} style={styles.sectionTitle}>

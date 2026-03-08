@@ -39,6 +39,7 @@ import { Colors } from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
 import { getApiUrl } from "@/lib/query-client";
+import InsufficientGoldModal from "@/components/InsufficientGoldModal";
 
 const { width } = Dimensions.get("window");
 
@@ -661,6 +662,7 @@ export default function ReadingScreen() {
   const [isDone, setIsDone] = useState(false);
   const [photo, setPhoto] = useState<{ uri: string; base64: string; type: string } | null>(null);
   const [kahvePhotos, setKahvePhotos] = useState<{ uri: string; base64: string; type: string }[]>([]);
+  const [showGoldModal, setShowGoldModal] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   const sendButtonScale = useSharedValue(1);
@@ -727,7 +729,7 @@ export default function ReadingScreen() {
   };
 
   const handleRead = async () => {
-    if (!canRead) { router.push("/purchase"); return; }
+    if (!canRead) { setShowGoldModal(true); return; }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     sendButtonScale.value = withSpring(0.9, {}, () => { sendButtonScale.value = withSpring(1); });
@@ -988,11 +990,11 @@ export default function ReadingScreen() {
               </Animated.View>
             </View>
             {!canRead && (
-              <Pressable onPress={() => router.push("/purchase")} style={styles.purchaseNudge}>
+              <Pressable onPress={() => setShowGoldModal(true)} style={styles.purchaseNudge}>
                 <Text style={styles.purchaseNudgeText}>
                   {lang === "tr"
-                    ? `Bu okuma ${goldCost} altın gerektirir • `
-                    : `This reading costs ${goldCost} gold • `}
+                    ? `${goldCost}✦ gerekiyor • `
+                    : `${goldCost}✦ required • `}
                   <Text style={{ color: Colors.gold }}>{lang === "tr" ? "Altın Satın Al" : "Buy Gold"}</Text>
                 </Text>
               </Pressable>
@@ -1000,6 +1002,15 @@ export default function ReadingScreen() {
           </View>
         )}
       </KeyboardAvoidingView>
+
+      <InsufficientGoldModal
+        visible={showGoldModal}
+        onClose={() => setShowGoldModal(false)}
+        serviceLabel={serviceLabel}
+        goldCost={goldCost}
+        goldBalance={goldBalance}
+        serviceColor={base.color}
+      />
     </View>
   );
 }
