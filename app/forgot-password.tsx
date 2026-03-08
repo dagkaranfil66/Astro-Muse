@@ -133,17 +133,28 @@ export default function ForgotPasswordScreen() {
 
           {step === "success" ? (
             <Animated.View entering={ZoomIn.springify()} style={styles.successBox}>
-              <LinearGradient colors={["#0D2A1A", "#0A2010"]} style={styles.successInner}>
-                <Text style={styles.successIcon}>✦</Text>
+              <LinearGradient
+                colors={["#0E1F14", "#091A10", "#06120A"]}
+                style={styles.successInner}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <View style={styles.successIconWrap}>
+                  <View style={styles.successIconGlow} />
+                  <Ionicons name="checkmark-circle" size={56} color="#2ECC71" />
+                </View>
                 <Text style={styles.successTitle}>
                   {lang === "tr" ? "Şifre Güncellendi!" : "Password Updated!"}
                 </Text>
+                <View style={styles.successDivider} />
                 <Text style={styles.successSub}>
-                  {lang === "tr" ? "Yeni şifrenizle giriş yapabilirsiniz." : "You can now log in with your new password."}
+                  {lang === "tr"
+                    ? "Şifreniz başarıyla güncellendi.\nYeni şifrenizle giriş yapabilirsiniz."
+                    : "Your password has been updated.\nYou can now log in."}
                 </Text>
                 <Pressable
                   onPress={() => router.replace("/auth")}
-                  style={({ pressed }) => [styles.submitBtn, pressed && { opacity: 0.85 }]}
+                  style={({ pressed }) => [styles.submitBtn, { marginTop: 8 }, pressed && { opacity: 0.85 }]}
                 >
                   <LinearGradient colors={[Colors.goldLight, Colors.gold]} style={styles.submitBtnInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
                     <Ionicons name="log-in-outline" size={18} color={Colors.background} />
@@ -381,9 +392,50 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
   },
 
-  successBox: { width: "100%", borderRadius: 16, borderWidth: 1, borderColor: Colors.success + "40", overflow: "hidden" },
-  successInner: { alignItems: "center", padding: 32, gap: 12 },
-  successIcon: { fontSize: 48, color: Colors.success },
-  successTitle: { fontSize: 20, fontFamily: "Lora_700Bold", color: Colors.success, textAlign: "center" },
-  successSub: { fontSize: 13, fontFamily: "Lora_400Regular_Italic", color: Colors.success + "90", textAlign: "center", marginBottom: 8 },
+  successBox: {
+    width: "100%",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#2ECC7150",
+    overflow: "hidden",
+    shadowColor: "#2ECC71",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  successInner: { alignItems: "center", padding: 36, gap: 0 },
+  successIconWrap: {
+    width: 88, height: 88,
+    alignItems: "center", justifyContent: "center",
+    marginBottom: 20,
+  },
+  successIconGlow: {
+    position: "absolute",
+    width: 80, height: 80,
+    borderRadius: 40,
+    backgroundColor: "#2ECC71",
+    opacity: 0.12,
+  },
+  successTitle: {
+    fontSize: 22,
+    fontFamily: "Lora_700Bold",
+    color: "#2ECC71",
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  successDivider: {
+    width: 48,
+    height: 1,
+    backgroundColor: "#2ECC7140",
+    marginBottom: 16,
+  },
+  successSub: {
+    fontSize: 14,
+    fontFamily: "Lora_400Regular_Italic",
+    color: "#7EDDA8",
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: 8,
+  },
 });
