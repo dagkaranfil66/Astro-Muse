@@ -266,9 +266,10 @@ const SERVICE_IMAGES: Record<string, any> = {
 };
 
 const ALL_SERVICES = [
-  "astroloji", "kahve", "el", "tarot", "samanizm", "numeroloji", "ruh",
-  "dogum", "ruya", "burclar", "ask",
+  "kahve", "tarot", "astroloji", "burclar", "el",
+  "dogum", "ask", "numeroloji", "ruya", "ruh", "samanizm",
 ];
+const POPULAR_SERVICE = "kahve";
 
 const ANIM_TYPES = ["rotate", "pulse", "bounce", "flip", "slide", "spin", "glow", "rotate", "pulse", "bounce", "flip"];
 
@@ -379,6 +380,11 @@ function ServiceCard({ serviceId, index, label, desc, onPress }: {
       >
         <Animated.View style={[styles.cardBorder, borderStyle]}>
           <LinearGradient colors={gradient} style={styles.card} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+            {serviceId === POPULAR_SERVICE && (
+              <View style={styles.popularBadge}>
+                <Text style={styles.popularBadgeText}>⭐ En Popüler</Text>
+              </View>
+            )}
             <Animated.View style={[styles.iconCircle, { borderColor: color + "50" }, iconStyle]}>
               {serviceImage ? (
                 <Image source={serviceImage} style={styles.serviceImg} resizeMode="cover" />
@@ -756,6 +762,13 @@ const styles = StyleSheet.create({
   cardRight: { alignItems: "flex-end", gap: 6 },
   goldBadge: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3 },
   goldBadgeText: { fontSize: 11, fontFamily: "Lora_700Bold" },
+  popularBadge: {
+    position: "absolute", top: 8, right: 44,
+    backgroundColor: "#C0932A", borderRadius: 6,
+    paddingHorizontal: 7, paddingVertical: 3,
+    zIndex: 10,
+  },
+  popularBadgeText: { fontSize: 9, fontFamily: "Lora_700Bold", color: "#000", letterSpacing: 0.3 },
 
   dailyCard: { marginBottom: 14, borderRadius: 14, overflow: "hidden", borderWidth: 1, borderColor: Colors.cardBorder },
   dailyCardInner: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 13, paddingHorizontal: 14 },
