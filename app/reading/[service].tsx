@@ -116,7 +116,7 @@ function KahveIntro({ color }: { color: string }) {
         <View style={[styles.saucer, { borderColor: color + "40" }]} />
       </View>
       <Text style={styles.introServiceTitle}>Kahve Falı</Text>
-      <Text style={styles.introDesc}>Fincanınızın fotoğrafını yükleyin ya da içindeki şekilleri anlatın. Tengri'nin bilgesi telvelerdeki kaderi okuyacak.</Text>
+      <Text style={styles.introDesc}>Fincanınızın fotoğrafını yükleyin{"\n"}veya gördüğünüz sembolleri yazın.</Text>
     </View>
   );
 }
@@ -1027,7 +1027,7 @@ const styles = StyleSheet.create({
   tarotCardWrap: { alignItems: "center", gap: 6 },
   tarotCard: { width: (width - 80) / 3, height: 150, borderRadius: 10, borderWidth: 1, overflow: "hidden" },
   tarotCardInner: { flex: 1, alignItems: "center", justifyContent: "center" },
-  tarotCardLabel: { fontSize: 9, fontFamily: "Lora_400Regular", letterSpacing: 0.5 },
+  tarotCardLabel: { fontSize: 11, fontFamily: "Lora_700Bold", letterSpacing: 0.5, textAlign: "center", maxWidth: 90 },
 
   // Doğum
   zodiacWheel: { width: 130, height: 130, borderRadius: 65, borderWidth: 1, backgroundColor: Colors.surface, alignItems: "center", justifyContent: "center" },

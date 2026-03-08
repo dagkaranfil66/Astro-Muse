@@ -158,7 +158,7 @@ function ReadingCard({
               <Ionicons name="chevron-forward" size={18} color={Colors.textDim} />
             </View>
           </View>
-          <Text style={styles.cardText} numberOfLines={3}>
+          <Text style={styles.cardText} numberOfLines={4}>
             {reading.content}
           </Text>
           {reading.goldSpent !== undefined && (
@@ -267,17 +267,17 @@ const styles = StyleSheet.create({
     borderColor: Colors.cardBorder,
     marginBottom: 14,
   },
-  cardGradient: { padding: 18 },
+  cardGradient: { padding: 22 },
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   iconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: Colors.surface,
     alignItems: "center",
     justifyContent: "center",
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Lora_400Regular_Italic",
     color: Colors.textSecondary,
-    lineHeight: 21,
+    lineHeight: 23,
   },
   goldPill: {
     alignSelf: "flex-start",

@@ -250,6 +250,20 @@ const SERVICE_GRADIENTS: Record<string, [string, string]> = {
   burclar: ["#1A0515", "#0D1526"], ask: ["#1A0508", "#0D1526"],
 };
 
+const SERVICE_IMAGES: Record<string, any> = {
+  astroloji: require("@/assets/images/services/astroloji.png"),
+  kahve:     require("@/assets/images/services/kahve.png"),
+  el:        require("@/assets/images/services/el.png"),
+  tarot:     require("@/assets/images/services/tarot.png"),
+  samanizm:  require("@/assets/images/services/samanizm.png"),
+  numeroloji:require("@/assets/images/services/numeroloji.png"),
+  ruh:       require("@/assets/images/services/ruh.png"),
+  dogum:     require("@/assets/images/services/dogum.png"),
+  ruya:      require("@/assets/images/services/ruya.png"),
+  burclar:   require("@/assets/images/services/burclar.png"),
+  ask:       require("@/assets/images/services/ask.png"),
+};
+
 const ALL_SERVICES = [
   "astroloji", "kahve", "el", "tarot", "samanizm", "numeroloji", "ruh",
   "dogum", "ruya", "burclar", "ask",
@@ -264,6 +278,7 @@ function ServiceCard({ serviceId, index, label, desc, onPress }: {
   const color = SERVICE_COLORS[serviceId];
   const icon = SERVICE_ICONS[serviceId] || "star-outline";
   const gradient = SERVICE_GRADIENTS[serviceId] || ["#0D1526", "#0D1526"];
+  const serviceImage = SERVICE_IMAGES[serviceId];
 
   const cardScale = useSharedValue(1);
   const iconRotate = useSharedValue(0);
@@ -324,7 +339,11 @@ function ServiceCard({ serviceId, index, label, desc, onPress }: {
         <Animated.View style={[styles.cardBorder, borderStyle]}>
           <LinearGradient colors={gradient} style={styles.card} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
             <Animated.View style={[styles.iconCircle, { borderColor: color + "50" }, iconStyle]}>
-              <Ionicons name={icon} size={26} color={color} />
+              {serviceImage ? (
+                <Image source={serviceImage} style={styles.serviceImg} resizeMode="cover" />
+              ) : (
+                <Ionicons name={icon} size={30} color={color} />
+              )}
             </Animated.View>
             <View style={styles.cardContent}>
               <Text style={styles.cardTitle}>{label}</Text>
@@ -508,8 +527,8 @@ export default function HomeScreen() {
               <Text style={{ fontSize: 16 }}>✦</Text>
               <Text style={styles.trialsText}>
                 {goldBalance > 0
-                  ? (lang === "tr" ? `${goldBalance} altın bakiyeniz var` : `You have ${goldBalance} gold`)
-                  : (lang === "tr" ? "Altın tükendi — Satın alın" : "Gold depleted — Buy more")}
+                  ? (lang === "tr" ? `✨ Altın Bakiyeniz: ${goldBalance}` : `✨ Gold Balance: ${goldBalance}`)
+                  : (lang === "tr" ? "✨ Altın tükendi — Satın alın" : "✨ Gold depleted — Buy more")}
               </Text>
               <Ionicons name="chevron-forward" size={13} color={Colors.gold} />
             </LinearGradient>
@@ -650,18 +669,19 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   heroDesc: {
-    fontSize: 12,
+    fontSize: 13,
     color: Colors.textSecondary,
     textAlign: "center",
     fontFamily: "Lora_400Regular_Italic",
-    lineHeight: 20,
-    paddingHorizontal: 30,
+    lineHeight: 22,
+    paddingHorizontal: 24,
+    marginTop: 2,
   },
 
   scroll: { paddingHorizontal: 18 },
-  trialsBar: { marginBottom: 12, borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: Colors.gold + "30" },
-  trialsBarInner: { flexDirection: "row", alignItems: "center", paddingVertical: 11, paddingHorizontal: 14, gap: 8 },
-  trialsText: { flex: 1, color: Colors.gold, fontSize: 12, fontFamily: "Lora_400Regular" },
+  trialsBar: { marginBottom: 12, borderRadius: 14, overflow: "hidden", borderWidth: 1, borderColor: Colors.gold + "45" },
+  trialsBarInner: { flexDirection: "row", alignItems: "center", paddingVertical: 13, paddingHorizontal: 16, gap: 10 },
+  trialsText: { flex: 1, color: Colors.gold, fontSize: 13, fontFamily: "Lora_700Bold", letterSpacing: 0.2 },
 
   purchaseCta: { marginBottom: 14, borderRadius: 12, overflow: "hidden" },
   purchaseCtaInner: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 14, gap: 10 },
@@ -679,16 +699,18 @@ const styles = StyleSheet.create({
   cardBorder: { borderRadius: 15, borderWidth: 1, overflow: "hidden" },
   card: { flexDirection: "row", alignItems: "center", padding: 15, gap: 13 },
   iconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 58,
+    height: 58,
+    borderRadius: 14,
     backgroundColor: Colors.surface,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
+    overflow: "hidden",
   },
+  serviceImg: { width: 58, height: 58, borderRadius: 14 },
   cardContent: { flex: 1 },
-  cardTitle: { fontSize: 14, fontFamily: "Lora_700Bold", color: Colors.text, marginBottom: 3, letterSpacing: 0.1 },
+  cardTitle: { fontSize: 15, fontFamily: "Lora_700Bold", color: Colors.text, marginBottom: 3, letterSpacing: 0.1 },
   cardDesc: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textSecondary, lineHeight: 16 },
   cardRight: { alignItems: "flex-end", gap: 6 },
   goldBadge: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3 },
