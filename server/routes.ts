@@ -351,27 +351,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/reading/daily-free", async (req: Request, res: Response) => {
     try {
-      const { service, lang } = req.body;
+      const { service, lang, photos } = req.body as {
+        service: string;
+        lang?: string;
+        photos?: { base64: string; type: string }[];
+      };
       if (!service) return res.status(400).json({ error: "Servis gerekli" });
       const basePrompt = serviceSystemPrompts[service] || serviceSystemPrompts.astroloji;
       const teaserPrompt = `${basePrompt}
 
-ÖNEMLİ: Bu ücretsiz bir ön okumadır. Maksimum 2-3 cümle yaz. Gizemli, mistik ve merak uyandırıcı bir ton kullan. Kullanıcıyı daha fazlası için teşvik et. Kısa ve öz tut.`;
+ÖNEMLİ: Bu ücretsiz bir ön okuma önizlemesidir. 4-6 cümle yaz, gizemli ve merak uyandırıcı bir ton kullan, metnin ortasında cümleyi tam bitirme — kullanıcı devamını görmek için ödeme yapmalı. Türkçe veya İngilizce yaz (kullanıcı diline göre).`;
       const userMsg = lang === "en"
-        ? "Give me today's brief mystical reading."
-        : "Bugün için kısa mistik okumamı ver.";
+        ? "Give me today's mystical reading preview."
+        : "Bugün için mistik ön okumamı ver.";
+
+      const isPhotoService = service === "kahve" || service === "el";
+      const hasPhotos = isPhotoService && Array.isArray(photos) && photos.length > 0;
+
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
       const openai = getOpenAIClient();
-      const stream = await openai.chat.completions.create({
-        model: "gpt-5.2",
-        messages: [
+
+      let messages: any[];
+      if (hasPhotos && photos) {
+        const imageContent = photos.map((p) => ({
+          type: "image_url" as const,
+          image_url: { url: `data:${p.type || "image/jpeg"};base64,${p.base64}`, detail: "high" as const },
+        }));
+        messages = [
+          { role: "system", content: teaserPrompt },
+          { role: "user", content: [...imageContent, { type: "text" as const, text: userMsg }] },
+        ];
+      } else {
+        messages = [
           { role: "system", content: teaserPrompt },
           { role: "user", content: userMsg },
-        ],
+        ];
+      }
+
+      const stream = await openai.chat.completions.create({
+        model: "gpt-5.2",
+        messages,
         stream: true,
-        max_completion_tokens: 150,
+        max_completion_tokens: 500,
       });
       for await (const chunk of stream) {
         const content = chunk.choices[0]?.delta?.content || "";

@@ -7,12 +7,14 @@ import {
   Pressable,
   Platform,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import * as ImagePicker from "expo-image-picker";
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -29,8 +31,11 @@ import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
 import { SERVICE_GOLD_COST } from "@/constants/serviceConfig";
 import { getApiUrl } from "@/lib/query-client";
+import InsufficientGoldModal from "@/components/InsufficientGoldModal";
 
-const DAILY_ROTATION = ["samanizm", "tarot", "ruya", "numeroloji", "ask", "burclar", "ruh"];
+const DAILY_ROTATION = [
+  "samanizm", "tarot", "ruya", "numeroloji", "ask", "kahve", "el",
+];
 
 const SERVICE_META: Record<string, {
   icon: keyof typeof Ionicons.glyphMap;
@@ -38,19 +43,25 @@ const SERVICE_META: Record<string, {
   gradient: [string, string];
   labelTR: string;
   labelEN: string;
+  needsPhoto?: boolean;
+  maxPhotos?: number;
 }> = {
-  samanizm:  { icon: "leaf-outline",      color: "#4CAF7A", gradient: ["#051A0D", "#070D1A"], labelTR: "Şamanizm",      labelEN: "Shamanism" },
-  tarot:     { icon: "layers-outline",    color: "#E7B008", gradient: ["#1A1205", "#070D1A"], labelTR: "Tarot",          labelEN: "Tarot" },
-  ruya:      { icon: "cloud-outline",     color: "#5B9BD5", gradient: ["#051020", "#070D1A"], labelTR: "Rüya Yorumu",    labelEN: "Dream Reading" },
-  numeroloji:{ icon: "star-outline",      color: "#E74C8B", gradient: ["#1A0510", "#070D1A"], labelTR: "Numeroloji",     labelEN: "Numerology" },
-  ask:       { icon: "heart-outline",     color: "#FF4757", gradient: ["#1A0508", "#070D1A"], labelTR: "Aşkını Bul",     labelEN: "Love Reading" },
-  burclar:   { icon: "telescope-outline", color: "#FF6B9D", gradient: ["#1A0515", "#070D1A"], labelTR: "Burçlar",        labelEN: "Horoscope" },
-  ruh:       { icon: "eye-outline",       color: "#9B59B6", gradient: ["#150E25", "#070D1A"], labelTR: "Ruh Okuma",      labelEN: "Soul Reading" },
+  samanizm:   { icon: "leaf-outline",      color: "#4CAF7A", gradient: ["#051A0D", "#070D1A"], labelTR: "Şamanizm",     labelEN: "Shamanism" },
+  tarot:      { icon: "layers-outline",    color: "#E7B008", gradient: ["#1A1205", "#070D1A"], labelTR: "Tarot",        labelEN: "Tarot" },
+  ruya:       { icon: "cloud-outline",     color: "#5B9BD5", gradient: ["#051020", "#070D1A"], labelTR: "Rüya Yorumu",  labelEN: "Dream Reading" },
+  numeroloji: { icon: "star-outline",      color: "#E74C8B", gradient: ["#1A0510", "#070D1A"], labelTR: "Numeroloji",   labelEN: "Numerology" },
+  ask:        { icon: "heart-outline",     color: "#FF4757", gradient: ["#1A0508", "#070D1A"], labelTR: "Aşkını Bul",   labelEN: "Love Reading" },
+  kahve:      { icon: "cafe-outline",      color: "#C8843A", gradient: ["#1A0A05", "#070D1A"], labelTR: "Kahve Falı",   labelEN: "Coffee Reading", needsPhoto: true, maxPhotos: 3 },
+  el:         { icon: "hand-left-outline", color: "#A07EE0", gradient: ["#100A20", "#070D1A"], labelTR: "El Falı",      labelEN: "Palm Reading",   needsPhoto: true, maxPhotos: 1 },
 };
+
+const TEASER_CHARS = 260;
+
+type PhotoItem = { uri: string; base64: string; type: string };
 
 function getTodayService() {
   const day = new Date().getDay();
-  return DAILY_ROTATION[day] ?? "tarot";
+  return DAILY_ROTATION[day % DAILY_ROTATION.length] ?? "tarot";
 }
 
 function PulseOrb({ color }: { color: string }) {
@@ -62,12 +73,10 @@ function PulseOrb({ color }: { color: string }) {
     );
   }, []);
   const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-  return (
-    <Animated.View style={[sOrb.orb, { backgroundColor: color + "20", borderColor: color + "40" }, style]} />
-  );
+  return <Animated.View style={[sOrb.orb, { backgroundColor: color + "20", borderColor: color + "40" }, style]} />;
 }
 const sOrb = StyleSheet.create({
-  orb: { width: 120, height: 120, borderRadius: 60, borderWidth: 1, position: "absolute" },
+  orb: { width: 130, height: 130, borderRadius: 65, borderWidth: 1, position: "absolute" },
 });
 
 export default function DailyReadingScreen() {
@@ -78,17 +87,57 @@ export default function DailyReadingScreen() {
   const todayService = getTodayService();
   const meta = SERVICE_META[todayService] ?? SERVICE_META.tarot;
   const goldCost = SERVICE_GOLD_COST[todayService] ?? 3;
+  const needsPhoto = !!meta.needsPhoto;
+  const maxPhotos = meta.maxPhotos ?? 1;
 
   const [isLoading, setIsLoading] = useState(false);
   const [readingText, setReadingText] = useState("");
   const [isDone, setIsDone] = useState(false);
+  const [photos, setPhotos] = useState<PhotoItem[]>([]);
+  const [showGoldModal, setShowGoldModal] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
 
+  const canStartReading = !needsPhoto || photos.length > 0;
+
+  const pickPhoto = async (useCamera: boolean) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (photos.length >= maxPhotos) return;
+    let result: ImagePicker.ImagePickerResult;
+    if (useCamera) {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") return;
+      result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        base64: true,
+        quality: 0.7,
+      });
+    } else {
+      result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        base64: true,
+        quality: 0.7,
+        allowsMultipleSelection: maxPhotos > 1,
+        selectionLimit: maxPhotos - photos.length,
+      });
+    }
+    if (result.canceled) return;
+    const newPhotos: PhotoItem[] = result.assets.map((a) => ({
+      uri: a.uri,
+      base64: a.base64 ?? "",
+      type: a.mimeType ?? "image/jpeg",
+    }));
+    setPhotos((prev) => [...prev, ...newPhotos].slice(0, maxPhotos));
+  };
+
+  const removePhoto = (idx: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== idx));
+  };
+
   const handleFreeReading = async () => {
-    if (isLoading || !canDailyFree) return;
+    if (isLoading || !canDailyFree || !canStartReading) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsLoading(true);
     setReadingText("");
@@ -98,10 +147,16 @@ export default function DailyReadingScreen() {
       await markDailyFreeUsed();
       const apiBase = getApiUrl();
       const url = new URL("/api/reading/daily-free", apiBase);
+
+      const body: Record<string, unknown> = { service: todayService, lang };
+      if (photos.length > 0) {
+        body.photos = photos.map((p) => ({ base64: p.base64, type: p.type }));
+      }
+
       const resp = await fetch(url.toString(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ service: todayService, lang }),
+        body: JSON.stringify(body),
       });
       if (!resp.body) throw new Error("No body");
       const reader = resp.body.getReader();
@@ -139,29 +194,33 @@ export default function DailyReadingScreen() {
       router.push("/auth");
       return;
     }
+    if (goldBalance < goldCost) {
+      setShowGoldModal(true);
+      return;
+    }
     router.push(`/reading/${todayService}` as any);
   };
+
+  const visibleText = readingText.slice(0, TEASER_CHARS);
+  const hasHiddenText = isDone && readingText.length > TEASER_CHARS;
 
   return (
     <View style={s.container}>
       <LinearGradient colors={["#04080F", "#070D1A", meta.gradient[0]]} style={StyleSheet.absoluteFill} />
 
-      {/* Orb background */}
       <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center", pointerEvents: "none" }]}>
         <PulseOrb color={meta.color} />
       </View>
 
       <ScrollView
         ref={scrollRef}
-        contentContainerStyle={[s.scroll, { paddingTop: topPad + 16, paddingBottom: botPad + 24 }]}
+        contentContainerStyle={[s.scroll, { paddingTop: topPad + 16, paddingBottom: botPad + 32 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Back button */}
         <Pressable onPress={() => router.back()} style={s.backBtn} hitSlop={12}>
           <Ionicons name="chevron-back" size={22} color={Colors.textSecondary} />
         </Pressable>
 
-        {/* Hero */}
         <Animated.View entering={FadeInDown.delay(100).springify()} style={s.hero}>
           <View style={[s.iconCircle, { borderColor: meta.color + "50", backgroundColor: meta.color + "15" }]}>
             <Ionicons name={meta.icon} size={36} color={meta.color} />
@@ -177,7 +236,57 @@ export default function DailyReadingScreen() {
           </View>
         </Animated.View>
 
-        {/* Reading result or CTA */}
+        {/* ── Photo Picker (kahve/el) ── */}
+        {needsPhoto && !readingText && (
+          <Animated.View entering={FadeInDown.delay(180).springify()} style={s.photoSection}>
+            <Text style={[s.photoHint, { color: meta.color }]}>
+              {todayService === "kahve"
+                ? (lang === "tr" ? "☕ Fincanın fotoğrafını yükle" : "☕ Upload your cup photo")
+                : (lang === "tr" ? "🤲 Avucunun fotoğrafını yükle" : "🤲 Upload your palm photo")}
+            </Text>
+            <Text style={s.photoSub}>
+              {todayService === "kahve"
+                ? (lang === "tr" ? `En fazla ${maxPhotos} fotoğraf ekleyebilirsin` : `Up to ${maxPhotos} photos`)
+                : (lang === "tr" ? "Net bir avuç içi fotoğrafı çek" : "Take a clear palm photo")}
+            </Text>
+
+            {/* Photo thumbnails */}
+            {photos.length > 0 && (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.thumbRow}>
+                {photos.map((p, i) => (
+                  <View key={i} style={s.thumbWrap}>
+                    <Image source={{ uri: p.uri }} style={s.thumb} />
+                    <Pressable onPress={() => removePhoto(i)} style={s.thumbRemove} hitSlop={6}>
+                      <Ionicons name="close-circle" size={20} color="#FF4757" />
+                    </Pressable>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
+
+            {/* Add photo buttons */}
+            {photos.length < maxPhotos && (
+              <View style={s.photoButtons}>
+                <Pressable onPress={() => pickPhoto(false)} style={[s.photoBtn, { borderColor: meta.color + "50" }]}>
+                  <Ionicons name="image-outline" size={20} color={meta.color} />
+                  <Text style={[s.photoBtnText, { color: meta.color }]}>
+                    {lang === "tr" ? "Galeri" : "Gallery"}
+                  </Text>
+                </Pressable>
+                {Platform.OS !== "web" && (
+                  <Pressable onPress={() => pickPhoto(true)} style={[s.photoBtn, { borderColor: meta.color + "50" }]}>
+                    <Ionicons name="camera-outline" size={20} color={meta.color} />
+                    <Text style={[s.photoBtnText, { color: meta.color }]}>
+                      {lang === "tr" ? "Kamera" : "Camera"}
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+            )}
+          </Animated.View>
+        )}
+
+        {/* ── Main CTA / Reading Result ── */}
         {!readingText && !isDone ? (
           <Animated.View entering={FadeInDown.delay(200).springify()} style={s.ctaCard}>
             <LinearGradient colors={["#0D1020", "#0A0820"]} style={s.ctaCardInner}>
@@ -188,21 +297,30 @@ export default function DailyReadingScreen() {
                   </Text>
                   <Text style={s.ctaDesc}>
                     {lang === "tr"
-                      ? "Her gün ücretsiz bir mistik ön okuma seni bekliyor."
-                      : "A free mystical preview awaits you every day."}
+                      ? needsPhoto
+                        ? "Fotoğrafını yükle, mistik enerjiyi hisset."
+                        : "Her gün ücretsiz bir mistik ön okuma seni bekliyor."
+                      : needsPhoto
+                        ? "Upload your photo and feel the mystical energy."
+                        : "A free mystical preview awaits you every day."}
                   </Text>
                   <Pressable
                     onPress={handleFreeReading}
-                    disabled={isLoading}
-                    style={[s.freeBtn, { backgroundColor: meta.color }]}
+                    disabled={isLoading || !canStartReading}
+                    style={[s.freeBtn, {
+                      backgroundColor: canStartReading ? meta.color : "#333",
+                      opacity: canStartReading ? 1 : 0.5,
+                    }]}
                   >
                     {isLoading ? (
                       <ActivityIndicator size="small" color="#000" />
                     ) : (
                       <>
-                        <Ionicons name="sparkles" size={16} color="#000" />
-                        <Text style={s.freeBtnText}>
-                          {lang === "tr" ? "Ücretsiz Keşfet" : "Explore Free"}
+                        <Ionicons name="sparkles" size={16} color={canStartReading ? "#000" : Colors.textDim} />
+                        <Text style={[s.freeBtnText, { color: canStartReading ? "#000" : Colors.textDim }]}>
+                          {needsPhoto && photos.length === 0
+                            ? (lang === "tr" ? "Önce Fotoğraf Ekle" : "Add Photo First")
+                            : (lang === "tr" ? "Ücretsiz Keşfet" : "Explore Free")}
                         </Text>
                       </>
                     )}
@@ -228,28 +346,46 @@ export default function DailyReadingScreen() {
               <Text style={[s.resultTitle, { color: meta.color }]}>
                 {lang === "tr" ? "✦ Mistik Mesajınız" : "✦ Your Mystical Message"}
               </Text>
-              <Text style={s.resultText}>{readingText}</Text>
+
+              {/* Visible teaser text */}
+              <Text style={s.resultText}>{visibleText}</Text>
+
+              {/* Loading indicator while streaming */}
               {isLoading && !isDone && (
                 <ActivityIndicator size="small" color={meta.color} style={{ marginTop: 8 }} />
+              )}
+
+              {/* Gradient fade + hidden text blur overlay */}
+              {hasHiddenText && (
+                <View style={s.blurWrap} pointerEvents="none">
+                  <Text style={[s.resultText, s.blurText]} aria-hidden>
+                    {readingText.slice(TEASER_CHARS)}
+                  </Text>
+                  <LinearGradient
+                    colors={["#0D102000", "#0D1020EE", "#0D1020"]}
+                    style={s.blurGradient}
+                    pointerEvents="none"
+                  />
+                </View>
               )}
             </LinearGradient>
           </Animated.View>
         )}
 
-        {/* Detailed reading CTA */}
+        {/* ── Full Reading CTA ── */}
         {(isDone || !canDailyFree) && (
           <Animated.View entering={ZoomIn.delay(400).springify()} style={s.detailCard}>
             <LinearGradient colors={["#1A0820", "#0D0515"]} style={s.detailCardInner}>
               <View style={s.detailTop}>
                 <Ionicons name="sparkles" size={18} color={meta.color} />
                 <Text style={s.detailTitle}>
-                  {lang === "tr" ? "Detaylı Yorum" : "Full Reading"}
+                  {lang === "tr" ? "Devamını Gör" : "See Full Reading"}
                 </Text>
               </View>
               <Text style={s.detailDesc}>
                 {lang === "tr"
                   ? "Çok daha derin, kişisel ve kapsamlı bir mistik okuma için:"
-                  : "For a much deeper, personal and comprehensive mystical reading:"}
+                  : "For a deeper, personal and comprehensive mystical reading:"}
               </Text>
               <Pressable onPress={handleDetailedReading} style={s.detailBtn}>
                 <LinearGradient
@@ -258,16 +394,17 @@ export default function DailyReadingScreen() {
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                 >
+                  <Ionicons name="eye-outline" size={16} color="#000" />
                   <Text style={s.detailBtnText}>
                     {lang === "tr"
-                      ? `Detaylı ${meta.labelTR} → ${goldCost} Altın`
-                      : `Full ${meta.labelEN} → ${goldCost} Gold`}
+                      ? `Tamamını Gör — ${goldCost} Altın`
+                      : `Reveal All — ${goldCost} Gold`}
                   </Text>
-                  <Ionicons name="chevron-forward" size={15} color="#000" />
+                  <Text style={s.detailBtnGold}>✦</Text>
                 </LinearGradient>
               </Pressable>
               {goldBalance < goldCost && (
-                <Pressable onPress={() => router.push("/purchase")} style={s.buyGoldLink}>
+                <Pressable onPress={() => setShowGoldModal(true)} style={s.buyGoldLink}>
                   <Ionicons name="diamond-outline" size={12} color={Colors.gold} />
                   <Text style={s.buyGoldLinkText}>
                     {lang === "tr" ? "Altın Satın Al" : "Buy Gold"}
@@ -278,6 +415,15 @@ export default function DailyReadingScreen() {
           </Animated.View>
         )}
       </ScrollView>
+
+      <InsufficientGoldModal
+        visible={showGoldModal}
+        onClose={() => setShowGoldModal(false)}
+        serviceLabel={lang === "tr" ? meta.labelTR : meta.labelEN}
+        goldCost={goldCost}
+        goldBalance={goldBalance}
+        serviceColor={meta.color}
+      />
     </View>
   );
 }
@@ -286,130 +432,59 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   scroll: { paddingHorizontal: 20, minHeight: "100%" },
   backBtn: { marginBottom: 12 },
+
   hero: { alignItems: "center", paddingVertical: 24 },
   iconCircle: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 16,
+    width: 88, height: 88, borderRadius: 44,
+    borderWidth: 1, alignItems: "center", justifyContent: "center", marginBottom: 16,
   },
-  heroLabel: {
-    fontSize: 10,
-    fontFamily: "Lora_700Bold",
-    color: Colors.textDim,
-    letterSpacing: 2,
-    marginBottom: 6,
-  },
-  heroService: {
-    fontSize: 28,
-    fontFamily: "Lora_700Bold",
-    marginBottom: 10,
-  },
+  heroLabel: { fontSize: 10, fontFamily: "Lora_700Bold", color: Colors.textDim, letterSpacing: 2, marginBottom: 6 },
+  heroService: { fontSize: 28, fontFamily: "Lora_700Bold", marginBottom: 10 },
   freeBadge: {
-    backgroundColor: "#C8A02020",
-    borderWidth: 1,
-    borderColor: "#C8A02055",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    backgroundColor: "#C8A02020", borderWidth: 1, borderColor: "#C8A02055",
+    borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4,
   },
-  freeBadgeText: {
-    fontSize: 10,
-    fontFamily: "Lora_700Bold",
-    color: Colors.gold,
-    letterSpacing: 1,
+  freeBadgeText: { fontSize: 10, fontFamily: "Lora_700Bold", color: Colors.gold, letterSpacing: 1 },
+
+  photoSection: { marginBottom: 14 },
+  photoHint: { fontSize: 15, fontFamily: "Lora_700Bold", marginBottom: 4, textAlign: "center" },
+  photoSub: { fontSize: 12, fontFamily: "Lora_400Regular", color: Colors.textSecondary, textAlign: "center", marginBottom: 14 },
+  thumbRow: { marginBottom: 12 },
+  thumbWrap: { marginRight: 10, position: "relative" },
+  thumb: { width: 80, height: 80, borderRadius: 10 },
+  thumbRemove: { position: "absolute", top: -6, right: -6 },
+  photoButtons: { flexDirection: "row", gap: 10 },
+  photoBtn: {
+    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 8, paddingVertical: 12, borderRadius: 12, borderWidth: 1,
+    backgroundColor: "#FFFFFF08",
   },
+  photoBtnText: { fontSize: 14, fontFamily: "Lora_700Bold" },
+
   ctaCard: { borderRadius: 16, overflow: "hidden", marginBottom: 16 },
   ctaCardInner: { padding: 24, alignItems: "center" },
-  ctaTitle: {
-    fontSize: 17,
-    fontFamily: "Lora_700Bold",
-    color: Colors.text,
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  ctaDesc: {
-    fontSize: 13,
-    fontFamily: "Lora_400Regular",
-    color: Colors.textSecondary,
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 20,
-  },
-  freeBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 13,
-    borderRadius: 12,
-  },
-  freeBtnText: {
-    fontSize: 15,
-    fontFamily: "Lora_700Bold",
-    color: "#000",
-  },
+  ctaTitle: { fontSize: 17, fontFamily: "Lora_700Bold", color: Colors.text, textAlign: "center", marginBottom: 8 },
+  ctaDesc: { fontSize: 13, fontFamily: "Lora_400Regular", color: Colors.textSecondary, textAlign: "center", lineHeight: 20, marginBottom: 20 },
+  freeBtn: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 24, paddingVertical: 13, borderRadius: 12 },
+  freeBtnText: { fontSize: 15, fontFamily: "Lora_700Bold" },
+
   resultCard: { borderRadius: 16, overflow: "hidden", marginBottom: 16 },
   resultCardInner: { padding: 20 },
-  resultTitle: {
-    fontSize: 12,
-    fontFamily: "Lora_700Bold",
-    letterSpacing: 1,
-    marginBottom: 12,
-  },
-  resultText: {
-    fontSize: 15,
-    fontFamily: "Lora_400Regular_Italic",
-    color: Colors.text,
-    lineHeight: 26,
-  },
+  resultTitle: { fontSize: 12, fontFamily: "Lora_700Bold", letterSpacing: 1, marginBottom: 12 },
+  resultText: { fontSize: 15, fontFamily: "Lora_400Regular_Italic", color: Colors.text, lineHeight: 26 },
+  blurWrap: { position: "relative", marginTop: 4, overflow: "hidden" },
+  blurText: { opacity: 0.15 },
+  blurGradient: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0 },
+
   detailCard: { borderRadius: 16, overflow: "hidden" },
   detailCardInner: { padding: 20 },
-  detailTop: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 8,
-  },
-  detailTitle: {
-    fontSize: 17,
-    fontFamily: "Lora_700Bold",
-    color: Colors.text,
-  },
-  detailDesc: {
-    fontSize: 13,
-    fontFamily: "Lora_400Regular",
-    color: Colors.textSecondary,
-    lineHeight: 20,
-    marginBottom: 16,
-  },
+  detailTop: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
+  detailTitle: { fontSize: 17, fontFamily: "Lora_700Bold", color: Colors.text },
+  detailDesc: { fontSize: 13, fontFamily: "Lora_400Regular", color: Colors.textSecondary, lineHeight: 20, marginBottom: 16 },
   detailBtn: { borderRadius: 12, overflow: "hidden", marginBottom: 10 },
-  detailBtnInner: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 13,
-    paddingHorizontal: 20,
-    gap: 8,
-  },
-  detailBtnText: {
-    fontSize: 14,
-    fontFamily: "Lora_700Bold",
-    color: "#000",
-  },
-  buyGoldLink: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    justifyContent: "center",
-    paddingVertical: 8,
-  },
-  buyGoldLinkText: {
-    fontSize: 12,
-    fontFamily: "Lora_400Regular",
-    color: Colors.gold,
-  },
+  detailBtnInner: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 13, paddingHorizontal: 20, gap: 8 },
+  detailBtnText: { fontSize: 14, fontFamily: "Lora_700Bold", color: "#000" },
+  detailBtnGold: { fontSize: 14, color: "#000" },
+  buyGoldLink: { flexDirection: "row", alignItems: "center", gap: 5, justifyContent: "center", paddingVertical: 8 },
+  buyGoldLinkText: { fontSize: 12, fontFamily: "Lora_400Regular", color: Colors.gold },
 });

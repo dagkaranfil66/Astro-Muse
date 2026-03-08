@@ -343,24 +343,27 @@ function ServiceCard({ serviceId, index, label, desc, onPress }: {
   );
 }
 
-const DAILY_ROTATION = ["samanizm", "tarot", "ruya", "numeroloji", "ask", "burclar", "ruh"];
+const DAILY_ROTATION = ["samanizm", "tarot", "ruya", "numeroloji", "ask", "kahve", "el"];
 const DAILY_META: Record<string, { icon: string; color: string; labelTR: string; labelEN: string }> = {
   samanizm:   { icon: "🍃", color: "#4CAF7A", labelTR: "Şamanizm",    labelEN: "Shamanism" },
   tarot:      { icon: "🃏", color: "#E7B008", labelTR: "Tarot",        labelEN: "Tarot" },
   ruya:       { icon: "☁️", color: "#5B9BD5", labelTR: "Rüya Yorumu",  labelEN: "Dream Reading" },
   numeroloji: { icon: "✨", color: "#E74C8B", labelTR: "Numeroloji",   labelEN: "Numerology" },
   ask:        { icon: "💗", color: "#FF4757", labelTR: "Aşkını Bul",   labelEN: "Love Reading" },
-  burclar:    { icon: "🔭", color: "#FF6B9D", labelTR: "Burçlar",      labelEN: "Horoscope" },
-  ruh:        { icon: "👁️", color: "#9B59B6", labelTR: "Ruh Okuma",    labelEN: "Soul Reading" },
+  kahve:      { icon: "☕", color: "#C8843A", labelTR: "Kahve Falı",   labelEN: "Coffee Reading" },
+  el:         { icon: "🤲", color: "#A07EE0", labelTR: "El Falı",      labelEN: "Palm Reading" },
 };
+
+const PHOTO_SERVICES = ["kahve", "el"];
 
 // ────────── Daily Free Card ──────────
 function DailyFreeCard() {
   const { canDailyFree } = useApp();
   const { lang } = useLang();
   const todayIdx = new Date().getDay();
-  const serviceId = DAILY_ROTATION[todayIdx] ?? "tarot";
+  const serviceId = DAILY_ROTATION[todayIdx % DAILY_ROTATION.length] ?? "tarot";
   const meta = DAILY_META[serviceId] ?? DAILY_META.tarot;
+  const needsPhoto = PHOTO_SERVICES.includes(serviceId);
 
   return (
     <Animated.View entering={FadeInDown.delay(230).springify()}>
@@ -379,8 +382,12 @@ function DailyFreeCard() {
               </Text>
               <Text style={styles.dailySub}>
                 {lang === "tr"
-                  ? `${meta.labelTR} · Bugünün Enerjisini Keşfet`
-                  : `${meta.labelEN} · Discover Today's Energy`}
+                  ? needsPhoto
+                    ? `${meta.labelTR} · Fotoğraf Yükle & Keşfet`
+                    : `${meta.labelTR} · Bugünün Enerjisini Keşfet`
+                  : needsPhoto
+                    ? `${meta.labelEN} · Upload Photo & Explore`
+                    : `${meta.labelEN} · Discover Today's Energy`}
               </Text>
             </View>
           </View>
