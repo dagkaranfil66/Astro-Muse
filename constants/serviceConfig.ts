@@ -1,15 +1,15 @@
 export const SERVICE_GOLD_COST: Record<string, number> = {
   samanizm: 2,
-  burclar: 4,
+  burclar: 3,
   ruh: 4,
   astroloji: 4,
   kahve: 4,
   el: 4,
   numeroloji: 4,
-  ruya: 4,
+  ruya: 3,
   ask: 4,
   tarot: 3,
-  dogum: 3,
+  dogum: 4,
 };
 
 // 10  altın = 69,99 ₺  (6,99 ₺/altın — baz)
