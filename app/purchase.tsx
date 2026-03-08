@@ -323,9 +323,9 @@ export default function PurchaseScreen() {
   const isLoggedIn = !!userProfile;
 
   const ORDER = ["tengri_basic", "tengri_plus", "tengri_premium", "tengri_vip"];
-  const sortedRcPkgs = [...packages].sort(
-    (a, b) => ORDER.indexOf(a.identifier) - ORDER.indexOf(b.identifier)
-  );
+  const sortedRcPkgs = [...packages]
+    .filter((p) => ORDER.includes(p.identifier))
+    .sort((a, b) => ORDER.indexOf(a.identifier) - ORDER.indexOf(b.identifier));
   const useRc = !rcLoading && sortedRcPkgs.length > 0;
 
   const handleRcBuy = async (rcPkg: PurchasesPackage) => {
