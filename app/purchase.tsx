@@ -48,10 +48,10 @@ const PKG_DISPLAY: Record<string, {
   desc: string;
   descEn: string;
 }> = {
-  tengri_basic:   { gradient: ["#1A1A30", "#0D1526"], popular: false, gold: 20,  bonus: 0,  label: "Başlangıç", discount: 0,  desc: "5 okuma için yeterli",       descEn: "Good for 5 readings" },
-  tengri_plus:    { gradient: ["#1A1030", "#0D1526"], popular: false, gold: 50,  bonus: 5,  label: "Avantajlı", discount: 27, desc: "+5 bonus altın",              descEn: "+5 bonus gold" },
-  tengri_premium: { gradient: ["#1A0A20", "#0D1526"], popular: true,  gold: 120, bonus: 20, label: "Premium",   discount: 43, desc: "+20 bonus altın",             descEn: "+20 bonus gold" },
-  tengri_vip:     { gradient: ["#1A0805", "#0D1526"], popular: false, gold: 300, bonus: 60, label: "VIP",       discount: 56, desc: "+60 bonus altın",             descEn: "+60 bonus gold" },
+  tengri_basic:   { gradient: ["#1A1A30", "#0D1526"], popular: false, gold: 20,  bonus: 0,  label: "Başlangıç Paketi", discount: 0,  desc: "5 okuma için yeterli",  descEn: "Good for 5 readings" },
+  tengri_plus:    { gradient: ["#1A1030", "#0D1526"], popular: true,  gold: 50,  bonus: 5,  label: "Popüler Paket",    discount: 27, desc: "+5 bonus altın",       descEn: "+5 bonus gold" },
+  tengri_premium: { gradient: ["#1A0A20", "#0D1526"], popular: false, gold: 120, bonus: 20, label: "Premium Paket",    discount: 43, desc: "+20 bonus altın",      descEn: "+20 bonus gold" },
+  tengri_vip:     { gradient: ["#1A0805", "#0D1526"], popular: false, gold: 300, bonus: 60, label: "Mega Paket",       discount: 56, desc: "+60 bonus altın",      descEn: "+60 bonus gold" },
 };
 
 // ─── Auth Gate (not logged in) ─────────────────────────────────────────────
@@ -165,7 +165,7 @@ function GoldPackageCard({
       <Animated.View style={[styles.pkgCard, display.popular && styles.pkgCardPopular, animStyle]}>
         {display.popular && !isThisBought && (
           <View style={styles.popularBadge}>
-            <Text style={styles.popularBadgeText}>EN POPÜLER</Text>
+            <Text style={styles.popularBadgeText}>⭐ EN POPÜLER</Text>
           </View>
         )}
         {display.discount > 0 && !isThisBought && (
@@ -245,7 +245,7 @@ function FallbackPackageCard({
       <Animated.View style={[styles.pkgCard, pkg.popular && styles.pkgCardPopular, animStyle]}>
         {pkg.popular && !isThisBought && (
           <View style={styles.popularBadge}>
-            <Text style={styles.popularBadgeText}>EN POPÜLER</Text>
+            <Text style={styles.popularBadgeText}>⭐ EN POPÜLER</Text>
           </View>
         )}
         {pkg.discount > 0 && !isThisBought && (
