@@ -29,6 +29,7 @@ import Animated, {
   FadeIn,
   ZoomIn,
 } from "react-native-reanimated";
+import Svg, { Circle, Line, Path } from "react-native-svg";
 import { Colors } from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
@@ -271,6 +272,46 @@ const ALL_SERVICES = [
 
 const ANIM_TYPES = ["rotate", "pulse", "bounce", "flip", "slide", "spin", "glow", "rotate", "pulse", "bounce", "flip"];
 
+function MysticalWheelIcon({ size = 22, active = false }: { size?: number; active?: boolean }) {
+  const R = size / 2;
+  const outerR = R - 0.8;
+  const innerR = R * 0.28;
+  const midR = R * 0.65;
+  const gold = active ? "#C9A84C" : "#6A5A3A";
+  const goldFaint = active ? "#C9A84C50" : "#6A5A3A40";
+
+  const spokes = Array.from({ length: 8 }, (_, i) => {
+    const a = (i * Math.PI) / 4;
+    return {
+      x1: R + innerR * Math.cos(a), y1: R + innerR * Math.sin(a),
+      x2: R + outerR * Math.cos(a), y2: R + outerR * Math.sin(a),
+    };
+  });
+
+  const diamonds = Array.from({ length: 8 }, (_, i) => {
+    const a = (i * Math.PI) / 4 + Math.PI / 8;
+    const cx = R + midR * Math.cos(a);
+    const cy = R + midR * Math.sin(a);
+    const s = size * 0.055;
+    return `M ${cx} ${cy - s} L ${cx + s} ${cy} L ${cx} ${cy + s} L ${cx - s} ${cy} Z`;
+  });
+
+  return (
+    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <Circle cx={R} cy={R} r={outerR} fill="none" stroke={gold} strokeWidth={0.8} opacity={0.8} />
+      <Circle cx={R} cy={R} r={innerR + 1} fill={goldFaint} stroke={gold} strokeWidth={0.7} />
+      {spokes.map((l, i) => (
+        <Line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2}
+          stroke={gold} strokeWidth={i % 2 === 0 ? 1.3 : 0.7} opacity={i % 2 === 0 ? 1 : 0.5} />
+      ))}
+      {diamonds.map((d, i) => (
+        <Path key={i} d={d} fill={gold} opacity={0.85} />
+      ))}
+      <Circle cx={R} cy={R} r={1.6} fill={gold} />
+    </Svg>
+  );
+}
+
 function ServiceCard({ serviceId, index, label, desc, onPress }: {
   serviceId: string; index: number; label: string; desc: string; onPress: () => void;
 }) {
@@ -487,7 +528,7 @@ export default function HomeScreen() {
           </Text>
         </Pressable>
         <Pressable onPress={() => router.push("/spin")} style={[styles.spinBtn, canSpin && styles.spinBtnActive]}>
-          <Text style={{ fontSize: 14 }}>🎡</Text>
+          <MysticalWheelIcon size={22} active={canSpin} />
           {canSpin && <View style={styles.spinBadge} />}
         </Pressable>
         <Pressable onPress={() => {}} style={styles.aiBadge}>

@@ -41,7 +41,7 @@ const PRIZES = [
   { label: "3 Altın", gold: 3,  color: "#8BC34A" },
   { label: "7 Altın", gold: 7,  color: "#FF6F00" },
   { label: "1 Altın", gold: 1,  color: "#D32F2F" },
-  { label: "15 Altın", gold: 15, color: "#F9A825" },
+  { label: "4 Altın",  gold: 4,  color: "#F9A825" },
 ];
 
 const SLICE_ANGLE = 360 / PRIZES.length;
