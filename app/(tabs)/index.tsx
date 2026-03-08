@@ -853,7 +853,7 @@ const styles = StyleSheet.create({
   },
   heroDesc: {
     fontSize: 13,
-    color: Colors.textSecondary,
+    color: "#C8B47A",
     textAlign: "center",
     fontFamily: "Lora_400Regular_Italic",
     lineHeight: 22,
