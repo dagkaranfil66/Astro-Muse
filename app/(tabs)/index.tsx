@@ -343,59 +343,40 @@ function ServiceCard({ serviceId, index, label, desc, onPress }: {
   );
 }
 
-const DAILY_ROTATION = ["samanizm", "tarot", "ruya", "numeroloji", "ask", "kahve", "el"];
-const DAILY_META: Record<string, { icon: string; color: string; labelTR: string; labelEN: string }> = {
-  samanizm:   { icon: "🍃", color: "#4CAF7A", labelTR: "Şamanizm",    labelEN: "Shamanism" },
-  tarot:      { icon: "🃏", color: "#E7B008", labelTR: "Tarot",        labelEN: "Tarot" },
-  ruya:       { icon: "☁️", color: "#5B9BD5", labelTR: "Rüya Yorumu",  labelEN: "Dream Reading" },
-  numeroloji: { icon: "✨", color: "#E74C8B", labelTR: "Numeroloji",   labelEN: "Numerology" },
-  ask:        { icon: "💗", color: "#FF4757", labelTR: "Aşkını Bul",   labelEN: "Love Reading" },
-  kahve:      { icon: "☕", color: "#C8843A", labelTR: "Kahve Falı",   labelEN: "Coffee Reading" },
-  el:         { icon: "🤲", color: "#A07EE0", labelTR: "El Falı",      labelEN: "Palm Reading" },
-};
-
-const PHOTO_SERVICES = ["kahve", "el"];
+const DAILY_KAHVE = { icon: "☕", color: "#C8843A", labelTR: "Kahve Falı", labelEN: "Coffee Reading" };
 
 // ────────── Daily Free Card ──────────
 function DailyFreeCard() {
   const { canDailyFree } = useApp();
   const { lang } = useLang();
-  const todayIdx = new Date().getDay();
-  const serviceId = DAILY_ROTATION[todayIdx % DAILY_ROTATION.length] ?? "tarot";
-  const meta = DAILY_META[serviceId] ?? DAILY_META.tarot;
-  const needsPhoto = PHOTO_SERVICES.includes(serviceId);
 
   return (
     <Animated.View entering={FadeInDown.delay(230).springify()}>
       <Pressable onPress={() => router.push("/daily-reading" as any)} style={styles.dailyCard}>
         <LinearGradient
-          colors={[meta.color + "25", meta.color + "08"]}
+          colors={[DAILY_KAHVE.color + "25", DAILY_KAHVE.color + "08"]}
           style={styles.dailyCardInner}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
         >
           <View style={styles.dailyLeft}>
-            <Text style={styles.dailyEmoji}>{meta.icon}</Text>
+            <Text style={styles.dailyEmoji}>{DAILY_KAHVE.icon}</Text>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.dailyTitle, { color: meta.color }]}>
-                {lang === "tr" ? "🔮 Günlük Falın Hazır" : "🔮 Daily Reading Ready"}
+              <Text style={[styles.dailyTitle, { color: DAILY_KAHVE.color }]}>
+                {lang === "tr" ? "☕ Günlük Kahve Falın Hazır" : "☕ Daily Coffee Reading Ready"}
               </Text>
               <Text style={styles.dailySub}>
                 {lang === "tr"
-                  ? needsPhoto
-                    ? `${meta.labelTR} · Fotoğraf Yükle & Keşfet`
-                    : `${meta.labelTR} · Bugünün Enerjisini Keşfet`
-                  : needsPhoto
-                    ? `${meta.labelEN} · Upload Photo & Explore`
-                    : `${meta.labelEN} · Discover Today's Energy`}
+                  ? "Fincan fotoğrafını yükle, mistik yorumunu al"
+                  : "Upload your cup photo, get your mystical reading"}
               </Text>
             </View>
           </View>
           <View style={[styles.dailyBadge, {
-            borderColor: canDailyFree ? meta.color + "60" : "#FFFFFF20",
-            backgroundColor: canDailyFree ? meta.color + "20" : "#FFFFFF08",
+            borderColor: canDailyFree ? DAILY_KAHVE.color + "60" : "#FFFFFF20",
+            backgroundColor: canDailyFree ? DAILY_KAHVE.color + "20" : "#FFFFFF08",
           }]}>
-            <Text style={[styles.dailyBadgeText, { color: canDailyFree ? meta.color : Colors.textDim }]}>
+            <Text style={[styles.dailyBadgeText, { color: canDailyFree ? DAILY_KAHVE.color : Colors.textDim }]}>
               {canDailyFree ? (lang === "tr" ? "ÜCRETSİZ" : "FREE") : (lang === "tr" ? "KULLANILDI" : "USED")}
             </Text>
           </View>

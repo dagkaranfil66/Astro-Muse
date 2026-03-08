@@ -33,9 +33,7 @@ import { SERVICE_GOLD_COST } from "@/constants/serviceConfig";
 import { getApiUrl } from "@/lib/query-client";
 import InsufficientGoldModal from "@/components/InsufficientGoldModal";
 
-const DAILY_ROTATION = [
-  "samanizm", "tarot", "ruya", "numeroloji", "ask", "kahve", "el",
-];
+const DAILY_SERVICE = "kahve";
 
 const SERVICE_META: Record<string, {
   icon: keyof typeof Ionicons.glyphMap;
@@ -60,8 +58,7 @@ const TEASER_CHARS = 260;
 type PhotoItem = { uri: string; base64: string; type: string };
 
 function getTodayService() {
-  const day = new Date().getDay();
-  return DAILY_ROTATION[day % DAILY_ROTATION.length] ?? "tarot";
+  return DAILY_SERVICE;
 }
 
 function PulseOrb({ color }: { color: string }) {
