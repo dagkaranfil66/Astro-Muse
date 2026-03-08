@@ -210,6 +210,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/auth/delete-account", async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+      if (!email) return res.status(400).json({ error: "E-posta gerekli" });
+      const key = email.toLowerCase().trim();
+      await db.delete(users).where(eq(users.email, key));
+      return res.json({ success: true });
+    } catch (err) {
+      console.error("Delete account error:", err);
+      return res.status(500).json({ error: "Hesap silinemedi" });
+    }
+  });
+
   app.post("/api/auth/resend", async (req: Request, res: Response) => {
     try {
       const { email } = req.body;

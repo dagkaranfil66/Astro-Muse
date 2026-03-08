@@ -44,11 +44,13 @@ const PKG_DISPLAY: Record<string, {
   gold: number;
   label: string;
   discount: number;
+  desc: string;
+  descEn: string;
 }> = {
-  tengri_basic:   { gradient: ["#1A1A30", "#0D1526"], popular: false, gold: 10,  label: "Başlangıç", discount: 0  },
-  tengri_plus:    { gradient: ["#1A1030", "#0D1526"], popular: false, gold: 30,  label: "Avantajlı", discount: 5  },
-  tengri_premium: { gradient: ["#1A0A20", "#0D1526"], popular: true,  gold: 50,  label: "Premium",   discount: 14 },
-  tengri_vip:     { gradient: ["#1A0805", "#0D1526"], popular: false, gold: 100, label: "VIP",       discount: 28 },
+  tengri_basic:   { gradient: ["#1A1A30", "#0D1526"], popular: false, gold: 10,  label: "Başlangıç", discount: 0,  desc: "5 okuma için yeterli altın",           descEn: "Enough gold for 5 readings" },
+  tengri_plus:    { gradient: ["#1A1030", "#0D1526"], popular: false, gold: 30,  label: "Avantajlı", discount: 5,  desc: "15 okuma · %5 daha avantajlı",         descEn: "15 readings · 5% better value" },
+  tengri_premium: { gradient: ["#1A0A20", "#0D1526"], popular: true,  gold: 50,  label: "Premium",   discount: 14, desc: "25 okuma · en iyi fiyat/altın oranı", descEn: "25 readings · best value" },
+  tengri_vip:     { gradient: ["#1A0805", "#0D1526"], popular: false, gold: 100, label: "VIP",       discount: 28, desc: "50 okuma · maksimum tasarruf",         descEn: "50 readings · maximum savings" },
 };
 
 // ─── Auth Gate (not logged in) ─────────────────────────────────────────────
@@ -129,11 +131,13 @@ function GoldPackageCard({
   onBuy,
   buying,
   boughtId,
+  lang,
 }: {
   rcPkg: PurchasesPackage;
   onBuy: (pkg: PurchasesPackage) => void;
   buying: boolean;
   boughtId: string | null;
+  lang: string;
 }) {
   const scale = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
@@ -143,6 +147,8 @@ function GoldPackageCard({
     gold: PACKAGE_GOLD_MAP[rcPkg.identifier] ?? 0,
     label: rcPkg.identifier,
     discount: 0,
+    desc: "",
+    descEn: "",
   };
   const isThisBought = boughtId === rcPkg.identifier;
   const isBuying = buying && boughtId === null;
@@ -175,8 +181,8 @@ function GoldPackageCard({
               <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>
                 {display.gold} <Text style={styles.pkgGoldUnit}>altın</Text>
               </Text>
-              <Text style={styles.pkgPerGold}>
-                {isThisBought ? "Eklendi!" : rcPkg.product.priceString + " • " + "₺/altın: " + (Number(rcPkg.product.price) / display.gold).toFixed(2)}
+              <Text style={styles.pkgDesc}>
+                {isThisBought ? "✓ Hesabınıza eklendi" : (lang === "tr" ? display.desc : display.descEn)}
               </Text>
             </View>
           </View>
@@ -433,7 +439,7 @@ export default function PurchaseScreen() {
             ) : useRc ? (
               sortedRcPkgs.map((pkg, i) => (
                 <Animated.View key={pkg.identifier} entering={FadeInDown.delay(200 + i * 60).springify()}>
-                  <GoldPackageCard rcPkg={pkg} onBuy={handleRcBuy} buying={buying} boughtId={boughtId} />
+                  <GoldPackageCard rcPkg={pkg} onBuy={handleRcBuy} buying={buying} boughtId={boughtId} lang={lang} />
                 </Animated.View>
               ))
             ) : (
@@ -561,6 +567,7 @@ const styles = StyleSheet.create({
   pkgGold: { fontSize: 18, fontFamily: "Lora_700Bold", color: Colors.text },
   pkgGoldUnit: { fontSize: 13, fontFamily: "Lora_400Regular", color: Colors.textSecondary },
   pkgPerGold: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textSecondary, marginTop: 1 },
+  pkgDesc: { fontSize: 11, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary, marginTop: 2 },
   pkgRight: { alignItems: "flex-end", gap: 6 },
   pkgPrice: { fontSize: 18, fontFamily: "Lora_700Bold", color: Colors.gold, textAlign: "right" },
   pkgBuyBtn: { backgroundColor: Colors.gold, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, minWidth: 88, alignItems: "center" },

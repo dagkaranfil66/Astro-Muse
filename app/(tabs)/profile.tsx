@@ -6,6 +6,7 @@ import {
   ScrollView,
   Pressable,
   Platform,
+  Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -26,6 +27,7 @@ import { Colors } from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
 import { SERVICE_GOLD_COST } from "@/constants/serviceConfig";
+import { getApiUrl } from "@/lib/query-client";
 
 const SERVICE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   astroloji: "moon-outline", kahve: "cafe-outline", el: "hand-left-outline",
@@ -74,6 +76,39 @@ export default function ProfileScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     await clearUserProfile();
     router.replace("/auth");
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      lang === "tr" ? "Hesabı Sil" : "Delete Account",
+      lang === "tr"
+        ? "Hesabınız kalıcı olarak silinecek. Bu işlem geri alınamaz. Emin misiniz?"
+        : "Your account will be permanently deleted. This cannot be undone. Are you sure?",
+      [
+        { text: lang === "tr" ? "İptal" : "Cancel", style: "cancel" },
+        {
+          text: lang === "tr" ? "Hesabı Sil" : "Delete Account",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const apiBase = new URL("", getApiUrl()).toString().replace(/\/$/, "");
+              await fetch(`${apiBase}/api/auth/delete-account`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: userProfile?.email }),
+              });
+              await clearUserProfile();
+              router.replace("/auth");
+            } catch {
+              Alert.alert(
+                lang === "tr" ? "Hata" : "Error",
+                lang === "tr" ? "Hesap silinemedi. Tekrar deneyin." : "Could not delete account. Please try again."
+              );
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -220,10 +255,16 @@ export default function ProfileScreen() {
             </LinearGradient>
           </Pressable>
           {userProfile && (
-            <Pressable onPress={handleLogout} style={styles.logoutBtn}>
-              <Ionicons name="log-out-outline" size={16} color={Colors.error} />
-              <Text style={styles.logoutText}>{lang === "tr" ? "Çıkış Yap" : "Logout"}</Text>
-            </Pressable>
+            <>
+              <Pressable onPress={handleLogout} style={styles.logoutBtn}>
+                <Ionicons name="log-out-outline" size={16} color={Colors.error} />
+                <Text style={styles.logoutText}>{lang === "tr" ? "Çıkış Yap" : "Logout"}</Text>
+              </Pressable>
+              <Pressable onPress={handleDeleteAccount} style={styles.deleteBtn}>
+                <Ionicons name="trash-outline" size={15} color="#FF4444" />
+                <Text style={styles.deleteBtnText}>{lang === "tr" ? "Hesabımı Sil" : "Delete My Account"}</Text>
+              </Pressable>
+            </>
           )}
         </Animated.View>
       </ScrollView>
@@ -287,4 +328,6 @@ const styles = StyleSheet.create({
 
   logoutBtn: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 14, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1, borderColor: Colors.error + "30", backgroundColor: Colors.surface },
   logoutText: { fontSize: 14, fontFamily: "Lora_700Bold", color: Colors.error },
+  deleteBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1, borderColor: "#FF444420", backgroundColor: "transparent" },
+  deleteBtnText: { fontSize: 12, fontFamily: "Lora_400Regular", color: "#FF4444" },
 });
