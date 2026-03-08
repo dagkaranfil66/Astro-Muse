@@ -157,13 +157,13 @@ export default function ForgotPasswordScreen() {
           ) : step === "email" ? (
             <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.form}>
               <View style={styles.inputWrap}>
-                <Ionicons name="mail-outline" size={18} color={Colors.textDim} style={styles.inputIcon} />
+                <Ionicons name="mail-outline" size={18} color="#6B7FA8" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={email}
                   onChangeText={(v) => { setEmail(v); setError(""); }}
                   placeholder={lang === "tr" ? "E-posta adresiniz" : "Your email address"}
-                  placeholderTextColor={Colors.textDim}
+                  placeholderTextColor="#6B7FA8"
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -209,34 +209,34 @@ export default function ForgotPasswordScreen() {
               </View>
 
               <View style={styles.inputWrap}>
-                <Ionicons name="lock-closed-outline" size={18} color={Colors.textDim} style={styles.inputIcon} />
+                <Ionicons name="lock-closed-outline" size={18} color="#6B7FA8" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={newPassword}
                   onChangeText={(v) => { setNewPassword(v); setError(""); }}
                   placeholder={lang === "tr" ? "Yeni şifre" : "New password"}
-                  placeholderTextColor={Colors.textDim}
+                  placeholderTextColor="#6B7FA8"
                   secureTextEntry={!showNewPassword}
                 />
-                <Pressable onPress={() => setShowNewPassword(v => !v)} hitSlop={8}>
-                  <Ionicons name={showNewPassword ? "eye-off-outline" : "eye-outline"} size={20} color={Colors.textDim} />
+                <Pressable onPress={() => setShowNewPassword(v => !v)} hitSlop={8} style={styles.eyeBtn}>
+                  <Ionicons name={showNewPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#8898B8" />
                 </Pressable>
               </View>
 
               <View style={styles.inputWrap}>
-                <Ionicons name="lock-closed-outline" size={18} color={Colors.textDim} style={styles.inputIcon} />
+                <Ionicons name="lock-closed-outline" size={18} color="#6B7FA8" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={confirmPassword}
                   onChangeText={(v) => { setConfirmPassword(v); setError(""); }}
                   placeholder={lang === "tr" ? "Yeni şifreyi tekrar girin" : "Confirm new password"}
-                  placeholderTextColor={Colors.textDim}
+                  placeholderTextColor="#6B7FA8"
                   secureTextEntry={!showConfirmPassword}
                   returnKeyType="done"
                   onSubmitEditing={handleResetPassword}
                 />
-                <Pressable onPress={() => setShowConfirmPassword(v => !v)} hitSlop={8}>
-                  <Ionicons name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} size={20} color={Colors.textDim} />
+                <Pressable onPress={() => setShowConfirmPassword(v => !v)} hitSlop={8} style={styles.eyeBtn}>
+                  <Ionicons name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#8898B8" />
                 </Pressable>
               </View>
 
@@ -343,10 +343,11 @@ const styles = StyleSheet.create({
   inputIcon: { marginRight: 10 },
   input: {
     flex: 1,
-    color: Colors.text,
-    fontSize: 14,
-    fontFamily: "Lora_400Regular",
+    color: "#F0E8D0",
+    fontSize: 15,
+    fontFamily: "Lora_500Medium",
   },
+  eyeBtn: { paddingLeft: 6, paddingBottom: 3 },
   codeInput: {
     fontSize: 24,
     letterSpacing: 8,

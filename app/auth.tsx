@@ -356,26 +356,26 @@ export default function AuthScreen() {
 
               {mode === "register" && (
                 <View style={styles.inputWrap}>
-                  <Ionicons name="person-outline" size={18} color={Colors.textDim} style={styles.inputIcon} />
+                  <Ionicons name="person-outline" size={18} color="#6B7FA8" style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
                     value={name}
                     onChangeText={setName}
                     placeholder={lang === "tr" ? "Adınız" : "Your Name"}
-                    placeholderTextColor={Colors.textDim}
+                    placeholderTextColor="#6B7FA8"
                     autoCapitalize="words"
                   />
                 </View>
               )}
 
               <View style={styles.inputWrap}>
-                <Ionicons name="mail-outline" size={18} color={Colors.textDim} style={styles.inputIcon} />
+                <Ionicons name="mail-outline" size={18} color="#6B7FA8" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={email}
                   onChangeText={setEmail}
                   placeholder={lang === "tr" ? "E-posta adresiniz" : "Email address"}
-                  placeholderTextColor={Colors.textDim}
+                  placeholderTextColor="#6B7FA8"
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -383,37 +383,37 @@ export default function AuthScreen() {
               </View>
 
               <View style={styles.inputWrap}>
-                <Ionicons name="lock-closed-outline" size={18} color={Colors.textDim} style={styles.inputIcon} />
+                <Ionicons name="lock-closed-outline" size={18} color="#6B7FA8" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={password}
                   onChangeText={setPassword}
                   placeholder={lang === "tr" ? "Şifreniz" : "Password"}
-                  placeholderTextColor={Colors.textDim}
+                  placeholderTextColor="#6B7FA8"
                   secureTextEntry={!showPassword}
                   returnKeyType={mode === "login" ? "done" : "next"}
                   onSubmitEditing={mode === "login" ? handleEmailSubmit : undefined}
                 />
-                <Pressable onPress={() => setShowPassword(v => !v)} hitSlop={8}>
-                  <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color={Colors.textDim} />
+                <Pressable onPress={() => setShowPassword(v => !v)} hitSlop={8} style={styles.eyeBtn}>
+                  <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#8898B8" />
                 </Pressable>
               </View>
 
               {mode === "register" && (
                 <View style={styles.inputWrap}>
-                  <Ionicons name="lock-closed-outline" size={18} color={Colors.textDim} style={styles.inputIcon} />
+                  <Ionicons name="lock-closed-outline" size={18} color="#6B7FA8" style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
                     placeholder={lang === "tr" ? "Şifrenizi tekrar girin" : "Confirm Password"}
-                    placeholderTextColor={Colors.textDim}
+                    placeholderTextColor="#6B7FA8"
                     secureTextEntry={!showConfirmPassword}
                     returnKeyType="done"
                     onSubmitEditing={handleEmailSubmit}
                   />
-                  <Pressable onPress={() => setShowConfirmPassword(v => !v)} hitSlop={8}>
-                    <Ionicons name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} size={20} color={Colors.textDim} />
+                  <Pressable onPress={() => setShowConfirmPassword(v => !v)} hitSlop={8} style={styles.eyeBtn}>
+                    <Ionicons name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#8898B8" />
                   </Pressable>
                 </View>
               )}
@@ -608,10 +608,11 @@ const styles = StyleSheet.create({
   inputIcon: { marginRight: 10 },
   input: {
     flex: 1,
-    color: Colors.text,
-    fontSize: 14,
-    fontFamily: "Lora_400Regular",
+    color: "#F0E8D0",
+    fontSize: 15,
+    fontFamily: "Lora_500Medium",
   },
+  eyeBtn: { paddingLeft: 6, paddingBottom: 3 },
 
   forgotBtn: { alignSelf: "flex-end", paddingVertical: 2 },
   forgotBtnText: {
