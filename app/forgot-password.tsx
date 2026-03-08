@@ -154,11 +154,16 @@ export default function ForgotPasswordScreen() {
                 </Text>
                 <Pressable
                   onPress={() => router.replace("/auth")}
-                  style={({ pressed }) => [styles.submitBtn, { marginTop: 8 }, pressed && { opacity: 0.85 }]}
+                  style={({ pressed }) => [styles.loginBtn, pressed && { opacity: 0.85 }]}
                 >
-                  <LinearGradient colors={[Colors.goldLight, Colors.gold]} style={styles.submitBtnInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                    <Ionicons name="log-in-outline" size={18} color={Colors.background} />
-                    <Text style={styles.submitBtnText}>
+                  <LinearGradient
+                    colors={[Colors.goldLight, Colors.gold, Colors.goldDim]}
+                    style={styles.loginBtnInner}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                  >
+                    <Ionicons name="log-in-outline" size={20} color="#08051A" />
+                    <Text style={styles.loginBtnText}>
                       {lang === "tr" ? "Giriş Yap" : "Login"}
                     </Text>
                   </LinearGradient>
@@ -436,6 +441,30 @@ const styles = StyleSheet.create({
     color: "#7EDDA8",
     textAlign: "center",
     lineHeight: 22,
-    marginBottom: 8,
+    marginBottom: 20,
+  },
+  loginBtn: {
+    alignSelf: "stretch",
+    borderRadius: 14,
+    overflow: "hidden",
+    shadowColor: Colors.gold,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  loginBtnInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+  },
+  loginBtnText: {
+    fontSize: 16,
+    fontFamily: "Lora_700Bold",
+    color: "#08051A",
+    letterSpacing: 0.5,
   },
 });
