@@ -180,19 +180,21 @@ function GoldPackageCard({
             </View>
             <View style={{ flexShrink: 1 }}>
               <Text style={styles.pkgLabel}>{display.label}</Text>
-              <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
-                <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>
-                  {display.gold} <Text style={styles.pkgGoldUnit}>altın</Text>
+              {display.bonus > 0 && !isThisBought ? (
+                <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]} numberOfLines={1}>
+                  {display.gold} <Text style={styles.pkgGoldUnit}>Altın</Text>
+                  <Text style={styles.pkgGoldBonus}> + {display.bonus} Bonus Altın</Text>
                 </Text>
-                {display.bonus > 0 && !isThisBought && (
-                  <View style={styles.bonusBadge}>
-                    <Text style={styles.bonusBadgeText}>+{display.bonus} BONUS</Text>
-                  </View>
-                )}
-              </View>
-              <Text style={styles.pkgDesc} numberOfLines={1}>
-                {isThisBought ? "✓ Hesabınıza eklendi" : (lang === "tr" ? display.desc : display.descEn)}
-              </Text>
+              ) : (
+                <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>
+                  {display.gold} <Text style={styles.pkgGoldUnit}>{isThisBought ? "✓ Eklendi" : "Altın"}</Text>
+                </Text>
+              )}
+              {!isThisBought && (
+                <Text style={styles.pkgDesc} numberOfLines={1}>
+                  {lang === "tr" ? display.desc : display.descEn}
+                </Text>
+              )}
             </View>
           </View>
           <View style={styles.pkgRight}>
@@ -260,16 +262,16 @@ function FallbackPackageCard({
             </View>
             <View style={{ flexShrink: 1 }}>
               <Text style={styles.pkgLabel}>{pkg.label}</Text>
-              <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
-                <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>
-                  {pkg.gold} <Text style={styles.pkgGoldUnit}>altın</Text>
+              {(pkg as any).bonus > 0 && !isThisBought ? (
+                <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]} numberOfLines={1}>
+                  {pkg.gold} <Text style={styles.pkgGoldUnit}>Altın</Text>
+                  <Text style={styles.pkgGoldBonus}> + {(pkg as any).bonus} Bonus Altın</Text>
                 </Text>
-                {(pkg as any).bonus > 0 && !isThisBought && (
-                  <View style={styles.bonusBadge}>
-                    <Text style={styles.bonusBadgeText}>+{(pkg as any).bonus} BONUS</Text>
-                  </View>
-                )}
-              </View>
+              ) : (
+                <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>
+                  {pkg.gold} <Text style={styles.pkgGoldUnit}>{isThisBought ? "✓ Eklendi" : "Altın"}</Text>
+                </Text>
+              )}
               <Text style={styles.pkgPerGold}>
                 {isThisBought ? "Eklendi!" : `${pkg.perGold}/altın`}
               </Text>
@@ -583,6 +585,7 @@ const styles = StyleSheet.create({
   pkgLabel: { fontSize: 11, fontFamily: "Lora_700Bold", color: Colors.textDim, letterSpacing: 0.5, marginBottom: 2 },
   pkgGold: { fontSize: 18, fontFamily: "Lora_700Bold", color: Colors.text },
   pkgGoldUnit: { fontSize: 13, fontFamily: "Lora_400Regular", color: Colors.textSecondary },
+  pkgGoldBonus: { fontSize: 12, fontFamily: "Lora_400Regular", color: Colors.gold },
   pkgPerGold: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textSecondary, marginTop: 1 },
   pkgDesc: { fontSize: 11, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary, marginTop: 2 },
   bonusBadge: { backgroundColor: "#C8A02022", borderWidth: 1, borderColor: "#C8A02055", borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2 },
