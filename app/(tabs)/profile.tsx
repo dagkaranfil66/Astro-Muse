@@ -7,12 +7,16 @@ import {
   Pressable,
   Platform,
   Modal,
+  Image,
+  Alert,
+  ActionSheetIOS,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import * as ImagePicker from "expo-image-picker";
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -41,6 +45,28 @@ const SERVICE_COLORS: Record<string, string> = {
   dogum: "#FF8C42", ruya: "#5B9BD5", burclar: "#FF6B9D", ask: "#FF4757",
 };
 
+const AVATAR_COLORS = [
+  ["#6B4FBB", "#9B59B6"],
+  ["#C0932A", "#E7B008"],
+  ["#1ABFB8", "#5B9BD5"],
+  ["#FF6B9D", "#FF4757"],
+  ["#4CAF7A", "#1ABFB8"],
+];
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+function getAvatarColors(name: string): string[] {
+  const idx = name.charCodeAt(0) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[idx];
+}
+
 function GoldCoin({ size = 32 }: { size?: number }) {
   const rotate = useSharedValue(0);
   React.useEffect(() => {
@@ -58,17 +84,9 @@ function GoldCoin({ size = 32 }: { size?: number }) {
 }
 
 function DeleteConfirmModal({
-  visible,
-  lang,
-  onCancel,
-  onConfirm,
-  loading,
+  visible, lang, onCancel, onConfirm, loading,
 }: {
-  visible: boolean;
-  lang: string;
-  onCancel: () => void;
-  onConfirm: () => void;
-  loading: boolean;
+  visible: boolean; lang: string; onCancel: () => void; onConfirm: () => void; loading: boolean;
 }) {
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onCancel}>
@@ -100,11 +118,12 @@ function DeleteConfirmModal({
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const { goldBalance, readings, userProfile, clearUserProfile, totalSpent } = useApp();
+  const { goldBalance, readings, userProfile, clearUserProfile, totalSpent, profilePhotoUri, setProfilePhoto } = useApp();
   const { t, lang } = useLang();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [photoLoading, setPhotoLoading] = useState(false);
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -115,6 +134,9 @@ export default function ProfileScreen() {
     return acc;
   }, {});
   const topService = Object.entries(serviceBreakdown).sort((a, b) => b[1] - a[1])[0];
+
+  const avatarColors = userProfile ? getAvatarColors(userProfile.name) : [Colors.gold, "#C0932A"];
+  const initials = userProfile ? getInitials(userProfile.name) : "?";
 
   const handleLogout = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -140,6 +162,96 @@ export default function ProfileScreen() {
     }
   };
 
+  const pickFromGallery = async () => {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert(
+        lang === "tr" ? "İzin Gerekli" : "Permission Required",
+        lang === "tr" ? "Galeri erişimi için izin verin." : "Please allow gallery access."
+      );
+      return;
+    }
+    setPhotoLoading(true);
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.6,
+        base64: true,
+      });
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+        const dataUri = `data:image/jpeg;base64,${asset.base64}`;
+        await setProfilePhoto(dataUri);
+      }
+    } finally {
+      setPhotoLoading(false);
+    }
+  };
+
+  const pickFromCamera = async () => {
+    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert(
+        lang === "tr" ? "İzin Gerekli" : "Permission Required",
+        lang === "tr" ? "Kamera erişimi için izin verin." : "Please allow camera access."
+      );
+      return;
+    }
+    setPhotoLoading(true);
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.6,
+        base64: true,
+      });
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+        const dataUri = `data:image/jpeg;base64,${asset.base64}`;
+        await setProfilePhoto(dataUri);
+      }
+    } finally {
+      setPhotoLoading(false);
+    }
+  };
+
+  const handleAvatarPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    if (Platform.OS === "ios") {
+      const opts = [
+        lang === "tr" ? "Kameradan Çek" : "Take Photo",
+        lang === "tr" ? "Galeriden Seç" : "Choose from Gallery",
+        ...(profilePhotoUri ? [lang === "tr" ? "Fotoğrafı Kaldır" : "Remove Photo"] : []),
+        lang === "tr" ? "İptal" : "Cancel",
+      ];
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options: opts, cancelButtonIndex: opts.length - 1, destructiveButtonIndex: profilePhotoUri ? 2 : undefined },
+        (idx) => {
+          if (idx === 0) pickFromCamera();
+          else if (idx === 1) pickFromGallery();
+          else if (idx === 2 && profilePhotoUri) setProfilePhoto(null);
+        }
+      );
+    } else {
+      const buttons: any[] = [
+        { text: lang === "tr" ? "Kameradan Çek" : "Take Photo", onPress: pickFromCamera },
+        { text: lang === "tr" ? "Galeriden Seç" : "Choose from Gallery", onPress: pickFromGallery },
+      ];
+      if (profilePhotoUri) {
+        buttons.push({ text: lang === "tr" ? "Fotoğrafı Kaldır" : "Remove Photo", style: "destructive", onPress: () => setProfilePhoto(null) });
+      }
+      buttons.push({ text: lang === "tr" ? "İptal" : "Cancel", style: "cancel" });
+      Alert.alert(
+        lang === "tr" ? "Profil Fotoğrafı" : "Profile Photo",
+        lang === "tr" ? "Bir seçenek belirleyin" : "Choose an option",
+        buttons
+      );
+    }
+  };
+
   return (
     <View style={styles.container}>
       <LinearGradient colors={["#08051A", "#070D1A", "#0D0820"]} style={StyleSheet.absoluteFill} />
@@ -158,25 +270,57 @@ export default function ProfileScreen() {
       >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(500)} style={styles.header}>
-          <Text style={styles.headerSub}>✦ {lang === "tr" ? "TENGRI" : "TENGRI"} ✦</Text>
+          <Text style={styles.headerSub}>✦ TENGRI ✦</Text>
           <Text style={styles.headerTitle}>{lang === "tr" ? "Profilim" : "My Profile"}</Text>
         </Animated.View>
 
-        {/* Avatar + User Info */}
-        <Animated.View entering={ZoomIn.delay(100).springify()} style={styles.avatarSection}>
-          <LinearGradient colors={["#1A1030", "#0D1526"]} style={styles.avatarCard}>
-            <View style={styles.avatarCircle}>
-              <Ionicons name="person" size={40} color={Colors.gold} />
-            </View>
+        {/* Avatar + User Info Card */}
+        <Animated.View entering={ZoomIn.delay(100).springify()}>
+          <LinearGradient
+            colors={["#1A1030", "#0D1526"]}
+            style={styles.profileCard}
+          >
+            {/* Avatar with edit button */}
+            <Pressable onPress={handleAvatarPress} style={styles.avatarWrap} testID="avatar-press">
+              {profilePhotoUri ? (
+                <Image source={{ uri: profilePhotoUri }} style={styles.avatarImage} />
+              ) : (
+                <LinearGradient
+                  colors={avatarColors as [string, string]}
+                  style={styles.avatarInitials}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Text style={styles.initialsText}>{initials}</Text>
+                </LinearGradient>
+              )}
+              {/* Edit overlay badge */}
+              <View style={styles.editBadge}>
+                <Ionicons name={photoLoading ? "hourglass-outline" : "camera"} size={13} color="#000" />
+              </View>
+            </Pressable>
+
+            {/* User info */}
             <View style={styles.userInfoBlock}>
               {userProfile ? (
                 <>
                   <Text style={styles.userName}>{userProfile.name}</Text>
-                  <Text style={styles.userEmail}>{userProfile.email}</Text>
-                  <Text style={styles.userJoin}>
-                    {lang === "tr" ? "Katılım: " : "Joined: "}
-                    {new Date(userProfile.joinDate).toLocaleDateString(lang === "tr" ? "tr-TR" : "en-US", { year: "numeric", month: "long" })}
-                  </Text>
+                  <View style={styles.infoRow}>
+                    <Ionicons name="mail-outline" size={12} color={Colors.textDim} />
+                    <Text style={styles.userEmail}>{userProfile.email}</Text>
+                  </View>
+                  <View style={styles.infoRow}>
+                    <Ionicons name="calendar-outline" size={12} color={Colors.textDim} />
+                    <Text style={styles.userJoin}>
+                      {new Date(userProfile.joinDate).toLocaleDateString(lang === "tr" ? "tr-TR" : "en-US", { year: "numeric", month: "long", day: "numeric" })}
+                    </Text>
+                  </View>
+                  <Pressable onPress={handleAvatarPress} style={styles.changePhotoBtn}>
+                    <Ionicons name="camera-outline" size={11} color={Colors.gold} />
+                    <Text style={styles.changePhotoBtnText}>
+                      {lang === "tr" ? (profilePhotoUri ? "Fotoğrafı Değiştir" : "Fotoğraf Ekle") : (profilePhotoUri ? "Change Photo" : "Add Photo")}
+                    </Text>
+                  </Pressable>
                 </>
               ) : (
                 <>
@@ -302,7 +446,7 @@ export default function ProfileScreen() {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                   setShowDeleteModal(true);
                 }}
-                style={styles.deleteBtn}
+                style={styles.deleteAccBtn}
               >
                 <Ionicons name="trash-outline" size={15} color="#FF4444" />
                 <Text style={styles.deleteBtnText}>{lang === "tr" ? "Hesabımı Sil" : "Delete My Account"}</Text>
@@ -323,14 +467,81 @@ const styles = StyleSheet.create({
   headerSub: { fontSize: 10, fontFamily: "Lora_400Regular", color: Colors.gold, letterSpacing: 6, textAlign: "center" },
   headerTitle: { fontSize: 26, fontFamily: "Lora_700Bold", color: Colors.text, textAlign: "center" },
 
-  avatarSection: {},
-  avatarCard: { borderRadius: 18, borderWidth: 1, borderColor: Colors.cardBorder, padding: 18, flexDirection: "row", alignItems: "center", gap: 16 },
-  avatarCircle: { width: 72, height: 72, borderRadius: 36, backgroundColor: Colors.surface, borderWidth: 2, borderColor: Colors.gold + "40", alignItems: "center", justifyContent: "center" },
-  userInfoBlock: { flex: 1, gap: 4 },
-  userName: { fontSize: 18, fontFamily: "Lora_700Bold", color: Colors.text },
-  userEmail: { fontSize: 12, fontFamily: "Lora_400Regular", color: Colors.textSecondary },
+  profileCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    padding: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 18,
+  },
+
+  avatarWrap: { position: "relative" },
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: Colors.gold + "60",
+  },
+  avatarInitials: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: Colors.gold + "30",
+  },
+  initialsText: {
+    fontFamily: "Lora_700Bold",
+    fontSize: 28,
+    color: "#fff",
+    letterSpacing: 2,
+  },
+  editBadge: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.gold,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: Colors.background,
+  },
+
+  userInfoBlock: { flex: 1, gap: 5 },
+  userName: { fontSize: 17, fontFamily: "Lora_700Bold", color: Colors.text, lineHeight: 22 },
+  infoRow: { flexDirection: "row", alignItems: "center", gap: 5 },
+  userEmail: { fontSize: 12, fontFamily: "Lora_400Regular", color: Colors.textSecondary, flex: 1 },
   userJoin: { fontSize: 11, fontFamily: "Lora_400Regular_Italic", color: Colors.textDim },
-  loginBtn: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: Colors.gold, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, alignSelf: "flex-start", marginTop: 4 },
+  changePhotoBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 4,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.gold + "40",
+    alignSelf: "flex-start",
+    backgroundColor: Colors.gold + "10",
+  },
+  changePhotoBtnText: {
+    fontSize: 11,
+    fontFamily: "Lora_700Bold",
+    color: Colors.gold,
+  },
+  loginBtn: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+    backgroundColor: Colors.gold, paddingHorizontal: 12, paddingVertical: 8,
+    borderRadius: 10, alignSelf: "flex-start", marginTop: 4,
+  },
   loginBtnText: { fontSize: 12, fontFamily: "Lora_700Bold", color: Colors.background },
 
   goldCard: { borderRadius: 16, borderWidth: 1, borderColor: Colors.gold + "30", overflow: "hidden" },
@@ -371,7 +582,7 @@ const styles = StyleSheet.create({
 
   logoutBtn: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 14, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1, borderColor: Colors.error + "30", backgroundColor: Colors.surface },
   logoutText: { fontSize: 14, fontFamily: "Lora_700Bold", color: Colors.error },
-  deleteBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1, borderColor: "#FF444420", backgroundColor: "transparent" },
+  deleteAccBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1, borderColor: "#FF444420", backgroundColor: "transparent" },
   deleteBtnText: { fontSize: 12, fontFamily: "Lora_400Regular", color: "#FF4444" },
 });
 

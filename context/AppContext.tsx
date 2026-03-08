@@ -22,6 +22,8 @@ interface AppContextValue {
   goldBalance: number;
   readings: Reading[];
   userProfile: UserProfile | null;
+  profilePhotoUri: string | null;
+  setProfilePhoto: (uri: string | null) => Promise<void>;
   isLoaded: boolean;
   canAfford: (service: string) => boolean;
   spendGold: (service: string) => boolean;
@@ -50,6 +52,7 @@ const KEYS = {
   gold: 'tengri_gold_v2',
   readings: 'tengri_readings',
   profile: 'tengri_profile',
+  profilePhoto: 'tengri_profile_photo',
   lastSpin: 'tengri_last_spin',
   trialCount: 'tengri_trial_count',
   isPurchased: 'tengri_is_purchased',
@@ -68,6 +71,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [goldBalance, setGoldBalance] = useState(FREE_START_GOLD);
   const [readings, setReadings] = useState<Reading[]>([]);
   const [userProfile, setProfileState] = useState<UserProfile | null>(null);
+  const [profilePhotoUri, setProfilePhotoState] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [lastSpinDate, setLastSpinDate] = useState<string | null>(null);
   const [lastDailyFreeDate, setLastDailyFreeDateState] = useState<string | null>(null);
@@ -78,10 +82,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
-        const [goldStr, readStr, profStr, spinStr, tcStr, ipStr, zodStr, dfStr] = await Promise.all([
+        const [goldStr, readStr, profStr, photoStr, spinStr, tcStr, ipStr, zodStr, dfStr] = await Promise.all([
           AsyncStorage.getItem(KEYS.gold),
           AsyncStorage.getItem(KEYS.readings),
           AsyncStorage.getItem(KEYS.profile),
+          AsyncStorage.getItem(KEYS.profilePhoto),
           AsyncStorage.getItem(KEYS.lastSpin),
           AsyncStorage.getItem(KEYS.trialCount),
           AsyncStorage.getItem(KEYS.isPurchased),
@@ -91,6 +96,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (goldStr !== null) setGoldBalance(parseInt(goldStr, 10));
         if (readStr) setReadings(JSON.parse(readStr));
         if (profStr) setProfileState(JSON.parse(profStr));
+        if (photoStr) setProfilePhotoState(photoStr);
         if (spinStr) setLastSpinDate(spinStr);
         if (tcStr) setTrialCount(parseInt(tcStr, 10));
         if (ipStr) setIsPurchased(ipStr === 'true');
@@ -142,7 +148,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const clearUserProfile = async () => {
     setProfileState(null);
-    await AsyncStorage.removeItem(KEYS.profile);
+    setProfilePhotoState(null);
+    await Promise.all([
+      AsyncStorage.removeItem(KEYS.profile),
+      AsyncStorage.removeItem(KEYS.profilePhoto),
+    ]);
+  };
+
+  const setProfilePhoto = async (uri: string | null) => {
+    setProfilePhotoState(uri);
+    if (uri) {
+      await AsyncStorage.setItem(KEYS.profilePhoto, uri);
+    } else {
+      await AsyncStorage.removeItem(KEYS.profilePhoto);
+    }
   };
 
   const canSpin = isSpinAvailable(lastSpinDate);
@@ -186,6 +205,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     goldBalance,
     readings,
     userProfile,
+    profilePhotoUri,
+    setProfilePhoto,
     isLoaded,
     canAfford,
     spendGold,
@@ -206,7 +227,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setZodiacSign,
     canDailyFree,
     markDailyFreeUsed,
-  }), [goldBalance, readings, userProfile, isLoaded, trialCount, isPurchased, lastSpinDate, zodiacSign, lastDailyFreeDate]);
+  }), [goldBalance, readings, userProfile, profilePhotoUri, isLoaded, trialCount, isPurchased, lastSpinDate, zodiacSign, lastDailyFreeDate]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
