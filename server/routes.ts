@@ -1,65 +1,55 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "node:http";
 import OpenAI from "openai";
-import nodemailer from "nodemailer";
 import bcrypt from "bcryptjs";
 import crypto from "node:crypto";
+import { db } from "./db";
+import { users } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
-interface UserRecord {
-  id: string;
-  name: string;
-  email: string;
-  passwordHash: string;
-  verified: boolean;
-  verifyToken: string;
-  createdAt: string;
-  resetCode?: string;
-  resetCodeExpiry?: number;
-}
-
-const userStore = new Map<string, UserRecord>();
-
-function getMailer() {
-  const host = process.env.SMTP_HOST;
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-  const port = Number(process.env.SMTP_PORT || "587");
-  if (!host || !user || !pass) return null;
-  return nodemailer.createTransport({ host, port, secure: port === 465, auth: { user, pass } });
+async function sendEmail(to: string, subject: string, html: string) {
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) {
+    console.log(`[DEV] Email to ${to}: ${subject}`);
+    return;
+  }
+  await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${resendKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: "Tengri <noreply@tengristar.com>",
+      to,
+      subject,
+      html,
+    }),
+  });
 }
 
 async function sendVerificationEmail(email: string, name: string, token: string, baseUrl: string) {
   const verifyUrl = `${baseUrl}/api/auth/verify?token=${token}`;
-  const mailer = getMailer();
-  if (!mailer) {
-    console.log(`[DEV] Verification link for ${email}: ${verifyUrl}`);
-    return;
-  }
-  const from = process.env.SMTP_USER!;
-  await mailer.sendMail({
-    from: `"Tengri ✦" <${from}>`,
-    to: email,
-    subject: "Tengri — Hesabınızı Doğrulayın",
-    html: `
-      <div style="background:#08051A;padding:40px;font-family:Georgia,serif;color:#E8D9B0;max-width:480px;margin:0 auto;border-radius:16px;">
-        <h1 style="color:#C8A020;font-size:28px;text-align:center;margin-bottom:8px;">✦ Tengri</h1>
-        <p style="text-align:center;color:#9B8EC4;font-size:14px;margin-bottom:32px;">Mistik yolculuğunuz başlamak üzere</p>
-        <p style="font-size:16px;">Merhaba <strong>${name}</strong>,</p>
-        <p style="font-size:14px;color:#B8A9D0;line-height:1.6;">Tengri'ye hoş geldiniz. Hesabınızı doğrulamak için aşağıdaki butona tıklayın:</p>
-        <div style="text-align:center;margin:32px 0;">
-          <a href="${verifyUrl}" style="background:linear-gradient(90deg,#C8A020,#9B6820);color:#08051A;padding:16px 36px;border-radius:12px;text-decoration:none;font-weight:bold;font-size:16px;">Hesabı Doğrula</a>
-        </div>
-        <p style="font-size:12px;color:#6B5E8A;text-align:center;">Bu bağlantı 24 saat geçerlidir.</p>
+  await sendEmail(email, "Tengri — Hesabınızı Doğrulayın", `
+    <div style="background:#08051A;padding:40px;font-family:Georgia,serif;color:#E8D9B0;max-width:480px;margin:0 auto;border-radius:16px;">
+      <h1 style="color:#C8A020;font-size:28px;text-align:center;margin-bottom:8px;">✦ Tengri</h1>
+      <p style="text-align:center;color:#9B8EC4;font-size:14px;margin-bottom:32px;">Mistik yolculuğunuz başlamak üzere</p>
+      <p style="font-size:16px;">Merhaba <strong>${name}</strong>,</p>
+      <p style="font-size:14px;color:#B8A9D0;line-height:1.6;">Tengri'ye hoş geldiniz. Hesabınızı doğrulamak için aşağıdaki butona tıklayın:</p>
+      <div style="text-align:center;margin:32px 0;">
+        <a href="${verifyUrl}" style="background:linear-gradient(90deg,#C8A020,#9B6820);color:#08051A;padding:16px 36px;border-radius:12px;text-decoration:none;font-weight:bold;font-size:16px;">Hesabı Doğrula</a>
       </div>
-    `,
-  });
+      <p style="font-size:12px;color:#6B5E8A;text-align:center;">Bu bağlantı 24 saat geçerlidir.</p>
+    </div>
+  `);
+  if (!process.env.RESEND_API_KEY) {
+    console.log(`[DEV] Verification link for ${email}: ${verifyUrl}`);
+  }
 }
 
 function getOpenAIClient(): OpenAI {
   const userKey = process.env.OPENAI_API_KEY_ || process.env.OPENAI_API_KEY;
-  if (userKey) {
-    return new OpenAI({ apiKey: userKey });
-  }
+  if (userKey) return new OpenAI({ apiKey: userKey });
   return new OpenAI({
     apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
     baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
@@ -81,28 +71,22 @@ const serviceSystemPrompts: Record<string, string> = {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+
   app.post("/api/auth/register", async (req: Request, res: Response) => {
     try {
       const { name, email, password } = req.body;
       if (!name || !email || !password) return res.status(400).json({ error: "Tüm alanlar gerekli" });
       const key = email.toLowerCase().trim();
-      if (userStore.has(key)) return res.status(409).json({ error: "Bu e-posta zaten kayıtlı" });
+      const existing = await db.select().from(users).where(eq(users.email, key)).limit(1);
+      if (existing.length > 0) return res.status(409).json({ error: "Bu e-posta zaten kayıtlı" });
       const passwordHash = await bcrypt.hash(password, 10);
       const verifyToken = crypto.randomBytes(32).toString("hex");
-      const user: UserRecord = {
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2),
-        name: name.trim(),
-        email: key,
-        passwordHash,
-        verified: false,
-        verifyToken,
-        createdAt: new Date().toISOString(),
-      };
-      userStore.set(key, user);
+      const [user] = await db.insert(users).values({
+        name: name.trim(), email: key, passwordHash, verified: false, verifyToken,
+      }).returning();
       const proto = req.headers["x-forwarded-proto"] || req.protocol;
       const host = req.headers["x-forwarded-host"] || req.get("host");
-      const baseUrl = `${proto}://${host}`;
-      sendVerificationEmail(key, name.trim(), verifyToken, baseUrl).catch(() => {});
+      sendVerificationEmail(key, name.trim(), verifyToken, `${proto}://${host}`).catch(() => {});
       return res.json({ success: true, user: { id: user.id, name: user.name, email: key } });
     } catch (err) {
       console.error("Register error:", err);
@@ -110,19 +94,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/auth/verify", (req: Request, res: Response) => {
+  app.get("/api/auth/verify", async (req: Request, res: Response) => {
     const { token } = req.query;
     if (!token || typeof token !== "string") {
       return res.status(400).send(verifyPage("Hata", "Geçersiz doğrulama bağlantısı.", false));
     }
-    let found: UserRecord | null = null;
-    for (const user of userStore.values()) {
-      if (user.verifyToken === token) { found = user; break; }
-    }
-    if (!found) return res.status(404).send(verifyPage("Hata", "Doğrulama bağlantısı geçersiz veya süresi dolmuş.", false));
-    found.verified = true;
-    userStore.set(found.email, found);
-    return res.send(verifyPage("Başarılı ✦", `Hesabınız doğrulandı. Tengri'ye giriş yapabilirsiniz.`, true));
+    const all = await db.select().from(users).where(eq(users.verifyToken, token)).limit(1);
+    if (all.length === 0) return res.status(404).send(verifyPage("Hata", "Doğrulama bağlantısı geçersiz veya süresi dolmuş.", false));
+    await db.update(users).set({ verified: true }).where(eq(users.verifyToken, token));
+    return res.send(verifyPage("Başarılı ✦", "Hesabınız doğrulandı. Tengri'ye giriş yapabilirsiniz.", true));
   });
 
   app.post("/api/auth/login", async (req: Request, res: Response) => {
@@ -130,8 +110,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { email, password } = req.body;
       if (!email || !password) return res.status(400).json({ error: "E-posta ve şifre gerekli" });
       const key = email.toLowerCase().trim();
-      const user = userStore.get(key);
-      if (!user) return res.status(401).json({ error: "E-posta veya şifre hatalı" });
+      const rows = await db.select().from(users).where(eq(users.email, key)).limit(1);
+      if (rows.length === 0) return res.status(401).json({ error: "E-posta veya şifre hatalı" });
+      const user = rows[0];
       const match = await bcrypt.compare(password, user.passwordHash);
       if (!match) return res.status(401).json({ error: "E-posta veya şifre hatalı" });
       return res.json({ success: true, user: { id: user.id, name: user.name, email: user.email } });
@@ -145,34 +126,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email } = req.body;
       const key = email?.toLowerCase().trim();
-      const user = userStore.get(key);
-      if (!user) return res.json({ success: true });
+      const rows = await db.select().from(users).where(eq(users.email, key)).limit(1);
+      if (rows.length === 0) return res.json({ success: true });
+      const user = rows[0];
       const code = Math.floor(100000 + Math.random() * 900000).toString();
-      user.resetCode = code;
-      user.resetCodeExpiry = Date.now() + 15 * 60 * 1000;
-      userStore.set(key, user);
-      const mailer = getMailer();
-      if (!mailer) {
+      const expiry = Date.now() + 15 * 60 * 1000;
+      await db.update(users).set({ resetCode: code, resetCodeExpiry: expiry }).where(eq(users.email, key));
+      if (!process.env.RESEND_API_KEY) {
         console.log(`[DEV] Password reset code for ${key}: ${code}`);
-      } else {
-        await mailer.sendMail({
-          from: `"Tengri ✦" <${process.env.SMTP_USER}>`,
-          to: key,
-          subject: "Tengri — Şifre Sıfırlama Kodu",
-          html: `
-            <div style="background:#08051A;padding:40px;font-family:Georgia,serif;color:#E8D9B0;max-width:480px;margin:0 auto;border-radius:16px;">
-              <h1 style="color:#C8A020;font-size:28px;text-align:center;margin-bottom:8px;">✦ Tengri</h1>
-              <p style="text-align:center;color:#9B8EC4;font-size:14px;margin-bottom:32px;">Şifre Sıfırlama</p>
-              <p style="font-size:16px;">Merhaba <strong>${user.name}</strong>,</p>
-              <p style="font-size:14px;color:#B8A9D0;line-height:1.6;">Şifre sıfırlama kodunuz:</p>
-              <div style="text-align:center;margin:32px 0;">
-                <div style="display:inline-block;background:linear-gradient(90deg,#C8A020,#9B6820);color:#08051A;padding:20px 48px;border-radius:12px;font-size:36px;font-weight:bold;letter-spacing:8px;">${code}</div>
-              </div>
-              <p style="font-size:12px;color:#6B5E8A;text-align:center;">Bu kod 15 dakika geçerlidir. Siz talep etmediyseniz bu e-postayı dikkate almayın.</p>
-            </div>
-          `,
-        });
       }
+      await sendEmail(key, "Tengri — Şifre Sıfırlama Kodu", `
+        <div style="background:#08051A;padding:40px;font-family:Georgia,serif;color:#E8D9B0;max-width:480px;margin:0 auto;border-radius:16px;">
+          <h1 style="color:#C8A020;font-size:28px;text-align:center;margin-bottom:8px;">✦ Tengri</h1>
+          <p style="text-align:center;color:#9B8EC4;font-size:14px;margin-bottom:32px;">Şifre Sıfırlama</p>
+          <p style="font-size:16px;">Merhaba <strong>${user.name}</strong>,</p>
+          <p style="font-size:14px;color:#B8A9D0;line-height:1.6;">Şifre sıfırlama kodunuz:</p>
+          <div style="text-align:center;margin:32px 0;">
+            <div style="display:inline-block;background:linear-gradient(90deg,#C8A020,#9B6820);color:#08051A;padding:20px 48px;border-radius:12px;font-size:36px;font-weight:bold;letter-spacing:8px;">${code}</div>
+          </div>
+          <p style="font-size:12px;color:#6B5E8A;text-align:center;">Bu kod 15 dakika geçerlidir. Siz talep etmediyseniz bu e-postayı dikkate almayın.</p>
+        </div>
+      `);
       return res.json({ success: true });
     } catch (err) {
       console.error("Forgot password error:", err);
@@ -185,15 +159,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { email, code, newPassword } = req.body;
       if (!email || !code || !newPassword) return res.status(400).json({ error: "Tüm alanlar gerekli" });
       const key = email.toLowerCase().trim();
-      const user = userStore.get(key);
-      if (!user || !user.resetCode || !user.resetCodeExpiry) return res.status(400).json({ error: "Geçersiz veya süresi dolmuş kod" });
+      const rows = await db.select().from(users).where(eq(users.email, key)).limit(1);
+      if (rows.length === 0) return res.status(400).json({ error: "Geçersiz veya süresi dolmuş kod" });
+      const user = rows[0];
+      if (!user.resetCode || !user.resetCodeExpiry) return res.status(400).json({ error: "Geçersiz veya süresi dolmuş kod" });
       if (Date.now() > user.resetCodeExpiry) return res.status(400).json({ error: "Kodun süresi dolmuş, tekrar isteyin" });
       if (user.resetCode !== code.trim()) return res.status(400).json({ error: "Kod hatalı" });
       if (newPassword.length < 6) return res.status(400).json({ error: "Şifre en az 6 karakter olmalı" });
-      user.passwordHash = await bcrypt.hash(newPassword, 10);
-      user.resetCode = undefined;
-      user.resetCodeExpiry = undefined;
-      userStore.set(key, user);
+      const passwordHash = await bcrypt.hash(newPassword, 10);
+      await db.update(users).set({ passwordHash, resetCode: null, resetCodeExpiry: null }).where(eq(users.email, key));
       return res.json({ success: true });
     } catch (err) {
       console.error("Reset password error:", err);
@@ -205,13 +179,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email } = req.body;
       const key = email?.toLowerCase().trim();
-      const user = userStore.get(key);
-      if (!user) return res.status(404).json({ error: "Kayıtlı kullanıcı bulunamadı" });
+      const rows = await db.select().from(users).where(eq(users.email, key)).limit(1);
+      if (rows.length === 0) return res.status(404).json({ error: "Kayıtlı kullanıcı bulunamadı" });
+      const user = rows[0];
       if (user.verified) return res.json({ success: true, message: "Zaten doğrulandı" });
       const proto = req.headers["x-forwarded-proto"] || req.protocol;
       const host = req.headers["x-forwarded-host"] || req.get("host");
-      const baseUrl = `${proto}://${host}`;
-      await sendVerificationEmail(key, user.name, user.verifyToken, baseUrl);
+      await sendVerificationEmail(key, user.name, user.verifyToken, `${proto}://${host}`);
       return res.json({ success: true });
     } catch (err) {
       return res.status(500).json({ error: "Mail gönderilemedi" });
@@ -221,89 +195,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/reading", async (req: Request, res: Response) => {
     try {
       const { service, userInput, imageBase64, imageType, images } = req.body;
-
-      if (!service) {
-        return res.status(400).json({ error: "Servis türü gerekli" });
-      }
-
+      if (!service) return res.status(400).json({ error: "Servis türü gerekli" });
       const systemPrompt = serviceSystemPrompts[service] || serviceSystemPrompts.astroloji;
       const userMessage = userInput || "Benim için mistik bir okuma yap.";
-
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
-
       let messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[];
-
       const multiPhotos: { base64: string; type: string }[] = Array.isArray(images) ? images : [];
       const hasSinglePhoto = !!(imageBase64 && (service === "kahve" || service === "el"));
       const hasMultiPhotos = multiPhotos.length > 0 && (service === "kahve" || service === "el");
-
       if (hasMultiPhotos) {
         const contentParts: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [
           ...multiPhotos.map((img) => ({
             type: "image_url" as const,
-            image_url: {
-              url: `data:${img.type || "image/jpeg"};base64,${img.base64}`,
-              detail: "high" as const,
-            },
+            image_url: { url: `data:${img.type || "image/jpeg"};base64,${img.base64}`, detail: "high" as const },
           })),
           { type: "text" as const, text: userMessage },
         ];
-        messages = [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: contentParts },
-        ];
+        messages = [{ role: "system", content: systemPrompt }, { role: "user", content: contentParts }];
       } else if (hasSinglePhoto) {
-        const mimeType = imageType || "image/jpeg";
         messages = [
           { role: "system", content: systemPrompt },
-          {
-            role: "user",
-            content: [
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:${mimeType};base64,${imageBase64}`,
-                  detail: "high",
-                },
-              },
-              { type: "text", text: userMessage },
-            ],
-          },
+          { role: "user", content: [
+            { type: "image_url", image_url: { url: `data:${imageType || "image/jpeg"};base64,${imageBase64}`, detail: "high" } },
+            { type: "text", text: userMessage },
+          ]},
         ];
       } else {
-        messages = [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userMessage },
-        ];
+        messages = [{ role: "system", content: systemPrompt }, { role: "user", content: userMessage }];
       }
-
       const openai = getOpenAIClient();
-      const stream = await openai.chat.completions.create({
-        model: "gpt-5.2",
-        messages,
-        stream: true,
-        max_completion_tokens: 2500,
-      });
-
+      const stream = await openai.chat.completions.create({ model: "gpt-5.2", messages, stream: true, max_completion_tokens: 2500 });
       for await (const chunk of stream) {
         const content = chunk.choices[0]?.delta?.content || "";
-        if (content) {
-          res.write(`data: ${JSON.stringify({ content })}\n\n`);
-        }
+        if (content) res.write(`data: ${JSON.stringify({ content })}\n\n`);
       }
-
       res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
       res.end();
     } catch (error) {
       console.error("Reading error:", error);
-      if (res.headersSent) {
-        res.write(`data: ${JSON.stringify({ error: "Okuma yapılamadı" })}\n\n`);
-        res.end();
-      } else {
-        res.status(500).json({ error: "Okuma yapılamadı" });
-      }
+      if (res.headersSent) { res.write(`data: ${JSON.stringify({ error: "Okuma yapılamadı" })}\n\n`); res.end(); }
+      else res.status(500).json({ error: "Okuma yapılamadı" });
     }
   });
 
@@ -311,25 +244,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { zodiacSign } = req.body;
       if (!zodiacSign) return res.status(400).json({ error: "Burç gerekli" });
-
-      const systemPrompt = `Sen Tengri'nin bilge burç ustasısın. Kullanıcının bugünkü burç yorumunu 2-3 cümleyle özetle. Gizemli, çekici ve merak uyandırıcı bir dil kullan. Tam yorumu okumak için devamını beklemeleri gerektiğini ima et. Türkçe yaz.`;
-      const userMessage = `${zodiacSign} burcu için bugünün kısa mistik mesajını ver.`;
-
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
-
       const openai = getOpenAIClient();
       const stream = await openai.chat.completions.create({
         model: "gpt-5.2",
         messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userMessage },
+          { role: "system", content: `Sen Tengri'nin bilge burç ustasısın. Kullanıcının bugünkü burç yorumunu 2-3 cümleyle özetle. Gizemli, çekici ve merak uyandırıcı bir dil kullan. Tam yorumu okumak için devamını beklemeleri gerektiğini ima et. Türkçe yaz.` },
+          { role: "user", content: `${zodiacSign} burcu için bugünün kısa mistik mesajını ver.` },
         ],
         stream: true,
         max_completion_tokens: 120,
       });
-
       for await (const chunk of stream) {
         const content = chunk.choices[0]?.delta?.content || "";
         if (content) res.write(`data: ${JSON.stringify({ content })}\n\n`);
@@ -338,12 +265,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.end();
     } catch (error) {
       console.error("Daily horoscope teaser error:", error);
-      if (res.headersSent) {
-        res.write(`data: ${JSON.stringify({ error: "Teaser alınamadı" })}\n\n`);
-        res.end();
-      } else {
-        res.status(500).json({ error: "Teaser alınamadı" });
-      }
+      if (res.headersSent) { res.write(`data: ${JSON.stringify({ error: "Teaser alınamadı" })}\n\n`); res.end(); }
+      else res.status(500).json({ error: "Teaser alınamadı" });
     }
   });
 
