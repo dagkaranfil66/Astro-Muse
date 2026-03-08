@@ -65,6 +65,60 @@ const SERVICE_META_BASE: Record<string, {
 
 const TAROT_CARD_NAMES = ["GEÇMIŞ", "ŞİMDİ", "GELECEK"];
 
+// ────────── Service Images ──────────
+const SERVICE_IMAGES: Record<string, any> = {
+  astroloji:  require("@/assets/images/services/astroloji.png"),
+  kahve:      require("@/assets/images/services/kahve.png"),
+  el:         require("@/assets/images/services/el.png"),
+  tarot:      require("@/assets/images/services/tarot.png"),
+  samanizm:   require("@/assets/images/services/samanizm.png"),
+  numeroloji: require("@/assets/images/services/numeroloji.png"),
+  ruh:        require("@/assets/images/services/ruh.png"),
+  dogum:      require("@/assets/images/services/dogum.png"),
+  ruya:       require("@/assets/images/services/ruya.png"),
+  burclar:    require("@/assets/images/services/burclar.png"),
+  ask:        require("@/assets/images/services/ask.png"),
+};
+
+// Hero banner — shows the service image with gradient overlay + optional animated content
+function ServiceHeroBanner({
+  serviceId, color, children,
+}: {
+  serviceId: string;
+  color: string;
+  children?: React.ReactNode;
+}) {
+  const scale = useSharedValue(1.06);
+  React.useEffect(() => {
+    scale.value = withRepeat(
+      withSequence(withTiming(1, { duration: 4000 }), withTiming(1.06, { duration: 4000 })), -1, true
+    );
+  }, []);
+  const imgStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const img = SERVICE_IMAGES[serviceId];
+
+  return (
+    <View style={sHero.wrap}>
+      {img && (
+        <Animated.Image source={img} style={[sHero.img, imgStyle]} resizeMode="cover" />
+      )}
+      <LinearGradient
+        colors={["transparent", color + "55", Colors.background]}
+        style={StyleSheet.absoluteFill}
+        locations={[0, 0.6, 1]}
+      />
+      {children && (
+        <View style={sHero.overlay}>{children}</View>
+      )}
+    </View>
+  );
+}
+const sHero = StyleSheet.create({
+  wrap: { width: "100%", height: 180, borderRadius: 18, overflow: "hidden", marginBottom: 16, position: "relative" },
+  img: { width: "100%", height: "100%", position: "absolute" },
+  overlay: { position: "absolute", bottom: 0, left: 0, right: 0, top: 0, alignItems: "center", justifyContent: "flex-end", paddingBottom: 14 },
+});
+
 // ────────── Star field background ──────────
 const STAR_POS = Array.from({ length: 16 }, () => ({
   top: Math.random() * 50,
@@ -86,35 +140,33 @@ function Star({ top, left, dur, init }: { top: number; left: number; dur: number
 function KahveIntro({ color }: { color: string }) {
   const steam1 = useSharedValue(0);
   const steam2 = useSharedValue(0);
-  const cupScale = useSharedValue(0.8);
 
   React.useEffect(() => {
-    cupScale.value = withSpring(1, { damping: 10 });
     steam1.value = withRepeat(
-      withSequence(withTiming(-20, { duration: 1500 }), withTiming(0, { duration: 0 })), -1, false
+      withSequence(withTiming(-22, { duration: 1500 }), withTiming(0, { duration: 0 })), -1, false
     );
     steam2.value = withDelay(500, withRepeat(
       withSequence(withTiming(-18, { duration: 1800 }), withTiming(0, { duration: 0 })), -1, false
     ));
   }, []);
 
-  const cupStyle = useAnimatedStyle(() => ({ transform: [{ scale: cupScale.value }] }));
-  const s1Style = useAnimatedStyle(() => ({ transform: [{ translateY: steam1.value }], opacity: Math.max(0, 1 - Math.abs(steam1.value) / 20) }));
+  const s1Style = useAnimatedStyle(() => ({ transform: [{ translateY: steam1.value }], opacity: Math.max(0, 1 - Math.abs(steam1.value) / 22) }));
   const s2Style = useAnimatedStyle(() => ({ transform: [{ translateY: steam2.value }], opacity: Math.max(0, 1 - Math.abs(steam2.value) / 18) }));
 
   return (
     <View style={styles.serviceIntro}>
-      <View style={{ alignItems: "center", height: 110 }}>
-        <View style={{ flexDirection: "row", gap: 10, marginBottom: 4 }}>
-          <Animated.View style={[styles.steam, { backgroundColor: color }, s1Style]} />
-          <Animated.View style={[styles.steam, { backgroundColor: color, height: 16 }, s2Style]} />
-          <Animated.View style={[styles.steam, { backgroundColor: color }, s1Style]} />
+      <ServiceHeroBanner serviceId="kahve" color={color}>
+        <View style={{ alignItems: "center" }}>
+          <View style={{ flexDirection: "row", gap: 10, marginBottom: 2 }}>
+            <Animated.View style={[styles.steam, { backgroundColor: "#fff" }, s1Style]} />
+            <Animated.View style={[styles.steam, { backgroundColor: "#fff", height: 14 }, s2Style]} />
+            <Animated.View style={[styles.steam, { backgroundColor: "#fff" }, s1Style]} />
+          </View>
+          <View style={[styles.cupOuter, { borderColor: "#ffffff60" }]}>
+            <Ionicons name="cafe" size={36} color="#fff" />
+          </View>
         </View>
-        <Animated.View style={[styles.cupOuter, { borderColor: color + "50" }, cupStyle]}>
-          <Ionicons name="cafe" size={44} color={color} />
-        </Animated.View>
-        <View style={[styles.saucer, { borderColor: color + "40" }]} />
-      </View>
+      </ServiceHeroBanner>
       <Text style={styles.introServiceTitle}>Kahve Falı</Text>
       <Text style={styles.introDesc}>Fincanınızın fotoğrafını yükleyin{"\n"}veya gördüğünüz sembolleri yazın.</Text>
     </View>
@@ -123,29 +175,28 @@ function KahveIntro({ color }: { color: string }) {
 
 function ElIntro({ color }: { color: string }) {
   const glow = useSharedValue(0.3);
-  const scale = useSharedValue(0.8);
 
   React.useEffect(() => {
-    scale.value = withSpring(1, { damping: 10 });
     glow.value = withRepeat(
       withSequence(withTiming(1, { duration: 1200 }), withTiming(0.2, { duration: 1200 })), -1, false
     );
   }, []);
 
   const glowStyle = useAnimatedStyle(() => ({ opacity: glow.value }));
-  const scaleStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   return (
     <View style={styles.serviceIntro}>
-      <View style={{ alignItems: "center", height: 110 }}>
-        <Animated.View style={[styles.handGlow, { backgroundColor: color }, glowStyle]} />
-        <Animated.View style={[styles.handContainer, { borderColor: color + "50" }, scaleStyle]}>
-          <Ionicons name="hand-left" size={50} color={color} />
-        </Animated.View>
-        {[...Array(3)].map((_, i) => (
-          <View key={i} style={[styles.palmLine, { top: 48 + i * 14, backgroundColor: color + "60", width: 40 + i * 8 }]} />
-        ))}
-      </View>
+      <ServiceHeroBanner serviceId="el" color={color}>
+        <View style={{ alignItems: "center", justifyContent: "center" }}>
+          <Animated.View style={[{
+            width: 70, height: 70, borderRadius: 35,
+            backgroundColor: color + "30", position: "absolute",
+          }, glowStyle]} />
+          <View style={[styles.handContainer, { borderColor: "#ffffff50" }]}>
+            <Ionicons name="hand-left" size={42} color="#fff" />
+          </View>
+        </View>
+      </ServiceHeroBanner>
       <Text style={styles.introServiceTitle}>El Falı</Text>
       <Text style={styles.introDesc}>Avucunuzun fotoğrafını yükleyin ya da çizgilerinizi anlatın. Kader haritanız okunacak.</Text>
     </View>
@@ -255,8 +306,29 @@ function TarotCard({ color, label, isDone, isLoading, flipDelay, floatDelay, car
 }
 
 function TarotIntro({ color, isDone, isLoading }: { color: string; isDone: boolean; isLoading?: boolean; readingText?: string }) {
+  const bannerScale = useSharedValue(1.06);
+  React.useEffect(() => {
+    bannerScale.value = withRepeat(
+      withSequence(withTiming(1, { duration: 4500 }), withTiming(1.06, { duration: 4500 })), -1, true
+    );
+  }, []);
+  const bannerImgStyle = useAnimatedStyle(() => ({ transform: [{ scale: bannerScale.value }] }));
+
   return (
     <View style={styles.tarotIntro}>
+      {/* Subtle top banner with tarot image */}
+      <View style={{ width: "100%", height: 120, borderRadius: 14, overflow: "hidden", marginBottom: 4 }}>
+        <Animated.Image
+          source={SERVICE_IMAGES.tarot}
+          style={[{ width: "100%", height: "100%", position: "absolute" }, bannerImgStyle]}
+          resizeMode="cover"
+        />
+        <LinearGradient
+          colors={["transparent", color + "44", Colors.background]}
+          style={StyleSheet.absoluteFill}
+          locations={[0, 0.55, 1]}
+        />
+      </View>
       <View style={styles.tarotCardsRow}>
         {TAROT_CARD_NAMES.map((label, i) => (
           <TarotCard key={i} color={color} label={label} isDone={isDone} isLoading={isLoading} cardIndex={i} flipDelay={i * 380} floatDelay={i * 250} />
@@ -357,45 +429,38 @@ function KahvePhotoSection({
 
 function DogumIntro({ color }: { color: string }) {
   const rotate = useSharedValue(0);
-  const scale = useSharedValue(0.7);
 
   React.useEffect(() => {
-    scale.value = withSpring(1, { damping: 10 });
     rotate.value = withRepeat(withTiming(360, { duration: 20000 }), -1, false);
   }, []);
 
   const ringStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${rotate.value}deg` }] }));
-  const scaleStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   const zodiac = ["♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓"];
 
   return (
     <View style={styles.serviceIntro}>
-      <View style={{ alignItems: "center", height: 130 }}>
-        <Animated.View style={scaleStyle}>
-          <View style={[styles.zodiacWheel, { borderColor: color + "30" }]}>
+      <ServiceHeroBanner serviceId="dogum" color={color}>
+        <View style={{ alignItems: "center", justifyContent: "center" }}>
+          <View style={[styles.zodiacWheel, { borderColor: "#ffffff25", width: 100, height: 100 }]}>
             <Animated.View style={[styles.zodiacRing, ringStyle]}>
               {zodiac.map((sign, i) => {
                 const angle = (i / 12) * 2 * Math.PI;
-                const r = 52;
+                const r = 40;
                 return (
-                  <Text
-                    key={i}
-                    style={[styles.zodiacSign, {
-                      color: color,
-                      position: "absolute",
-                      left: 62 + Math.cos(angle) * r - 8,
-                      top: 62 + Math.sin(angle) * r - 8,
-                    }]}
-                  >
-                    {sign}
-                  </Text>
+                  <Text key={i} style={[styles.zodiacSign, {
+                    color: "#fff",
+                    position: "absolute",
+                    fontSize: 10,
+                    left: 50 + Math.cos(angle) * r - 7,
+                    top: 50 + Math.sin(angle) * r - 7,
+                  }]}>{sign}</Text>
                 );
               })}
             </Animated.View>
-            <Ionicons name="planet" size={36} color={color} />
+            <Ionicons name="planet" size={28} color="#fff" />
           </View>
-        </Animated.View>
-      </View>
+        </View>
+      </ServiceHeroBanner>
       <Text style={styles.introServiceTitle}>Doğum Haritası</Text>
       <Text style={styles.introDesc}>Doğum tarihiniz, saatiniz ve şehrinizi girerek kişisel yıldız haritanızı çıkarın.</Text>
     </View>
@@ -405,31 +470,31 @@ function DogumIntro({ color }: { color: string }) {
 function RuyaIntro({ color }: { color: string }) {
   const float = useSharedValue(0);
   const moonGlow = useSharedValue(0.5);
-  const scale = useSharedValue(0.8);
 
   React.useEffect(() => {
-    scale.value = withSpring(1, { damping: 10 });
     float.value = withRepeat(
-      withSequence(withTiming(-12, { duration: 2500 }), withTiming(0, { duration: 2500 })), -1, false
+      withSequence(withTiming(-10, { duration: 2500 }), withTiming(0, { duration: 2500 })), -1, false
     );
     moonGlow.value = withRepeat(
-      withSequence(withTiming(1, { duration: 2000 }), withTiming(0.3, { duration: 2000 })), -1, false
+      withSequence(withTiming(0.9, { duration: 2000 }), withTiming(0.2, { duration: 2000 })), -1, false
     );
   }, []);
 
-  const floatStyle = useAnimatedStyle(() => ({ transform: [{ translateY: float.value }, { scale: scale.value }] }));
+  const floatStyle = useAnimatedStyle(() => ({ transform: [{ translateY: float.value }] }));
   const glowStyle = useAnimatedStyle(() => ({ opacity: moonGlow.value }));
 
   return (
     <View style={styles.serviceIntro}>
-      <View style={{ alignItems: "center", height: 120 }}>
-        <Animated.View style={[styles.dreamGlow, { backgroundColor: color }, glowStyle]} />
-        <Animated.View style={floatStyle}>
-          <View style={[styles.dreamCloud, { borderColor: color + "40" }]}>
-            <Ionicons name="moon" size={42} color={color} />
-          </View>
-        </Animated.View>
-      </View>
+      <ServiceHeroBanner serviceId="ruya" color={color}>
+        <View style={{ alignItems: "center", justifyContent: "center" }}>
+          <Animated.View style={[{ width: 60, height: 60, borderRadius: 30, backgroundColor: color + "40", position: "absolute" }, glowStyle]} />
+          <Animated.View style={floatStyle}>
+            <View style={[styles.dreamCloud, { borderColor: "#ffffff40" }]}>
+              <Ionicons name="moon" size={36} color="#fff" />
+            </View>
+          </Animated.View>
+        </View>
+      </ServiceHeroBanner>
       <Text style={styles.introServiceTitle}>Rüya Yorumu</Text>
       <Text style={styles.introDesc}>Gördüğünüz rüyayı anlatın. Şamanist gelenek ile rüyanızın mistik mesajını çözelim.</Text>
     </View>
@@ -442,10 +507,10 @@ function BurclarIntro({ color }: { color: string }) {
 
   React.useEffect(() => {
     rotate.value = withRepeat(
-      withSequence(withTiming(10, { duration: 3000 }), withTiming(-10, { duration: 3000 })), -1, true
+      withSequence(withTiming(8, { duration: 3000 }), withTiming(-8, { duration: 3000 })), -1, true
     );
     glow.value = withRepeat(
-      withSequence(withTiming(1, { duration: 1800 }), withTiming(0.2, { duration: 1800 })), -1, false
+      withSequence(withTiming(0.9, { duration: 1800 }), withTiming(0.2, { duration: 1800 })), -1, false
     );
   }, []);
 
@@ -454,14 +519,16 @@ function BurclarIntro({ color }: { color: string }) {
 
   return (
     <View style={styles.serviceIntro}>
-      <View style={{ alignItems: "center", height: 110 }}>
-        <Animated.View style={[styles.zodiacGlow, { backgroundColor: color }, gStyle]} />
-        <Animated.View style={rStyle}>
-          <View style={[styles.zodiacIcon, { borderColor: color + "50" }]}>
-            <Ionicons name="telescope" size={44} color={color} />
-          </View>
-        </Animated.View>
-      </View>
+      <ServiceHeroBanner serviceId="burclar" color={color}>
+        <View style={{ alignItems: "center", justifyContent: "center" }}>
+          <Animated.View style={[{ width: 66, height: 66, borderRadius: 33, backgroundColor: color + "40", position: "absolute" }, gStyle]} />
+          <Animated.View style={rStyle}>
+            <View style={[styles.zodiacIcon, { borderColor: "#ffffff40" }]}>
+              <Ionicons name="telescope" size={38} color="#fff" />
+            </View>
+          </Animated.View>
+        </View>
+      </ServiceHeroBanner>
       <Text style={styles.introServiceTitle}>Burçlar</Text>
       <Text style={styles.introDesc}>Burcunuzu yazın ve bu haftaya özel mistik yorumunuzu alın. Aşk, kariyer ve ruhsal rehberlik.</Text>
     </View>
@@ -486,35 +553,35 @@ function AskIntro({ color }: { color: string }) {
 
   return (
     <View style={styles.serviceIntro}>
-      <View style={{ alignItems: "center", height: 110, justifyContent: "center" }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: -8 }}>
-          <Animated.View style={[styles.heartWrap, { borderColor: color + "40" }, s1]}>
-            <Ionicons name="heart" size={30} color={color} />
+      <ServiceHeroBanner serviceId="ask" color={color}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: -8, justifyContent: "center" }}>
+          <Animated.View style={[styles.heartWrap, { borderColor: "#ffffff40" }, s1]}>
+            <Ionicons name="heart" size={28} color="#fff" />
           </Animated.View>
           <View style={styles.heartJoin}>
-            <Ionicons name="sparkles" size={16} color={Colors.gold} />
+            <Ionicons name="sparkles" size={14} color={Colors.gold} />
           </View>
-          <Animated.View style={[styles.heartWrap, { borderColor: color + "40" }, s2]}>
-            <Ionicons name="heart" size={30} color={color} />
+          <Animated.View style={[styles.heartWrap, { borderColor: "#ffffff40" }, s2]}>
+            <Ionicons name="heart" size={28} color="#fff" />
           </Animated.View>
         </View>
-      </View>
+      </ServiceHeroBanner>
       <Text style={styles.introServiceTitle}>Aşkını Bul</Text>
       <Text style={styles.introDesc}>İki burcun uyumunu Tengri'nin bilgeliği ile keşfedin. Aşk, tutku ve ruhsal bağınız okunacak.</Text>
     </View>
   );
 }
 
-function DefaultIntro({ color, icon, label, hint }: { color: string; icon: keyof typeof Ionicons.glyphMap; label: string; hint: string }) {
+function DefaultIntro({ serviceId, color, icon, label, hint }: { serviceId: string; color: string; icon: keyof typeof Ionicons.glyphMap; label: string; hint: string }) {
   const pulse = useSharedValue(1);
   const glow = useSharedValue(0.4);
 
   React.useEffect(() => {
     pulse.value = withRepeat(
-      withSequence(withTiming(1.1, { duration: 1500 }), withTiming(1, { duration: 1500 })), -1, false
+      withSequence(withTiming(1.08, { duration: 1500 }), withTiming(1, { duration: 1500 })), -1, false
     );
     glow.value = withRepeat(
-      withSequence(withTiming(0.9, { duration: 2000 }), withTiming(0.2, { duration: 2000 })), -1, false
+      withSequence(withTiming(0.8, { duration: 2000 }), withTiming(0.15, { duration: 2000 })), -1, false
     );
   }, []);
 
@@ -523,12 +590,14 @@ function DefaultIntro({ color, icon, label, hint }: { color: string; icon: keyof
 
   return (
     <View style={styles.serviceIntro}>
-      <View style={{ alignItems: "center", height: 120 }}>
-        <Animated.View style={[styles.defaultGlow, { backgroundColor: color }, glowStyle]} />
-        <Animated.View style={[styles.defaultIconWrap, { borderColor: color + "40" }, pulseStyle]}>
-          <Ionicons name={icon} size={50} color={color} />
-        </Animated.View>
-      </View>
+      <ServiceHeroBanner serviceId={serviceId} color={color}>
+        <View style={{ alignItems: "center", justifyContent: "center" }}>
+          <Animated.View style={[{ width: 70, height: 70, borderRadius: 35, backgroundColor: color + "35", position: "absolute" }, glowStyle]} />
+          <Animated.View style={[styles.defaultIconWrap, { borderColor: "#ffffff40" }, pulseStyle]}>
+            <Ionicons name={icon} size={42} color="#fff" />
+          </Animated.View>
+        </View>
+      </ServiceHeroBanner>
       <Text style={styles.introServiceTitle}>{label}</Text>
       <Text style={styles.introDesc}>{hint}</Text>
     </View>
@@ -781,7 +850,7 @@ export default function ReadingScreen() {
     if (service === "ruya") return <RuyaIntro color={base.color} />;
     if (service === "burclar") return <BurclarIntro color={base.color} />;
     if (service === "ask") return <AskIntro color={base.color} />;
-    return <DefaultIntro color={base.color} icon={base.icon} label={serviceLabel} hint={readingMeta.hint} />;
+    return <DefaultIntro serviceId={service} color={base.color} icon={base.icon} label={serviceLabel} hint={readingMeta.hint} />;
   };
 
   return (
