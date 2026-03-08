@@ -565,6 +565,16 @@ export default function ReadingScreen() {
 
   const pickFromGallery = async (): Promise<{ uri: string; base64: string; type: string } | null> => {
     try {
+      if (Platform.OS !== "web") {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert(
+            lang === "tr" ? "İzin Gerekli" : "Permission Required",
+            lang === "tr" ? "Galerinize erişmek için izin verin." : "Please allow access to your photo library."
+          );
+          return null;
+        }
+      }
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsEditing: true,

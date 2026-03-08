@@ -8,6 +8,7 @@ import {
   Platform,
   ActivityIndicator,
   Image,
+  Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -105,13 +106,23 @@ export default function DailyReadingScreen() {
     let result: ImagePicker.ImagePickerResult;
     if (useCamera) {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== "granted") return;
+      if (status !== "granted") {
+        Alert.alert("İzin Gerekli", "Kamera erişimi için izin verin.");
+        return;
+      }
       result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         base64: true,
         quality: 0.7,
       });
     } else {
+      if (Platform.OS !== "web") {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert("İzin Gerekli", "Galerinize erişmek için izin verin.");
+          return;
+        }
+      }
       result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         base64: true,
