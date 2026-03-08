@@ -11,9 +11,9 @@ import {
   Share,
   Linking,
   Image,
-  KeyboardAvoidingView,
   Dimensions,
 } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -877,8 +877,8 @@ export default function ReadingScreen() {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={topPad + 60}
+        behavior="padding"
+        keyboardVerticalOffset={0}
       >
         <ScrollView
           ref={scrollRef}
