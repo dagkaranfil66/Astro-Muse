@@ -3,29 +3,54 @@ import { createServer, type Server } from "node:http";
 import OpenAI from "openai";
 import bcrypt from "bcryptjs";
 import crypto from "node:crypto";
+import nodemailer from "nodemailer";
 import { db } from "./db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
-async function sendEmail(to: string, subject: string, html: string) {
+let _testTransport: nodemailer.Transporter | null = null;
+
+async function getTransport(): Promise<nodemailer.Transporter | null> {
   const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) {
-    console.log(`[DEV] Email to ${to}: ${subject}`);
+  if (resendKey) {
+    return nodemailer.createTransport({
+      host: "smtp.resend.com",
+      port: 465,
+      secure: true,
+      auth: { user: "resend", pass: resendKey },
+    });
+  }
+  if (!_testTransport) {
+    try {
+      const account = await nodemailer.createTestAccount();
+      _testTransport = nodemailer.createTransport({
+        host: account.smtp.host,
+        port: account.smtp.port,
+        secure: account.smtp.secure,
+        auth: { user: account.user, pass: account.pass },
+      });
+      console.log(`[Email] Test account: ${account.user} — preview at https://ethereal.email`);
+    } catch {
+      console.log("[Email] Could not create test account");
+      return null;
+    }
+  }
+  return _testTransport;
+}
+
+async function sendEmail(to: string, subject: string, html: string) {
+  const transport = await getTransport();
+  if (!transport) {
+    console.log(`[Email] No transport — ${subject} → ${to}`);
     return;
   }
-  await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${resendKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: "Tengri <noreply@tengristar.com>",
-      to,
-      subject,
-      html,
-    }),
-  });
+  const from = process.env.RESEND_API_KEY
+    ? "Tengri <noreply@tengristar.com>"
+    : '"Tengri ✦" <noreply@tengri.dev>';
+  const info = await transport.sendMail({ from, to, subject, html });
+  if (!process.env.RESEND_API_KEY) {
+    console.log(`[Email] Preview: ${nodemailer.getTestMessageUrl(info)}`);
+  }
 }
 
 async function sendVerificationEmail(email: string, name: string, token: string, baseUrl: string) {

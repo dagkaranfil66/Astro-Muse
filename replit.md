@@ -6,8 +6,9 @@ Turkish mystical guidance app with AI-powered readings (tengristar.com).
 - 11 AI-powered services: Astroloji, Kahve Falı, El Falı, Tarot, Şamanizm, Numeroloji, Ruh, Doğum, Rüya, Burçlar, Aşk
 - Gold coin economy: 10 free start coins, per-service pricing, 4 purchase packages
 - **Auth gate**: Users must register/login to use any service
-- **Social login**: Google ve E-posta ile giriş (Facebook/Apple kaldırıldı)
-- **Email verification**: Server-side user registration + nodemailer email doğrulama
+- **Auth**: E-posta + şifre ile kayıt/giriş (Google/Facebook/Apple kaldırıldı)
+- **Email verification**: Nodemailer — dev: Ethereal test hesabı (otomatik), prod: RESEND_API_KEY env var ile Resend SMTP
+- **Forgot password**: 6 haneli kod ile şifre sıfırlama (app/forgot-password.tsx)
 - **Password confirmation** on registration
 - **Daily spin wheel** (app/spin.tsx) — 24h cooldown, random gold prizes
 - **Photo upload**: El falı = kamera + galeri (tek foto); Kahve falı = 3 fotoğraf (kamera + galeri)
@@ -20,14 +21,14 @@ Turkish mystical guidance app with AI-powered readings (tengristar.com).
 ## Gold Economy
 - FREE_START_GOLD = 10
 - Service costs: Şamanizm/Burçlar/Ruh = 1✦; Astroloji/Kahve/El/Numeroloji/Rüya/Aşk = 2✦; Tarot/Doğum = 3✦
-- Packages: 15/40/80/150 gold at 29.99/74.99/139.99/249.99 ₺
+- Packages: 10/30/50/100 gold at 69.99/199.99/299.99/499.99 ₺ — RC IDs: tengri_basic/plus/premium/vip
 
 ## Tech Stack
 - **Frontend**: Expo / React Native with Expo Router
 - **Backend**: Express.js on port 5000
 - **AI**: OpenAI via Replit AI Integrations (priority: OPENAI_API_KEY_ → OPENAI_API_KEY → AI_INTEGRATIONS)
 - **Payments**: RevenueCat (`react-native-purchases`) — 4 gold packages (tengri_starter/standard/premium/vip); EXPO_PUBLIC_REVENUECAT_TEST/IOS/ANDROID_API_KEY env vars set
-- **Storage**: AsyncStorage (local)
+- **Storage**: PostgreSQL (Drizzle ORM) for users; AsyncStorage (local) for gold/history
 - **Fonts**: CinzelDecorative (ASCII/decorative), Lora (Turkish content)
 
 ## Architecture
@@ -41,7 +42,9 @@ Turkish mystical guidance app with AI-powered readings (tengristar.com).
 - `context/AppContext.tsx` — Gold balance, readings, user profile, spin wheel state
 - `context/LanguageContext.tsx` — TR/EN translations
 - `constants/serviceConfig.ts` — Gold costs, packages
-- `server/routes.ts` — AI reading streaming endpoint, supports multi-photo for kahve
+- `server/routes.ts` — Auth, AI reading streaming endpoint, supports multi-photo for kahve
+- `server/db.ts` — Drizzle ORM + pg Pool connection
+- `shared/schema.ts` — PostgreSQL users table (id, name, email, passwordHash, verified, verifyToken, resetCode, resetCodeExpiry)
 
 ## Logo Animation
 - Blue (#5B9BD5) ↔ Pink (#FF6B9D) animated color transition on mandala rings and glow
