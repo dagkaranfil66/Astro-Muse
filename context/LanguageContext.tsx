@@ -56,7 +56,7 @@ const translations = {
       ask: { placeholder: 'İki kişinin burcu (örn: Ben Terazi, O Koç)', inputLabel: 'Burç Uyumu', hint: 'Aşk enerjisi okunuyor…' },
     },
     shareText: (service: string, content: string) =>
-      `✨ Tengri Mistik Okuma — ${service}\n\n${content.slice(0, 280)}...\n\n🌟 tengristar.com'da siz de keşfedin!`,
+      `🔮 TENGRI uygulamasından fal yorumum\n\n✨ ${service}\n\n${content.slice(0, 300)}...\n\n📱 App Store & Google Play'de "Tengri" uygulamasını siz de indirin`,
   },
   en: {
     appTagline: 'Mystic Guidance',
@@ -110,7 +110,7 @@ const translations = {
       ask: { placeholder: "Two people's signs (e.g. I'm Libra, they're Aries)", inputLabel: 'Zodiac Compatibility', hint: 'Reading love energy…' },
     },
     shareText: (service: string, content: string) =>
-      `✨ Tengri Mystic Reading — ${service}\n\n${content.slice(0, 280)}...\n\n🌟 Discover yours at tengristar.com!`,
+      `🔮 My fortune reading from the TENGRI app\n\n✨ ${service}\n\n${content.slice(0, 300)}...\n\n📱 Download "Tengri" on App Store & Google Play`,
   },
 };
 

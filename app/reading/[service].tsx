@@ -428,6 +428,8 @@ function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string
   const [copied, setCopied] = useState(false);
   const shareText = t.shareText(serviceLabel, text);
   const encodedFull = encodeURIComponent(shareText.slice(0, 1000));
+  const btnScale = useSharedValue(1);
+  const btnStyle = useAnimatedStyle(() => ({ transform: [{ scale: btnScale.value }] }));
 
   const copyToClipboard = async (fullText: string) => {
     try {
@@ -455,13 +457,9 @@ function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string
     }
   };
 
-  const SHARE_BTNS = [
-    { label: "WhatsApp", icon: "logo-whatsapp" as const, color: "#25D366", url: `https://wa.me/?text=${encodedFull}` },
-    { label: "Twitter/X", icon: "logo-twitter" as const, color: "#1DA1F2", url: `https://twitter.com/intent/tweet?text=${encodedFull}` },
-  ];
-
   const handleNativeShare = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    btnScale.value = withSequence(withTiming(0.95, { duration: 80 }), withTiming(1, { duration: 160 }));
     try {
       await Share.share({ message: shareText });
     } catch {
@@ -469,36 +467,53 @@ function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string
     }
   };
 
+  const handleWhatsApp = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Linking.openURL(`https://wa.me/?text=${encodedFull}`).catch(() => Share.share({ message: shareText }));
+  };
+
   return (
     <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.sharePanel}>
+      {/* Label */}
       <View style={styles.sharePanelHeader}>
         <Ionicons name="share-social-outline" size={13} color={Colors.gold} />
-        <Text style={styles.sharePanelTitle}>{t.share}</Text>
+        <Text style={styles.sharePanelTitle}>
+          {lang === "tr" ? "FALINI PAYLAŞ" : "SHARE YOUR READING"}
+        </Text>
       </View>
-      <View style={styles.shareButtons}>
-        {SHARE_BTNS.map((btn) => (
-          <Pressable
-            key={btn.label}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              Linking.openURL(btn.url).catch(() => Share.share({ message: shareText }));
-            }}
-            style={[styles.shareBtn, { borderColor: btn.color + "40", backgroundColor: btn.color + "10" }]}
+
+      {/* Teaser preview */}
+      <Text style={styles.sharePreviewText} numberOfLines={2}>
+        {"🔮 " + (lang === "tr" ? "TENGRI uygulamasından fal yorumum" : "My fortune reading from TENGRI app")}
+      </Text>
+
+      {/* BIG primary share button */}
+      <Animated.View style={[btnStyle, { width: "100%" }]}>
+        <Pressable onPress={handleNativeShare} style={styles.sharePrimaryBtn}>
+          <LinearGradient
+            colors={[Colors.gold, "#8B6914"]}
+            style={styles.sharePrimaryBtnInner}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
           >
-            <Ionicons name={btn.icon} size={18} color={btn.color} />
-            <Text style={[styles.shareBtnLabel, { color: btn.color }]}>{btn.label}</Text>
-          </Pressable>
-        ))}
-        <Pressable onPress={copyText} style={[styles.shareBtn, styles.shareBtnCopy]}>
-          <Ionicons name={copied ? "checkmark-circle" : "copy-outline"} size={18} color={copied ? "#4CAF7A" : Colors.textSecondary} />
-          <Text style={[styles.shareBtnLabel, { color: copied ? "#4CAF7A" : Colors.textSecondary }]}>
-            {copied ? t.copied : t.copyText}
-          </Text>
+            <Ionicons name="share-social" size={20} color="#000" />
+            <Text style={styles.sharePrimaryBtnText}>
+              {lang === "tr" ? "Falımı Paylaş" : "Share My Reading"}
+            </Text>
+          </LinearGradient>
         </Pressable>
-        <Pressable onPress={handleNativeShare} style={[styles.shareBtn, styles.shareBtnMore]}>
-          <Ionicons name="ellipsis-horizontal" size={18} color={Colors.textSecondary} />
-          <Text style={[styles.shareBtnLabel, { color: Colors.textSecondary }]}>
-            {lang === "tr" ? "Daha Fazla" : "More"}
+      </Animated.View>
+
+      {/* Secondary row */}
+      <View style={styles.shareSecondaryRow}>
+        <Pressable onPress={handleWhatsApp} style={styles.shareSecondaryBtn}>
+          <Ionicons name="logo-whatsapp" size={17} color="#25D366" />
+          <Text style={[styles.shareSecondaryLabel, { color: "#25D366" }]}>WhatsApp</Text>
+        </Pressable>
+        <Pressable onPress={copyText} style={styles.shareSecondaryBtn}>
+          <Ionicons name={copied ? "checkmark-circle" : "copy-outline"} size={17} color={copied ? "#4CAF7A" : Colors.textSecondary} />
+          <Text style={[styles.shareSecondaryLabel, { color: copied ? "#4CAF7A" : Colors.textSecondary }]}>
+            {copied ? (lang === "tr" ? "Kopyalandı!" : "Copied!") : (lang === "tr" ? "Kopyala" : "Copy")}
           </Text>
         </Pressable>
       </View>
@@ -1000,16 +1015,16 @@ const styles = StyleSheet.create({
   readingText: { padding: 16, fontSize: 15, fontFamily: "Lora_400Regular", color: Colors.text, lineHeight: 26 },
 
   // Share
-  sharePanel: { backgroundColor: Colors.surface, borderRadius: 14, borderWidth: 1, borderColor: Colors.gold + "25", padding: 14, marginBottom: 12 },
-  sharePanelHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 10 },
-  sharePanelTitle: { fontSize: 10, fontFamily: "Lora_700Bold", color: Colors.gold, letterSpacing: 1, textTransform: "uppercase" },
-  shareButtons: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  shareBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 9, borderWidth: 1 },
-  shareBtnWA: { borderColor: "#25D36640", backgroundColor: "#25D36610" },
-  shareBtnTW: { borderColor: "#1DA1F240", backgroundColor: "#1DA1F210" },
-  shareBtnCopy: { borderColor: Colors.cardBorder, backgroundColor: Colors.surfaceElevated },
-  shareBtnMore: { borderColor: Colors.cardBorder, backgroundColor: Colors.surfaceElevated },
-  shareBtnLabel: { fontSize: 11, fontFamily: "Lora_400Regular" },
+  sharePanel: { backgroundColor: Colors.surface, borderRadius: 16, borderWidth: 1, borderColor: Colors.gold + "35", padding: 16, marginBottom: 12, gap: 12 },
+  sharePanelHeader: { flexDirection: "row", alignItems: "center", gap: 6 },
+  sharePanelTitle: { fontSize: 10, fontFamily: "Lora_700Bold", color: Colors.gold, letterSpacing: 2 },
+  sharePreviewText: { fontSize: 12, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary, lineHeight: 18 },
+  sharePrimaryBtn: { borderRadius: 14, overflow: "hidden", width: "100%" },
+  sharePrimaryBtnInner: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, paddingVertical: 15, paddingHorizontal: 20 },
+  sharePrimaryBtnText: { fontSize: 16, fontFamily: "Lora_700Bold", color: "#000", letterSpacing: 0.3 },
+  shareSecondaryRow: { flexDirection: "row", gap: 10 },
+  shareSecondaryBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: Colors.cardBorder, backgroundColor: Colors.surfaceElevated },
+  shareSecondaryLabel: { fontSize: 12, fontFamily: "Lora_700Bold" },
 
   // Done
   doneActions: { alignItems: "center", paddingVertical: 6 },
