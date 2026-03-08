@@ -115,30 +115,36 @@ function AnimatedSplashScreen({ fontsReady, onDone }: { fontsReady: boolean; onD
 
   const timerDone = useRef(false);
   const fontsDone = useRef(fontsReady);
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
 
-  const doFinish = useCallback(() => {
-    containerOp.value = withTiming(0, { duration: 300 }, () => { runOnJS(onDone)(); });
-  }, []);
-  const maybeFinish = useCallback(() => {
-    if (timerDone.current && fontsDone.current) doFinish();
-  }, []);
+  // setTimeout tabanlı güvenli bitiş — worklet callback'inden bağımsız
+  const tryFinish = useRef(() => {
+    if (timerDone.current && fontsDone.current) {
+      containerOp.value = withTiming(0, { duration: 300 });
+      setTimeout(() => onDoneRef.current(), 320);
+    }
+  });
 
   useEffect(() => {
-    if (fontsReady) { fontsDone.current = true; maybeFinish(); }
+    if (fontsReady) {
+      fontsDone.current = true;
+      tryFinish.current();
+    }
   }, [fontsReady]);
 
   useEffect(() => {
     // ① Parçacıklar beliriyor — 0–280ms
     appear.value = withTiming(1, { duration: 280 });
 
-    // ② Merkeze hücum — 240–700ms  (hızlanarak: Easing.in cubic)
+    // ② Merkeze hücum — 240–700ms (ivmelenerek: cubic)
     converge.value = withDelay(240, withTiming(1, { duration: 460, easing: Easing.in(Easing.cubic) }));
 
-    // ③ Logo oluşuyor — 500–900ms (parçacıklar birleşirken)
+    // ③ Logo oluşuyor — 500–900ms
     logoOp.value    = withDelay(500, withTiming(1, { duration: 380 }));
     logoScale.value = withDelay(500, withTiming(1, { duration: 460, easing: Easing.out(Easing.back(1.2)) }));
 
-    // ④ Başlık açılıyor — 760–1020ms
+    // ④ Başlık — 760–1020ms
     titleOp.value = withDelay(760, withTiming(1, { duration: 280 }));
     titleSp.value  = withDelay(760, withTiming(4,  { duration: 360 }));
 
@@ -146,12 +152,17 @@ function AnimatedSplashScreen({ fontsReady, onDone }: { fontsReady: boolean; onD
     sl1Op.value = withDelay(960, withTiming(1, { duration: 210 }));
     sl1Y.value  = withDelay(960, withTiming(0, { duration: 210, easing: Easing.out(Easing.quad) }));
 
-    // ⑥ Slogan 2. satır — 1110–1320ms → bitiş tetikleniyor
+    // ⑥ Slogan 2. satır — 1110–1320ms
     sl2Op.value = withDelay(1110, withTiming(1, { duration: 210 }));
-    sl2Y.value  = withDelay(1110, withTiming(0, { duration: 210, easing: Easing.out(Easing.quad) }, () => {
+    sl2Y.value  = withDelay(1110, withTiming(0, { duration: 210, easing: Easing.out(Easing.quad) }));
+
+    // Animasyon bitti → geçişi tetikle (setTimeout — worklet'e gerek yok)
+    const t = setTimeout(() => {
       timerDone.current = true;
-      runOnJS(maybeFinish)();
-    }));
+      tryFinish.current();
+    }, 1380);
+
+    return () => clearTimeout(t);
   }, []);
 
   const containerStyle = useAnimatedStyle(() => ({ opacity: containerOp.value }));
