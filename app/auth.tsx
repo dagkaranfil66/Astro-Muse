@@ -182,6 +182,8 @@ export default function AuthScreen() {
   const [selectedProvider, setSelectedProvider] = useState<typeof SOCIAL_PROVIDERS[0] | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -388,10 +390,13 @@ export default function AuthScreen() {
                   onChangeText={setPassword}
                   placeholder={lang === "tr" ? "Şifreniz" : "Password"}
                   placeholderTextColor={Colors.textDim}
-                  secureTextEntry
+                  secureTextEntry={!showPassword}
                   returnKeyType={mode === "login" ? "done" : "next"}
                   onSubmitEditing={mode === "login" ? handleEmailSubmit : undefined}
                 />
+                <Pressable onPress={() => setShowPassword(v => !v)} hitSlop={8}>
+                  <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color={Colors.textDim} />
+                </Pressable>
               </View>
 
               {mode === "register" && (
@@ -403,10 +408,13 @@ export default function AuthScreen() {
                     onChangeText={setConfirmPassword}
                     placeholder={lang === "tr" ? "Şifrenizi tekrar girin" : "Confirm Password"}
                     placeholderTextColor={Colors.textDim}
-                    secureTextEntry
+                    secureTextEntry={!showConfirmPassword}
                     returnKeyType="done"
                     onSubmitEditing={handleEmailSubmit}
                   />
+                  <Pressable onPress={() => setShowConfirmPassword(v => !v)} hitSlop={8}>
+                    <Ionicons name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} size={20} color={Colors.textDim} />
+                  </Pressable>
                 </View>
               )}
 

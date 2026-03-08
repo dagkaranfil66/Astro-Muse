@@ -32,6 +32,8 @@ export default function ForgotPasswordScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -214,8 +216,11 @@ export default function ForgotPasswordScreen() {
                   onChangeText={(v) => { setNewPassword(v); setError(""); }}
                   placeholder={lang === "tr" ? "Yeni şifre" : "New password"}
                   placeholderTextColor={Colors.textDim}
-                  secureTextEntry
+                  secureTextEntry={!showNewPassword}
                 />
+                <Pressable onPress={() => setShowNewPassword(v => !v)} hitSlop={8}>
+                  <Ionicons name={showNewPassword ? "eye-off-outline" : "eye-outline"} size={20} color={Colors.textDim} />
+                </Pressable>
               </View>
 
               <View style={styles.inputWrap}>
@@ -226,10 +231,13 @@ export default function ForgotPasswordScreen() {
                   onChangeText={(v) => { setConfirmPassword(v); setError(""); }}
                   placeholder={lang === "tr" ? "Yeni şifreyi tekrar girin" : "Confirm new password"}
                   placeholderTextColor={Colors.textDim}
-                  secureTextEntry
+                  secureTextEntry={!showConfirmPassword}
                   returnKeyType="done"
                   onSubmitEditing={handleResetPassword}
                 />
+                <Pressable onPress={() => setShowConfirmPassword(v => !v)} hitSlop={8}>
+                  <Ionicons name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} size={20} color={Colors.textDim} />
+                </Pressable>
               </View>
 
               {!!error && <Text style={styles.errorText}>{error}</Text>}
