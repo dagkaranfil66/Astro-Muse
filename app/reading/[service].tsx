@@ -539,10 +539,8 @@ function DefaultIntro({ color, icon, label, hint }: { color: string; icon: keyof
 function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string }) {
   const { t, lang } = useLang();
   const [copied, setCopied] = useState(false);
-  const [igCopied, setIgCopied] = useState(false);
   const shareText = t.shareText(serviceLabel, text);
   const encodedFull = encodeURIComponent(shareText.slice(0, 1000));
-  const encodedUrl = encodeURIComponent("https://tengristar.com");
 
   const copyToClipboard = async (fullText: string) => {
     try {
@@ -570,27 +568,6 @@ function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string
     }
   };
 
-  const handleInstagram = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    if (Platform.OS === "web") {
-      const ok = await copyToClipboard(shareText);
-      if (ok) {
-        setIgCopied(true);
-        setTimeout(() => setIgCopied(false), 3000);
-      }
-      return;
-    }
-    try {
-      await Share.share({ message: shareText });
-    } catch {
-      const ok = await copyToClipboard(shareText);
-      if (ok) {
-        setIgCopied(true);
-        setTimeout(() => setIgCopied(false), 3000);
-      }
-    }
-  };
-
   const SHARE_BTNS = [
     { label: "WhatsApp", icon: "logo-whatsapp" as const, color: "#25D366", url: `https://wa.me/?text=${encodedFull}` },
     { label: "Twitter/X", icon: "logo-twitter" as const, color: "#1DA1F2", url: `https://twitter.com/intent/tweet?text=${encodedFull}` },
@@ -603,17 +580,6 @@ function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string
         <Text style={styles.sharePanelTitle}>{t.share}</Text>
       </View>
       <View style={styles.shareButtons}>
-        {/* Instagram — native share sheet on mobile, clipboard on web */}
-        <Pressable
-          onPress={handleInstagram}
-          style={[styles.shareBtn, { borderColor: "#E1306C" + "40", backgroundColor: "#E1306C" + "10" }]}
-        >
-          <Ionicons name="logo-instagram" size={18} color="#E1306C" />
-          <Text style={[styles.shareBtnLabel, { color: igCopied ? "#4CAF7A" : "#E1306C" }]}>
-            {igCopied ? (lang === "tr" ? "Kopyalandı!" : "Copied!") : "Instagram"}
-          </Text>
-        </Pressable>
-
         {SHARE_BTNS.map((btn) => (
           <Pressable
             key={btn.label}
@@ -634,11 +600,6 @@ function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string
           </Text>
         </Pressable>
       </View>
-      {igCopied && Platform.OS === "web" && (
-        <Text style={styles.igHint}>
-          {lang === "tr" ? "✓ Metin kopyalandı — Instagram'da yapıştırın" : "✓ Text copied — paste it in Instagram"}
-        </Text>
-      )}
     </Animated.View>
   );
 }
@@ -1094,7 +1055,6 @@ const styles = StyleSheet.create({
   shareBtnTW: { borderColor: "#1DA1F240", backgroundColor: "#1DA1F210" },
   shareBtnCopy: { borderColor: Colors.cardBorder, backgroundColor: Colors.surfaceElevated },
   shareBtnLabel: { fontSize: 11, fontFamily: "Lora_400Regular" },
-  igHint: { fontSize: 11, fontFamily: "Lora_400Regular_Italic", color: "#4CAF7A", textAlign: "center", marginTop: 8 },
 
   // Done
   doneActions: { alignItems: "center", paddingVertical: 6 },
