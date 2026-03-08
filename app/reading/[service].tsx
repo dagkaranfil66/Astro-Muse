@@ -573,6 +573,15 @@ function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string
     { label: "Twitter/X", icon: "logo-twitter" as const, color: "#1DA1F2", url: `https://twitter.com/intent/tweet?text=${encodedFull}` },
   ];
 
+  const handleNativeShare = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    try {
+      await Share.share({ message: shareText });
+    } catch {
+      await copyToClipboard(shareText);
+    }
+  };
+
   return (
     <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.sharePanel}>
       <View style={styles.sharePanelHeader}>
@@ -597,6 +606,12 @@ function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string
           <Ionicons name={copied ? "checkmark-circle" : "copy-outline"} size={18} color={copied ? "#4CAF7A" : Colors.textSecondary} />
           <Text style={[styles.shareBtnLabel, { color: copied ? "#4CAF7A" : Colors.textSecondary }]}>
             {copied ? t.copied : t.copyText}
+          </Text>
+        </Pressable>
+        <Pressable onPress={handleNativeShare} style={[styles.shareBtn, styles.shareBtnMore]}>
+          <Ionicons name="ellipsis-horizontal" size={18} color={Colors.textSecondary} />
+          <Text style={[styles.shareBtnLabel, { color: Colors.textSecondary }]}>
+            {lang === "tr" ? "Daha Fazla" : "More"}
           </Text>
         </Pressable>
       </View>
@@ -1054,6 +1069,7 @@ const styles = StyleSheet.create({
   shareBtnWA: { borderColor: "#25D36640", backgroundColor: "#25D36610" },
   shareBtnTW: { borderColor: "#1DA1F240", backgroundColor: "#1DA1F210" },
   shareBtnCopy: { borderColor: Colors.cardBorder, backgroundColor: Colors.surfaceElevated },
+  shareBtnMore: { borderColor: Colors.cardBorder, backgroundColor: Colors.surfaceElevated },
   shareBtnLabel: { fontSize: 11, fontFamily: "Lora_400Regular" },
 
   // Done
