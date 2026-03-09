@@ -602,7 +602,15 @@ function DailyHoroscopeCard() {
     Aslan: "#E08C00", Başak: "#7EB880", Terazi: "#C878D8", Akrep: "#8B2020",
     Yay: "#D8782A", Oğlak: "#6B8B9E", Kova: "#4878C8", Balık: "#7878D8",
   };
+  const signNameEn: Record<string, string> = {
+    Koç: "Aries", Boğa: "Taurus", İkizler: "Gemini", Yengeç: "Cancer",
+    Aslan: "Leo", Başak: "Virgo", Terazi: "Libra", Akrep: "Scorpio",
+    Yay: "Sagittarius", Oğlak: "Capricorn", Kova: "Aquarius", Balık: "Pisces",
+  };
   const color = zodiacSign ? (signColor[zodiacSign] ?? Colors.gold) : Colors.gold;
+  const displayName = zodiacSign
+    ? (lang === "tr" ? zodiacSign : (signNameEn[zodiacSign] ?? zodiacSign))
+    : null;
 
   return (
     <Animated.View entering={FadeInDown.delay(260).springify()}>
@@ -612,10 +620,14 @@ function DailyHoroscopeCard() {
             <Text style={[styles.dailyEmoji, { color }]}>{zodiacSign ? signEmoji[zodiacSign] : "☽"}</Text>
             <View>
               <Text style={[styles.dailyTitle, { color }]}>
-                {zodiacSign ? `${zodiacSign} · Günlük Yorum` : (lang === "tr" ? "Günlük Burcunuz" : "Daily Horoscope")}
+                {displayName
+                  ? `${displayName} · ${lang === "tr" ? "Günlük Yorum" : "Daily Horoscope"}`
+                  : (lang === "tr" ? "Günlük Burcunuz" : "Daily Horoscope")}
               </Text>
               <Text style={styles.dailySub}>
-                {zodiacSign ? "Mistik mesajınız hazır" : (lang === "tr" ? "Burcunuzu seçin" : "Select your sign")}
+                {displayName
+                  ? (lang === "tr" ? "Mistik mesajınız hazır" : "Your mystic message awaits")
+                  : (lang === "tr" ? "Burcunuzu seçin" : "Select your sign")}
               </Text>
             </View>
           </View>
