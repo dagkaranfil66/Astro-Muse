@@ -31,12 +31,15 @@ function getApiKey(): string {
   return TEST_KEY;
 }
 
+let _rcInitialized = false;
 export function initializeRevenueCat() {
+  if (_rcInitialized) return;
   try {
     const apiKey = getApiKey();
     if (!apiKey) return;
     Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
     Purchases.configure({ apiKey });
+    _rcInitialized = true;
     console.log("[RevenueCat] Configured");
   } catch (e) {
     console.warn("[RevenueCat] Init error:", e);
@@ -54,8 +57,9 @@ function useSubscriptionContext() {
   const offeringsQuery = useQuery({
     queryKey: ["revenuecat", "offerings"],
     queryFn: () => Purchases.getOfferings(),
-    staleTime: 300_000,
-    retry: 1,
+    staleTime: 0,
+    retry: 2,
+    retryDelay: 1000,
   });
 
   const purchaseMutation = useMutation({
@@ -78,6 +82,8 @@ function useSubscriptionContext() {
     offerings: offeringsQuery.data,
     packages,
     isLoading: customerInfoQuery.isLoading || offeringsQuery.isLoading,
+    offeringsError: offeringsQuery.isError,
+    refetchOfferings: offeringsQuery.refetch,
     purchase: purchaseMutation.mutateAsync,
     restore: restoreMutation.mutateAsync,
     isPurchasing: purchaseMutation.isPending,

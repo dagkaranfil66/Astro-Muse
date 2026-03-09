@@ -227,7 +227,7 @@ export default function PurchaseScreen() {
   const insets = useSafeAreaInsets();
   const { addGold, goldBalance, userProfile, canSpin } = useApp();
   const { lang } = useLang();
-  const { packages, isLoading: rcLoading, purchase, restore, isRestoring } = useSubscription();
+  const { packages, isLoading: rcLoading, purchase, restore, isRestoring, refetchOfferings, offeringsError } = useSubscription();
 
   const [buying, setBuying] = useState(false);
   const [boughtId, setBoughtId] = useState<string | null>(null);
@@ -389,6 +389,13 @@ export default function PurchaseScreen() {
                     ? "İnternet bağlantınızı kontrol edip tekrar deneyin."
                     : "Check your internet connection and try again."}
                 </Text>
+                <Pressable
+                  onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); refetchOfferings(); }}
+                  style={styles.retryBtn}
+                >
+                  <Ionicons name="refresh-outline" size={16} color={Colors.gold} />
+                  <Text style={styles.retryBtnText}>{lang === "tr" ? "Tekrar Dene" : "Try Again"}</Text>
+                </Pressable>
               </Animated.View>
             )}
 
@@ -575,6 +582,8 @@ const styles = StyleSheet.create({
   rcErrorWrap: { alignItems: "center", gap: 10, paddingVertical: 28, paddingHorizontal: 24, borderRadius: 14, borderWidth: 1, borderColor: Colors.cardBorder, backgroundColor: Colors.surface + "80" },
   rcErrorTitle: { fontSize: 15, fontFamily: "Lora_700Bold", color: Colors.textSecondary, textAlign: "center" },
   rcErrorDesc: { fontSize: 12, fontFamily: "Lora_400Regular_Italic", color: Colors.textDim, textAlign: "center", lineHeight: 18 },
+  retryBtn: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 10, borderWidth: 1, borderColor: Colors.gold + "60", backgroundColor: Colors.gold + "15" },
+  retryBtnText: { fontSize: 13, fontFamily: "Lora_700Bold", color: Colors.gold },
 
   restoreBtn: { alignSelf: "center", paddingVertical: 10, paddingHorizontal: 20, borderRadius: 10, borderWidth: 1, borderColor: Colors.textDim + "40", minHeight: 36, alignItems: "center", justifyContent: "center" },
   restoreBtnText: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textDim, textDecorationLine: "underline" },
