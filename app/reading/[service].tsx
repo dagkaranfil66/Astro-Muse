@@ -544,7 +544,14 @@ export default function ReadingScreen() {
   const [kahvePhotos, setKahvePhotos] = useState<{ uri: string; base64: string; type: string }[]>([]);
   const [showGoldModal, setShowGoldModal] = useState(false);
   const [showCameraModal, setShowCameraModal] = useState(false);
+  const [inputError, setInputError] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+
+  const hasValidInput = isKahve
+    ? (kahvePhotos.length > 0 || userInput.trim().length > 0)
+    : isEl
+    ? (photo !== null || userInput.trim().length > 0)
+    : userInput.trim().length > 0;
 
   const sendButtonScale = useSharedValue(1);
   const sendButtonStyle = useAnimatedStyle(() => ({ transform: [{ scale: sendButtonScale.value }] }));
@@ -610,13 +617,13 @@ export default function ReadingScreen() {
     if (kahvePhotos.length >= 3) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const img = source === "camera" ? await pickFromCamera() : await pickFromGallery();
-    if (img) setKahvePhotos((prev) => [...prev, img]);
+    if (img) { setKahvePhotos((prev) => [...prev, img]); setInputError(false); }
   };
 
   const handleElPhoto = async (source: "gallery" | "camera") => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const img = source === "camera" ? await pickFromCamera() : await pickFromGallery();
-    if (img) setPhoto(img);
+    if (img) { setPhoto(img); setInputError(false); }
   };
 
   const handleCameraCapture = (capturedPhoto: { uri: string; base64: string; type: string }) => {
@@ -626,6 +633,16 @@ export default function ReadingScreen() {
 
   const handleRead = async (photosOverride?: { uri: string; base64: string; type: string }[]) => {
     if (!canRead) { setShowGoldModal(true); return; }
+
+    const hasPhotosOverride = photosOverride && photosOverride.length > 0;
+    const isValid = hasPhotosOverride || hasValidInput;
+
+    if (!isValid) {
+      setInputError(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setTimeout(() => setInputError(false), 2500);
+      return;
+    }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     sendButtonScale.value = withSpring(0.9, {}, () => { sendButtonScale.value = withSpring(1); });
@@ -637,7 +654,7 @@ export default function ReadingScreen() {
 
     try {
       const baseUrl = getApiUrl();
-      const body: Record<string, any> = { service, userInput: userInput || "Benim için mistik bir okuma yap." };
+      const body: Record<string, any> = { service, userInput: userInput.trim() || "" };
       const photosToUse = photosOverride ?? kahvePhotos;
       if (isKahve && photosToUse.length > 0) {
         body.images = photosToUse.map((p) => ({ base64: p.base64, type: p.type }));
@@ -899,11 +916,23 @@ export default function ReadingScreen() {
             )}
 
             <Text style={styles.inputLabelText}>{readingMeta.inputLabel}</Text>
+            {inputError && (
+              <Animated.View entering={FadeInDown.duration(200)} style={styles.inputErrorBanner}>
+                <Ionicons name="alert-circle-outline" size={14} color="#FF6B6B" />
+                <Text style={styles.inputErrorText}>
+                  {isKahve
+                    ? (lang === "tr" ? "Fotoğraf ekleyin veya fincanı tanımlayın" : "Add a photo or describe the cup")
+                    : isEl
+                    ? (lang === "tr" ? "El fotoğrafı ekleyin veya çizgileri tanımlayın" : "Add a hand photo or describe the lines")
+                    : (lang === "tr" ? "Lütfen bir şeyler yazın" : "Please write something")}
+                </Text>
+              </Animated.View>
+            )}
             <View style={styles.inputRow}>
               <TextInput
-                style={styles.input}
+                style={[styles.input, inputError && { borderColor: "#FF6B6B50" }]}
                 value={userInput}
-                onChangeText={setUserInput}
+                onChangeText={(v) => { setUserInput(v); if (inputError) setInputError(false); }}
                 placeholder={readingMeta.placeholder}
                 placeholderTextColor={Colors.textDim}
                 multiline
@@ -912,14 +941,17 @@ export default function ReadingScreen() {
               />
               <Animated.View style={sendButtonStyle}>
                 <Pressable
-                  onPress={handleRead}
+                  onPress={() => handleRead()}
                   disabled={isLoading}
-                  style={[styles.sendBtn, { backgroundColor: canRead ? base.color : Colors.textDim }]}
+                  style={[
+                    styles.sendBtn,
+                    { backgroundColor: !canRead ? Colors.textDim : hasValidInput ? base.color : base.color + "50" }
+                  ]}
                 >
                   {isLoading ? (
                     <ActivityIndicator size="small" color={Colors.background} />
                   ) : (
-                    <Ionicons name={canRead ? "sparkles" : "lock-closed"} size={20} color={Colors.background} />
+                    <Ionicons name={!canRead ? "lock-closed" : "sparkles"} size={20} color={Colors.background} />
                   )}
                 </Pressable>
               </Animated.View>
@@ -1193,6 +1225,24 @@ const styles = StyleSheet.create({
     maxHeight: 100,
   },
   sendBtn: { width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center" },
+  inputErrorBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#FF6B6B15",
+    borderWidth: 1,
+    borderColor: "#FF6B6B40",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    marginBottom: 8,
+  },
+  inputErrorText: {
+    fontSize: 12,
+    fontFamily: "Lora_400Regular",
+    color: "#FF6B6B",
+    flex: 1,
+  },
   purchaseNudge: { alignItems: "center", paddingBottom: 2 },
   purchaseNudgeText: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textDim },
 });
