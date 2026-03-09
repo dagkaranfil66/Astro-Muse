@@ -38,8 +38,8 @@ const GOLD_PRODUCTS = [
     packageLookupKey: "tengri_basic",
     packageDisplayName: "Başlangıç Paketi",
     prices: [
-      { amount_micros: 1990000, currency: "USD" },
-      { amount_micros: 1990000, currency: "TRY" },
+      { amount_micros: 1390000, currency: "USD" },
+      { amount_micros: 49990000, currency: "TRY" },
     ],
   },
   {
@@ -49,30 +49,30 @@ const GOLD_PRODUCTS = [
     packageLookupKey: "tengri_plus",
     packageDisplayName: "Popüler Paket",
     prices: [
-      { amount_micros: 4990000, currency: "USD" },
-      { amount_micros: 4990000, currency: "TRY" },
+      { amount_micros: 2780000, currency: "USD" },
+      { amount_micros: 99990000, currency: "TRY" },
     ],
   },
   {
     identifier: "tengri_premium",
-    displayName: "Tengri Premium",
+    displayName: "Tengri Büyük",
     title: "140 Altın (+20 Bonus)",
     packageLookupKey: "tengri_premium",
-    packageDisplayName: "Premium Paket",
+    packageDisplayName: "Büyük Paket",
     prices: [
-      { amount_micros: 9990000, currency: "USD" },
-      { amount_micros: 9990000, currency: "TRY" },
+      { amount_micros: 5560000, currency: "USD" },
+      { amount_micros: 199990000, currency: "TRY" },
     ],
   },
   {
     identifier: "tengri_vip",
-    displayName: "Tengri VIP",
+    displayName: "Tengri Mega",
     title: "360 Altın (+60 Bonus)",
     packageLookupKey: "tengri_vip",
-    packageDisplayName: "Mega VIP Paketi",
+    packageDisplayName: "Mega Paket",
     prices: [
-      { amount_micros: 19990000, currency: "USD" },
-      { amount_micros: 19990000, currency: "TRY" },
+      { amount_micros: 11110000, currency: "USD" },
+      { amount_micros: 399990000, currency: "TRY" },
     ],
   },
 ];
