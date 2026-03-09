@@ -514,9 +514,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/auth/delete-account", async (req: Request, res: Response) => {
     try {
-      const { email } = req.body;
-      if (!email) return res.status(400).json({ error: "E-posta gerekli" });
+      const { email, password } = req.body;
+      if (!email || !password) return res.status(400).json({ error: "E-posta ve şifre gerekli" });
       const key = email.toLowerCase().trim();
+      const rows = await db.select().from(users).where(eq(users.email, key)).limit(1);
+      if (rows.length === 0) return res.status(404).json({ error: "Kullanıcı bulunamadı" });
+      const match = await bcrypt.compare(password, rows[0].passwordHash);
+      if (!match) return res.status(401).json({ error: "Şifre hatalı" });
       await db.delete(users).where(eq(users.email, key));
       return res.json({ success: true });
     } catch (err) {
@@ -544,6 +548,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { service, userInput, imageBase64, imageType, images } = req.body;
       if (!service) return res.status(400).json({ error: "Servis türü gerekli" });
+      const validServices = ["astroloji","kahve","el","tarot","samanizm","numeroloji","ruh","dogum","ruya","compat","crystal"];
+      if (!validServices.includes(service)) return res.status(400).json({ error: "Geçersiz servis" });
+      if (userInput && userInput.length > 2000) return res.status(400).json({ error: "Mesaj çok uzun (maks 2000 karakter)" });
       const systemPrompt = serviceSystemPrompts[service] || serviceSystemPrompts.astroloji;
       const userMessage = userInput || "Benim için mistik bir okuma yap.";
       res.setHeader("Content-Type", "text/event-stream");

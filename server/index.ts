@@ -1,5 +1,7 @@
 import express from "express";
 import type { Request, Response, NextFunction } from "express";
+import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
 import { registerRoutes } from "./routes";
 import * as fs from "fs";
 import * as path from "path";
@@ -11,6 +13,46 @@ declare module "http" {
   interface IncomingMessage {
     rawBody: unknown;
   }
+}
+
+function setupSecurity(app: express.Application) {
+  app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  }));
+
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Çok fazla deneme. Lütfen 15 dakika bekleyin." },
+    skip: (req) => process.env.NODE_ENV === "development",
+  });
+
+  const readingLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Çok fazla istek. Lütfen bir dakika bekleyin." },
+    skip: (req) => process.env.NODE_ENV === "development",
+  });
+
+  const emailLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Çok fazla e-posta isteği. Lütfen bir saat bekleyin." },
+    skip: (req) => process.env.NODE_ENV === "development",
+  });
+
+  app.use("/api/auth/login", authLimiter);
+  app.use("/api/auth/register", authLimiter);
+  app.use("/api/auth/forgot-password", emailLimiter);
+  app.use("/api/auth/resend", emailLimiter);
+  app.use("/api/reading", readingLimiter);
 }
 
 function setupCors(app: express.Application) {
@@ -227,6 +269,7 @@ function setupErrorHandler(app: express.Application) {
 }
 
 (async () => {
+  setupSecurity(app);
   setupCors(app);
   setupBodyParsing(app);
   setupRequestLogging(app);

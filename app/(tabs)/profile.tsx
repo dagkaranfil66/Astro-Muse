@@ -10,6 +10,7 @@ import {
   Image,
   Alert,
   ActionSheetIOS,
+  TextInput,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -86,10 +87,16 @@ function GoldCoin({ size = 32 }: { size?: number }) {
 function DeleteConfirmModal({
   visible, lang, onCancel, onConfirm, loading,
 }: {
-  visible: boolean; lang: string; onCancel: () => void; onConfirm: () => void; loading: boolean;
+  visible: boolean; lang: string; onCancel: () => void; onConfirm: (password: string) => void; loading: boolean;
 }) {
+  const [password, setPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
+
+  const handleCancel = () => { setPassword(""); onCancel(); };
+  const handleConfirm = () => { if (password.trim()) onConfirm(password.trim()); };
+
   return (
-    <Modal transparent visible={visible} animationType="fade" onRequestClose={onCancel}>
+    <Modal transparent visible={visible} animationType="fade" onRequestClose={handleCancel}>
       <View style={modal.overlay}>
         <View style={modal.card}>
           <View style={modal.iconWrap}>
@@ -101,11 +108,26 @@ function DeleteConfirmModal({
               ? "Hesabınız ve tüm verileriniz kalıcı olarak silinecek.\nBu işlem geri alınamaz."
               : "Your account and all data will be permanently deleted.\nThis cannot be undone."}
           </Text>
+          <View style={modal.passRow}>
+            <TextInput
+              style={modal.passInput}
+              placeholder={lang === "tr" ? "Şifrenizi girin" : "Enter your password"}
+              placeholderTextColor="#5A4E7A"
+              secureTextEntry={!showPass}
+              value={password}
+              onChangeText={setPassword}
+              autoCapitalize="none"
+              editable={!loading}
+            />
+            <Pressable onPress={() => setShowPass(v => !v)} style={modal.eyeBtn}>
+              <Ionicons name={showPass ? "eye-outline" : "eye-off-outline"} size={18} color="#7A6EA0" />
+            </Pressable>
+          </View>
           <View style={modal.btnRow}>
-            <Pressable onPress={onCancel} style={modal.cancelBtn} disabled={loading}>
+            <Pressable onPress={handleCancel} style={modal.cancelBtn} disabled={loading}>
               <Text style={modal.cancelText}>{lang === "tr" ? "İptal" : "Cancel"}</Text>
             </Pressable>
-            <Pressable onPress={onConfirm} style={[modal.deleteBtn, loading && { opacity: 0.6 }]} disabled={loading}>
+            <Pressable onPress={handleConfirm} style={[modal.deleteBtn, (loading || !password.trim()) && { opacity: 0.45 }]} disabled={loading || !password.trim()}>
               <Ionicons name="trash-outline" size={14} color="#fff" />
               <Text style={modal.deleteText}>{loading ? "…" : (lang === "tr" ? "Sil" : "Delete")}</Text>
             </Pressable>
@@ -144,15 +166,21 @@ export default function ProfileScreen() {
     router.replace("/auth");
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async (password: string) => {
     setDeleting(true);
     try {
       const apiBase = getApiUrl().replace(/\/$/, "");
-      await fetch(`${apiBase}/api/auth/delete-account`, {
+      const res = await fetch(`${apiBase}/api/auth/delete-account`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: userProfile?.email }),
+        body: JSON.stringify({ email: userProfile?.email, password }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        Alert.alert(lang === "tr" ? "Hata" : "Error", data?.error || (lang === "tr" ? "Şifre hatalı" : "Incorrect password"));
+        setDeleting(false);
+        return;
+      }
       await clearUserProfile();
       setShowDeleteModal(false);
       router.replace("/auth");
@@ -592,6 +620,9 @@ const modal = StyleSheet.create({
   iconWrap: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#FF444415", borderWidth: 1, borderColor: "#FF444440", alignItems: "center", justifyContent: "center" },
   title: { fontSize: 18, fontFamily: "Lora_700Bold", color: "#FF6666", textAlign: "center" },
   body: { fontSize: 13, fontFamily: "Lora_400Regular", color: Colors.textSecondary, textAlign: "center", lineHeight: 20 },
+  passRow: { flexDirection: "row", alignItems: "center", width: "100%", backgroundColor: "#1A1435", borderRadius: 12, borderWidth: 1, borderColor: "#3A2F5A", paddingHorizontal: 14 },
+  passInput: { flex: 1, paddingVertical: 13, fontSize: 14, fontFamily: "Lora_400Regular", color: Colors.text },
+  eyeBtn: { padding: 6 },
   btnRow: { flexDirection: "row", gap: 12, marginTop: 4, width: "100%" },
   cancelBtn: { flex: 1, paddingVertical: 13, borderRadius: 12, borderWidth: 1, borderColor: Colors.cardBorder, backgroundColor: Colors.surface, alignItems: "center" },
   cancelText: { fontSize: 14, fontFamily: "Lora_700Bold", color: Colors.text },
