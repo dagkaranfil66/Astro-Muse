@@ -18,7 +18,7 @@ export const SERVICE_GOLD_COST: Record<string, number> = {
 // 300+60=360 = 399,99 ₺ (1,11 ₺/altın — %56 indirim)
 export const GOLD_PACKAGES = [
   {
-    id: "tengri_starter",
+    id: "tengri_başlangıç",
     nameKey: "pkgBasic",
     label: "Başlangıç Paketi",
     gold: 20,
