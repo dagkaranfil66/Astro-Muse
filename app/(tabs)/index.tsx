@@ -849,16 +849,16 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
-        <TengriMessageCard lang={lang} />
-
-        <DailyFreeCard />
-        <DailyHoroscopeCard />
-
         <CategorySlider
           selected={selectedCategory}
           onSelect={setSelectedCategory}
           lang={lang}
         />
+
+        <TengriMessageCard lang={lang} />
+
+        <DailyFreeCard />
+        <DailyHoroscopeCard />
 
         <Animated.Text entering={FadeInDown.delay(360)} style={styles.sectionTitle}>
           {t.services}
