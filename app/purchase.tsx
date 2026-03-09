@@ -340,12 +340,12 @@ export default function PurchaseScreen() {
     .sort((a, b) => ORDER.indexOf(a.identifier) - ORDER.indexOf(b.identifier));
   const rcPkgMap = Object.fromEntries(sortedRcPkgs.map(p => [p.identifier, p]));
 
-  // In Expo Go / dev mode → show all 4 packages (mock purchase for missing RC products)
-  // In TestFlight / production → only show packages loaded from RC
-  const isTestMode = __DEV__ || Constants.executionEnvironment === "storeClient";
-  const showAllPackages = isTestMode || sortedRcPkgs.length === 0;
-  const packagesToShow = showAllPackages ? ORDER : ORDER.filter(id => !!rcPkgMap[id]);
-  const anyPackages = !rcLoading && (sortedRcPkgs.length > 0 || isTestMode);
+  // Always show all 4 packages.
+  // If RC has a package → use real RC purchase (real StoreKit price).
+  // If RC doesn't have a package → use mock purchase (add gold directly).
+  // This covers: Expo Go (test store), TestFlight (no App Store Connect products yet), production.
+  const packagesToShow = ORDER;
+  const anyPackages = !rcLoading;
 
   const handleRcBuy = async (rcPkg: PurchasesPackage) => {
     if (!isLoggedIn || buying || boughtId) return;
