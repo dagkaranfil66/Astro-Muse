@@ -153,11 +153,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const clearUserProfile = async () => {
+    // Reset all user-specific state to defaults
     setProfileState(null);
     setProfilePhotoState(null);
+    setGoldBalance(FREE_START_GOLD);
+    setReadings([]);
+    setLastSpinDate(null);
+    setLastDailyFreeDateState(null);
+    setTrialCount(0);
+    setIsPurchased(false);
+    setZodiacState(null);
+    // Clear all user-specific keys from storage (keep onboarding flag)
     await Promise.all([
       AsyncStorage.removeItem(KEYS.profile),
       AsyncStorage.removeItem(KEYS.profilePhoto),
+      AsyncStorage.removeItem(KEYS.gold),
+      AsyncStorage.removeItem(KEYS.readings),
+      AsyncStorage.removeItem(KEYS.lastSpin),
+      AsyncStorage.removeItem(KEYS.trialCount),
+      AsyncStorage.removeItem(KEYS.isPurchased),
+      AsyncStorage.removeItem(KEYS.zodiac),
+      AsyncStorage.removeItem(KEYS.dailyFree),
     ]);
   };
 
