@@ -12,22 +12,33 @@ export const RC_ENTITLEMENT = "altın";
 
 // Map RevenueCat package lookup_key → total gold amount (base + bonus)
 export const PACKAGE_GOLD_MAP: Record<string, number> = {
-  tengri_basic:    20,
-  tengri_plus:     55,
-  tengri_premium:  140,
+  tengri_starter:  20,
+  tengri_premium:  55,
+  tengri_standard: 140,
   tengri_vip:      360,
 };
 
 function getApiKey(): string {
-  if (!TEST_KEY || !IOS_KEY || !DROID_KEY) {
-    console.warn("[RevenueCat] API keys not configured");
-    return TEST_KEY;
+  if (Platform.OS === "ios") {
+    if (!IOS_KEY) {
+      console.warn("[RevenueCat] Missing iOS API key");
+      return TEST_KEY;
+    }
+    return IOS_KEY;
   }
+
+  if (Platform.OS === "android") {
+    if (!DROID_KEY) {
+      console.warn("[RevenueCat] Missing Android API key");
+      return TEST_KEY;
+    }
+    return DROID_KEY;
+  }
+
   if (__DEV__ || Platform.OS === "web" || Constants.executionEnvironment === "storeClient") {
     return TEST_KEY;
   }
-  if (Platform.OS === "ios") return IOS_KEY;
-  if (Platform.OS === "android") return DROID_KEY;
+
   return TEST_KEY;
 }
 
