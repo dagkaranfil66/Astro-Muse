@@ -693,8 +693,12 @@ export default function HomeScreen() {
 
   const scrollHandler = useAnimatedScrollHandler((e) => { scrollY.value = e.contentOffset.y; });
   const headerFade = useAnimatedStyle(() => ({
-    opacity: interpolate(scrollY.value, [0, 120], [1, 0], Extrapolation.CLAMP),
-    transform: [{ translateY: interpolate(scrollY.value, [0, 120], [0, -20], Extrapolation.CLAMP) }],
+    opacity: interpolate(scrollY.value, [0, 130], [1, 0], Extrapolation.CLAMP),
+    transform: [
+      { translateY: interpolate(scrollY.value, [0, 130], [0, -50], Extrapolation.CLAMP) },
+      { scale: interpolate(scrollY.value, [0, 130], [1, 0.72], Extrapolation.CLAMP) },
+    ],
+    marginBottom: interpolate(scrollY.value, [0, 130], [18, -180], Extrapolation.CLAMP),
   }));
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
