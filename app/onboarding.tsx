@@ -319,34 +319,37 @@ const SLIDES = [
     id: "welcome",
     type: "logo" as const,
     title: "Tengri'ye\nHoş Geldin",
-    subtitle: "Kadim Türk-Moğol mistik geleneğinden ilham alan, yapay zeka destekli ruhsal rehberlik uygulaması.",
-    detail: "Yıldızlar, ruhlar ve semboller seni bekliyor.",
+    subtitle: "Kadim mistik bilgelik ve yapay zekâ ile\nkaderinin işaretlerini keşfet.",
+    detail: "✨ Yıldızlar, semboller ve kadim bilgiler seni bekliyor.",
     accent: Colors.gold,
+    cta: "Keşfetmeye Başla",
   },
   {
     id: "services",
     type: "icon" as const,
     icon: "🔮",
     title: "11 Mistik\nHizmet",
-    subtitle: "Kahve falından tarot'a, doğum haritasından şamanizme kadar her sorunun yanıtı burada.",
-    detail: "Kahve · El · Tarot · Astroloji · Numeroloji · Ruh Okuma · Rüya · Burçlar · Doğum · Aşk · Şamanizm",
+    subtitle: "Kahve falı, tarot, astroloji ve kadim mistik bilgiler ile hayatının işaretlerini keşfet.",
+    detail: "☕ Kahve  •  🔮 Tarot  •  ✋ El  •  🌙 Astroloji\n🔢 Numeroloji  •  🧿 Ruh Okuma  •  🌌 Rüya\n⭐ Burçlar  •  ✨ Doğum  •  ❤️ Aşk  •  🪶 Şamanizm",
     accent: "#9B6FBB",
+    cta: "Hizmetleri Keşfet",
   },
   {
     id: "gold",
     type: "icon" as const,
     icon: "✦",
     title: "Ücretsiz\nBaşla",
-    subtitle: "Her gün dönen şans çarkıyla altın kazan. Günlük ücretsiz okuma hakkın seni bekliyor.",
-    detail: "Yeni üyeler 10 altın ile başlar. Her gün çark döndür, altın kazan.",
+    subtitle: "Her gün şans çarkını çevir, altın kazan.",
+    detail: "✨ Günlük ücretsiz mistik okuma seni bekliyor.\n\nYeni üyeler 10 altın ile başlar.",
     accent: Colors.gold,
+    cta: "Altınımı Al",
   },
   {
     id: "final",
     type: "icon" as const,
     icon: "☽",
-    title: "Kaderine\nAçıl",
-    subtitle: "Hesap oluştur, okumalarını kaydet, sosyal medyada paylaş.",
+    title: "Mistik Yolculuğa\nBaşla",
+    subtitle: "Bir hesap oluştur ve mistik yolculuğunu başlat.\nOkumalarını kaydet ve kaderinin işaretlerini takip et.",
     detail: "",
     accent: Colors.gold,
   },
@@ -475,32 +478,35 @@ export default function OnboardingScreen() {
           {isDisclaimer ? (
             <TouchableOpacity style={styles.primaryBtn} onPress={goNext} activeOpacity={0.85}>
               <LinearGradient colors={["#C8A020", "#9B6820"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.primaryBtnInner}>
-                <Text style={[styles.primaryBtnText, { fontFamily: "Lora_700Bold" }]}>Anladım, Devam Et</Text>
+                <Text style={[styles.primaryBtnText, { fontFamily: "Lora_700Bold" }]}>Anladım, Devam Et →</Text>
               </LinearGradient>
             </TouchableOpacity>
           ) : isLast ? (
             <>
               <TouchableOpacity style={styles.primaryBtn} onPress={handleAuth} activeOpacity={0.85}>
-                <LinearGradient colors={["#C8A020", "#9B6820"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.primaryBtnInner}>
-                  <Text style={[styles.primaryBtnText, { fontFamily: "Lora_700Bold" }]}>Hesap Oluştur</Text>
+                <LinearGradient colors={["#D4A822", "#A87220"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.primaryBtnInner}>
+                  <Text style={[styles.primaryBtnText, { fontFamily: "Lora_700Bold" }]}>Ücretsiz Hesap Oluştur</Text>
+                  <Text style={[styles.primaryBtnBadge, { fontFamily: "Lora_400Regular" }]}>✦ 10 Altın Hediye ile Başla</Text>
                 </LinearGradient>
               </TouchableOpacity>
               <TouchableOpacity style={styles.secondaryBtn} onPress={handleAuth} activeOpacity={0.8}>
-                <Text style={[styles.secondaryBtnText, { fontFamily: "Lora_400Regular" }]}>Zaten hesabım var</Text>
+                <Text style={[styles.secondaryBtnText, { fontFamily: "Lora_400Regular" }]}>Giriş Yap</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleSkip} activeOpacity={0.7} style={styles.skipLink}>
-                <Text style={[styles.skipText, { fontFamily: "Lora_400Regular" }]}>Şimdilik atla</Text>
+                <Text style={[styles.skipText, { fontFamily: "Lora_400Regular" }]}>Geç</Text>
               </TouchableOpacity>
             </>
           ) : (
             <>
               <TouchableOpacity style={styles.primaryBtn} onPress={goNext} activeOpacity={0.85}>
                 <LinearGradient colors={["#C8A020", "#9B6820"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.primaryBtnInner}>
-                  <Text style={[styles.primaryBtnText, { fontFamily: "Lora_700Bold" }]}>Devam Et</Text>
+                  <Text style={[styles.primaryBtnText, { fontFamily: "Lora_700Bold" }]}>
+                    {(SLIDES[activeIndex] as any).cta ?? "Devam Et"} →
+                  </Text>
                 </LinearGradient>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleSkip} activeOpacity={0.7} style={styles.skipLink}>
-                <Text style={[styles.skipText, { fontFamily: "Lora_400Regular" }]}>Atla</Text>
+                <Text style={[styles.skipText, { fontFamily: "Lora_400Regular" }]}>Geç</Text>
               </TouchableOpacity>
             </>
           )}
@@ -638,13 +644,15 @@ const styles = StyleSheet.create({
     alignItems: "center", gap: 12,
   },
   primaryBtn: { width: "100%", borderRadius: 16, overflow: "hidden" },
-  primaryBtnInner: { paddingVertical: 17, alignItems: "center" },
+  primaryBtnInner: { paddingVertical: 18, alignItems: "center", gap: 4 },
   primaryBtnText: { fontSize: 17, color: "#08051A", letterSpacing: 0.5 },
+  primaryBtnBadge: { fontSize: 12, color: "#08051Aaa", letterSpacing: 0.3 },
   secondaryBtn: {
-    width: "100%", paddingVertical: 14, borderRadius: 16,
-    borderWidth: 1, borderColor: Colors.gold + "50", alignItems: "center",
+    width: "100%", paddingVertical: 15, borderRadius: 16,
+    borderWidth: 1.5, borderColor: Colors.gold + "60", alignItems: "center",
+    backgroundColor: "rgba(200,160,32,0.06)",
   },
   secondaryBtnText: { fontSize: 16, color: Colors.gold },
   skipLink: { paddingVertical: 8 },
-  skipText: { fontSize: 14, color: Colors.textDim },
+  skipText: { fontSize: 13, color: Colors.textDim },
 });
