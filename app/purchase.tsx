@@ -51,8 +51,8 @@ const PKG_DISPLAY: Record<string, {
 }> = {
   tengri_starter:  { gradient: ["#1A1A30", "#0D1526"], popular: false, gold: 20,  bonus: 0,  label: "Başlangıç Paketi", discount: 0,  desc: "5 okuma için yeterli",  descEn: "Good for 5 readings" },
   tengri_premium:  { gradient: ["#1A1030", "#0D1526"], popular: true,  gold: 50,  bonus: 5,  label: "Popüler Paket",    discount: 27, desc: "+5 bonus altın",       descEn: "+5 bonus gold" },
-  tengri_standard: { gradient: ["#1A0A20", "#0D1526"], popular: false, gold: 120, bonus: 20, label: "Büyük Paket",      discount: 43, desc: "+20 bonus altın",      descEn: "+20 bonus gold" },
-  tengri_vip:      { gradient: ["#1A0805", "#0D1526"], popular: false, gold: 300, bonus: 60, label: "Mega Paket",       discount: 56, desc: "+60 bonus altın",      descEn: "+60 bonus gold" },
+  tengri_standard: { gradient: ["#1A0A20", "#0D1526"], popular: false, gold: 120, bonus: 0,  label: "Büyük Paket",      discount: 43, desc: "13 okuma için yeterli", descEn: "Good for 13 readings" },
+  tengri_vip:      { gradient: ["#1A0805", "#0D1526"], popular: false, gold: 300, bonus: 0,  label: "Mega Paket",       discount: 56, desc: "50 okuma için yeterli", descEn: "Good for 50 readings" },
 };
 
 // ─── Auth Gate (not logged in) ─────────────────────────────────────────────

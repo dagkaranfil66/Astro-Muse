@@ -14,8 +14,8 @@ export const RC_ENTITLEMENT = "altın";
 export const PACKAGE_GOLD_MAP: Record<string, number> = {
   tengri_starter:     20,
   tengri_premium:     55,
-  tengri_standard:    140,
-  tengri_vip:         360,
+  tengri_standard:    120,
+  tengri_vip:         300,
 };
 
 function getApiKey(): string {
