@@ -674,38 +674,28 @@ function TengriMessageCard({ lang }: { lang: string }) {
 
   return (
     <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.msgCard}>
-      <LinearGradient
-        colors={["#1A0E30", "#0D1020"]}
-        style={styles.msgCardInner}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
-        <Animated.View style={[styles.msgGlow, glowStyle]} />
-        <View style={styles.msgTop}>
-          <Animated.Text style={[styles.msgStar, scaleStyle]}>✦</Animated.Text>
-          <Text style={styles.msgBadge}>TENGRI</Text>
-          <Animated.Text style={[styles.msgStar, scaleStyle]}>✦</Animated.Text>
-        </View>
-        <Text style={styles.msgTitle}>
-          {lang === "tr" ? "Tengri Bugün Sana Bir Mesaj Veriyor" : "Tengri Has a Message For You Today"}
-        </Text>
-        <Text style={styles.msgSub}>
-          {lang === "tr"
-            ? "Kadim bir bilgelik seni bekliyor..."
-            : "Ancient wisdom is waiting for you..."}
-        </Text>
-        <Pressable
-          onPress={() => router.push("/reading/ruh" as any)}
-          style={({ pressed }) => [styles.msgBtn, pressed && { opacity: 0.82 }]}
+      <Pressable onPress={() => router.push("/reading/ruh" as any)}>
+        <LinearGradient
+          colors={["#1A0E30", "#0D1020"]}
+          style={styles.msgCardInner}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
         >
-          <LinearGradient colors={["#C8A020", "#9B6820"]} style={styles.msgBtnInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-            <Text style={styles.msgBtnText}>
-              {lang === "tr" ? "Mesajı Aç" : "Open Message"}
+          <Animated.View style={[styles.msgGlow, glowStyle]} />
+          <Animated.Text style={[styles.msgStar, scaleStyle]}>✦</Animated.Text>
+          <View style={styles.msgCenter}>
+            <Text style={styles.msgTitle}>
+              {lang === "tr" ? "Tengri'den Günlük Mesajın Hazır" : "Your Daily Message From Tengri"}
             </Text>
-            <Ionicons name="chevron-forward" size={14} color="#08051A" />
-          </LinearGradient>
-        </Pressable>
-      </LinearGradient>
+          </View>
+          <View style={styles.msgBtnSmall}>
+            <Text style={styles.msgBtnSmallText}>
+              {lang === "tr" ? "Aç" : "Open"}
+            </Text>
+            <Ionicons name="chevron-forward" size={12} color="#08051A" />
+          </View>
+        </LinearGradient>
+      </Pressable>
     </Animated.View>
   );
 }
@@ -1042,20 +1032,21 @@ const styles = StyleSheet.create({
   dailyBadge: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3 },
   dailyBadgeText: { fontSize: 11, fontFamily: "Lora_700Bold" },
 
-  msgCard: { marginBottom: 16, borderRadius: 18, overflow: "hidden", borderWidth: 1, borderColor: Colors.gold + "35" },
-  msgCardInner: { padding: 20, alignItems: "center", gap: 8 },
+  msgCard: { marginBottom: 14, borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: Colors.gold + "35" },
+  msgCardInner: { flexDirection: "row", alignItems: "center", paddingVertical: 11, paddingHorizontal: 14, gap: 10 },
   msgGlow: {
-    position: "absolute", width: 180, height: 180, borderRadius: 90,
-    backgroundColor: Colors.gold, top: -50, alignSelf: "center",
+    position: "absolute", width: 120, height: 120, borderRadius: 60,
+    backgroundColor: Colors.gold, top: -50, left: -20,
   },
-  msgTop: { flexDirection: "row", alignItems: "center", gap: 10 },
-  msgStar: { fontSize: 18, color: Colors.gold },
-  msgBadge: { fontSize: 10, fontFamily: "Lora_700Bold", color: Colors.gold, letterSpacing: 5 },
-  msgTitle: { fontSize: 16, fontFamily: "Lora_700Bold", color: Colors.text, textAlign: "center", lineHeight: 24, paddingHorizontal: 8 },
-  msgSub: { fontSize: 12, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary, textAlign: "center" },
-  msgBtn: { borderRadius: 12, overflow: "hidden", marginTop: 4, alignSelf: "center" },
-  msgBtnInner: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 11, paddingHorizontal: 22 },
-  msgBtnText: { fontSize: 13, fontFamily: "Lora_700Bold", color: "#08051A" },
+  msgCenter: { flex: 1 },
+  msgStar: { fontSize: 16, color: Colors.gold },
+  msgTitle: { fontSize: 13, fontFamily: "Lora_700Bold", color: Colors.text },
+  msgBtnSmall: {
+    flexDirection: "row", alignItems: "center", gap: 2,
+    backgroundColor: Colors.gold, borderRadius: 8,
+    paddingVertical: 6, paddingHorizontal: 10,
+  },
+  msgBtnSmallText: { fontSize: 11, fontFamily: "Lora_700Bold", color: "#08051A" },
 
   catSlider: { marginBottom: 14 },
   catSliderContent: { paddingHorizontal: 0, gap: 8, paddingVertical: 4 },
