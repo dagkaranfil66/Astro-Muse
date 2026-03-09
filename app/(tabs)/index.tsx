@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -628,12 +628,129 @@ function DailyHoroscopeCard() {
   );
 }
 
+// ────────── Categories ──────────
+const CATEGORIES = [
+  { id: "tumu",      label: "Tümü",      emoji: "✦",  labelEn: "All"      },
+  { id: "fal",       label: "Fal",       emoji: "☕",  labelEn: "Reading"  },
+  { id: "tarot",     label: "Tarot",     emoji: "🔮", labelEn: "Tarot"    },
+  { id: "astroloji", label: "Astroloji", emoji: "🌙", labelEn: "Astrology" },
+  { id: "enerji",    label: "Enerji",    emoji: "✨",  labelEn: "Energy"   },
+  { id: "ask",       label: "Aşk",       emoji: "💖", labelEn: "Love"     },
+] as const;
+
+type CategoryId = typeof CATEGORIES[number]["id"];
+
+const CATEGORY_SERVICES: Record<CategoryId, string[]> = {
+  tumu:      ["kahve", "tarot", "astroloji", "burclar", "el", "dogum", "ask", "numeroloji", "ruya", "ruh", "samanizm"],
+  fal:       ["kahve", "el"],
+  tarot:     ["tarot", "ruh"],
+  astroloji: ["astroloji", "burclar", "dogum"],
+  enerji:    ["samanizm", "numeroloji", "ruya"],
+  ask:       ["ask"],
+};
+
+// ────────── Tengri Message Card ──────────
+function TengriMessageCard({ lang }: { lang: string }) {
+  const glow = useSharedValue(0.4);
+  const scale = useSharedValue(1);
+
+  React.useEffect(() => {
+    glow.value = withRepeat(
+      withSequence(
+        withTiming(0.9, { duration: 2200, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0.4, { duration: 2200, easing: Easing.inOut(Easing.sin) })
+      ), -1, false
+    );
+    scale.value = withRepeat(
+      withSequence(
+        withTiming(1.02, { duration: 3000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(1.00, { duration: 3000, easing: Easing.inOut(Easing.sin) })
+      ), -1, false
+    );
+  }, []);
+
+  const glowStyle = useAnimatedStyle(() => ({ opacity: glow.value }));
+  const scaleStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
+  return (
+    <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.msgCard}>
+      <LinearGradient
+        colors={["#1A0E30", "#0D1020"]}
+        style={styles.msgCardInner}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <Animated.View style={[styles.msgGlow, glowStyle]} />
+        <View style={styles.msgTop}>
+          <Animated.Text style={[styles.msgStar, scaleStyle]}>✦</Animated.Text>
+          <Text style={styles.msgBadge}>TENGRI</Text>
+          <Animated.Text style={[styles.msgStar, scaleStyle]}>✦</Animated.Text>
+        </View>
+        <Text style={styles.msgTitle}>
+          {lang === "tr" ? "Tengri Bugün Sana Bir Mesaj Veriyor" : "Tengri Has a Message For You Today"}
+        </Text>
+        <Text style={styles.msgSub}>
+          {lang === "tr"
+            ? "Kadim bir bilgelik seni bekliyor..."
+            : "Ancient wisdom is waiting for you..."}
+        </Text>
+        <Pressable
+          onPress={() => router.push("/reading/ruh" as any)}
+          style={({ pressed }) => [styles.msgBtn, pressed && { opacity: 0.82 }]}
+        >
+          <LinearGradient colors={["#C8A020", "#9B6820"]} style={styles.msgBtnInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+            <Text style={styles.msgBtnText}>
+              {lang === "tr" ? "Mesajı Aç" : "Open Message"}
+            </Text>
+            <Ionicons name="chevron-forward" size={14} color="#08051A" />
+          </LinearGradient>
+        </Pressable>
+      </LinearGradient>
+    </Animated.View>
+  );
+}
+
+// ────────── Category Slider ──────────
+function CategorySlider({ selected, onSelect, lang }: {
+  selected: CategoryId;
+  onSelect: (id: CategoryId) => void;
+  lang: string;
+}) {
+  return (
+    <Animated.View entering={FadeInDown.delay(310).springify()}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.catSliderContent}
+        style={styles.catSlider}
+      >
+        {CATEGORIES.map((cat) => {
+          const active = selected === cat.id;
+          return (
+            <Pressable
+              key={cat.id}
+              onPress={() => onSelect(cat.id)}
+              style={[styles.catChip, active && styles.catChipActive]}
+            >
+              <Text style={styles.catChipEmoji}>{cat.emoji}</Text>
+              <Text style={[styles.catChipLabel, active && styles.catChipLabelActive]}>
+                {lang === "tr" ? cat.label : cat.labelEn}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+    </Animated.View>
+  );
+}
+
 // ────────── Main Screen ──────────
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { goldBalance, userProfile, canSpin } = useApp();
   const { lang, t, toggleLang } = useLang();
   const scrollY = useSharedValue(0);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryId>("tumu");
 
   const scrollHandler = useAnimatedScrollHandler((e) => { scrollY.value = e.contentOffset.y; });
   const headerFade = useAnimatedStyle(() => ({
@@ -650,6 +767,8 @@ export default function HomeScreen() {
     }
     router.push(`/reading/${serviceId}`);
   };
+
+  const filteredServices = CATEGORY_SERVICES[selectedCategory];
 
   return (
     <View style={styles.container}>
@@ -730,14 +849,22 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
+        <TengriMessageCard lang={lang} />
+
         <DailyFreeCard />
         <DailyHoroscopeCard />
 
-        <Animated.Text entering={FadeInDown.delay(260)} style={styles.sectionTitle}>
+        <CategorySlider
+          selected={selectedCategory}
+          onSelect={setSelectedCategory}
+          lang={lang}
+        />
+
+        <Animated.Text entering={FadeInDown.delay(360)} style={styles.sectionTitle}>
           {t.services}
         </Animated.Text>
 
-        {ALL_SERVICES.map((id, index) => (
+        {filteredServices.map((id, index) => (
           <ServiceCard
             key={id}
             serviceId={id}
@@ -914,4 +1041,32 @@ const styles = StyleSheet.create({
   dailySub: { fontSize: 11, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary, marginTop: 1 },
   dailyBadge: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3 },
   dailyBadgeText: { fontSize: 11, fontFamily: "Lora_700Bold" },
+
+  msgCard: { marginBottom: 16, borderRadius: 18, overflow: "hidden", borderWidth: 1, borderColor: Colors.gold + "35" },
+  msgCardInner: { padding: 20, alignItems: "center", gap: 8 },
+  msgGlow: {
+    position: "absolute", width: 180, height: 180, borderRadius: 90,
+    backgroundColor: Colors.gold, top: -50, alignSelf: "center",
+  },
+  msgTop: { flexDirection: "row", alignItems: "center", gap: 10 },
+  msgStar: { fontSize: 18, color: Colors.gold },
+  msgBadge: { fontSize: 10, fontFamily: "Lora_700Bold", color: Colors.gold, letterSpacing: 5 },
+  msgTitle: { fontSize: 16, fontFamily: "Lora_700Bold", color: Colors.text, textAlign: "center", lineHeight: 24, paddingHorizontal: 8 },
+  msgSub: { fontSize: 12, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary, textAlign: "center" },
+  msgBtn: { borderRadius: 12, overflow: "hidden", marginTop: 4, alignSelf: "center" },
+  msgBtnInner: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 11, paddingHorizontal: 22 },
+  msgBtnText: { fontSize: 13, fontFamily: "Lora_700Bold", color: "#08051A" },
+
+  catSlider: { marginBottom: 14 },
+  catSliderContent: { paddingHorizontal: 0, gap: 8, paddingVertical: 4 },
+  catChip: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
+    backgroundColor: Colors.surface,
+    borderWidth: 1, borderColor: Colors.cardBorder,
+  },
+  catChipActive: { backgroundColor: Colors.gold + "20", borderColor: Colors.gold + "70" },
+  catChipEmoji: { fontSize: 14 },
+  catChipLabel: { fontSize: 12, fontFamily: "Lora_700Bold", color: Colors.textSecondary },
+  catChipLabelActive: { color: Colors.gold },
 });
