@@ -25,6 +25,8 @@ interface AppContextValue {
   profilePhotoUri: string | null;
   setProfilePhoto: (uri: string | null) => Promise<void>;
   isLoaded: boolean;
+  hasSeenOnboarding: boolean;
+  markOnboardingDone: () => Promise<void>;
   canAfford: (service: string) => boolean;
   spendGold: (service: string) => boolean;
   addGold: (amount: number) => void;
@@ -58,6 +60,7 @@ const KEYS = {
   isPurchased: 'tengri_is_purchased',
   zodiac: 'tengri_zodiac',
   dailyFree: 'tengri_daily_free',
+  onboarding: 'tengri_onboarding_done',
 };
 
 function isSpinAvailable(lastSpin: string | null): boolean {
@@ -78,11 +81,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [trialCount, setTrialCount] = useState(0);
   const [isPurchased, setIsPurchased] = useState(false);
   const [zodiacSign, setZodiacState] = useState<string | null>(null);
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
-        const [goldStr, readStr, profStr, photoStr, spinStr, tcStr, ipStr, zodStr, dfStr] = await Promise.all([
+        const [goldStr, readStr, profStr, photoStr, spinStr, tcStr, ipStr, zodStr, dfStr, obStr] = await Promise.all([
           AsyncStorage.getItem(KEYS.gold),
           AsyncStorage.getItem(KEYS.readings),
           AsyncStorage.getItem(KEYS.profile),
@@ -92,6 +96,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           AsyncStorage.getItem(KEYS.isPurchased),
           AsyncStorage.getItem(KEYS.zodiac),
           AsyncStorage.getItem(KEYS.dailyFree),
+          AsyncStorage.getItem(KEYS.onboarding),
         ]);
         if (goldStr !== null) setGoldBalance(parseInt(goldStr, 10));
         if (readStr) setReadings(JSON.parse(readStr));
@@ -102,6 +107,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (ipStr) setIsPurchased(ipStr === 'true');
         if (zodStr) setZodiacState(zodStr);
         if (dfStr) setLastDailyFreeDateState(dfStr);
+        if (obStr === 'true') setHasSeenOnboarding(true);
       } catch (e) {
         console.error('AppContext load error', e);
       } finally {
@@ -199,6 +205,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await AsyncStorage.setItem(KEYS.zodiac, sign);
   };
 
+  const markOnboardingDone = async () => {
+    setHasSeenOnboarding(true);
+    await AsyncStorage.setItem(KEYS.onboarding, 'true');
+  };
+
   const remainingReadings = isPurchased ? 30 : Math.max(0, 5 - trialCount);
 
   const value = useMemo(() => ({
@@ -208,6 +219,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     profilePhotoUri,
     setProfilePhoto,
     isLoaded,
+    hasSeenOnboarding,
+    markOnboardingDone,
     canAfford,
     spendGold,
     addGold,
@@ -227,7 +240,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setZodiacSign,
     canDailyFree,
     markDailyFreeUsed,
-  }), [goldBalance, readings, userProfile, profilePhotoUri, isLoaded, trialCount, isPurchased, lastSpinDate, zodiacSign, lastDailyFreeDate]);
+  }), [goldBalance, readings, userProfile, profilePhotoUri, isLoaded, hasSeenOnboarding, trialCount, isPurchased, lastSpinDate, zodiacSign, lastDailyFreeDate]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
