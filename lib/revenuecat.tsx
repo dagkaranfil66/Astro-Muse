@@ -12,7 +12,7 @@ export const RC_ENTITLEMENT = "altın";
 
 // Map RevenueCat package lookup_key → total gold amount (base + bonus)
 export const PACKAGE_GOLD_MAP: Record<string, number> = {
-  "tengri_başlangıç": 20,
+  tengri_starter:     20,
   tengri_premium:     55,
   tengri_standard:    140,
   tengri_vip:         360,
