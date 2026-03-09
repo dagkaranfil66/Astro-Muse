@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Platform,
   Image,
+  Linking,
 } from "react-native";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -410,8 +411,29 @@ export default function OnboardingScreen() {
                 Bu uygulamada sunulan yorumlar yalnızca eğlence amaçlıdır. Geleceği öngörme veya kişisel kararları yönlendirme amacı taşımaz.
               </Text>
               <Text style={[styles.disclaimerTextSmall, { fontFamily: "Lora_400Regular" }]}>
-                Uygulamamızı kullanarak bu koşulları kabul etmiş sayılırsınız.
+                Uygulamayı kullanarak aşağıdaki koşulları kabul etmiş sayılırsınız:
               </Text>
+              <View style={styles.disclaimerLinksRow}>
+                <TouchableOpacity
+                  onPress={() => Linking.openURL("https://tengristar.com/privacy")}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Text style={[styles.disclaimerLink, { fontFamily: "Lora_700Bold" }]}>
+                    Gizlilik Politikası
+                  </Text>
+                </TouchableOpacity>
+                <Text style={[styles.disclaimerLinkSep, { fontFamily: "Lora_400Regular" }]}>·</Text>
+                <TouchableOpacity
+                  onPress={() => Linking.openURL("https://tengristar.com/terms")}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Text style={[styles.disclaimerLink, { fontFamily: "Lora_700Bold" }]}>
+                    Kullanım Koşulları
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         )}
@@ -567,6 +589,22 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 26,
     marginBottom: 20,
+  },
+  disclaimerLinksRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    marginTop: 14,
+  },
+  disclaimerLink: {
+    fontSize: 13,
+    color: "#E8B4BC",
+    textDecorationLine: "underline",
+  },
+  disclaimerLinkSep: {
+    fontSize: 13,
+    color: "#8A5560",
   },
   disclaimerTextSmall: {
     fontSize: 13,
