@@ -24,11 +24,10 @@ import Animated, {
   withSpring,
   ZoomIn,
 } from "react-native-reanimated";
-import Constants from "expo-constants";
 import { Colors } from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
-import { SERVICE_GOLD_COST, FREE_START_GOLD, GOLD_PACKAGES } from "@/constants/serviceConfig";
+import { SERVICE_GOLD_COST, FREE_START_GOLD } from "@/constants/serviceConfig";
 import { useSubscription, PACKAGE_GOLD_MAP } from "@/lib/revenuecat";
 import type { PurchasesPackage } from "react-native-purchases";
 
@@ -223,91 +222,43 @@ function GoldPackageCard({
   );
 }
 
-// ─── Mock Package Card (test/Expo Go mode — no RC product) ────────────────
-function MockPackageCard({
-  pkgId,
-  onBuy,
-  buying,
-  boughtId,
-  lang,
-}: {
-  pkgId: string;
-  onBuy: (pkgId: string) => void;
-  buying: boolean;
-  boughtId: string | null;
-  lang: string;
-}) {
-  const scale = useSharedValue(1);
-  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+// ─── Unavailable Package Card (RC product not loaded yet) ─────────────────
+function UnavailablePackageCard({ pkgId, lang }: { pkgId: string; lang: string }) {
   const display = PKG_DISPLAY[pkgId];
-  const pkg = GOLD_PACKAGES.find(p => p.id === pkgId);
-  if (!display || !pkg) return null;
-  const isThisBought = boughtId === pkgId;
-  const isBuying = buying && boughtId === null;
-
+  if (!display) return null;
   return (
-    <Pressable
-      onPressIn={() => { scale.value = withSpring(0.97); }}
-      onPressOut={() => { scale.value = withSpring(1); }}
-      onPress={() => onBuy(pkgId)}
-      disabled={buying || !!boughtId}
-    >
-      <Animated.View style={[styles.pkgCard, display.popular && styles.pkgCardPopular, animStyle]}>
-        {display.popular && !isThisBought && (
-          <View style={styles.popularBadge}>
-            <Text style={styles.popularBadgeText}>⭐ EN POPÜLER</Text>
+    <Animated.View style={[styles.pkgCard, { opacity: 0.45 }]}>
+      <LinearGradient colors={display.gradient} style={styles.pkgCardInner}>
+        <View style={styles.pkgLeft}>
+          <View style={styles.goldIconWrap}>
+            <Text style={styles.goldIconText}>✦</Text>
           </View>
-        )}
-        {display.discount > 0 && !isThisBought && (
-          <View style={styles.discountBadge}>
-            <Text style={styles.discountBadgeText}>%{display.discount} İNDİRİM</Text>
-          </View>
-        )}
-        <LinearGradient colors={isThisBought ? ["#0D2A1A", "#0A2010"] : display.gradient} style={styles.pkgCardInner}>
-          <View style={styles.pkgLeft}>
-            <View style={[styles.goldIconWrap, isThisBought && styles.goldIconWrapSuccess]}>
-              <Text style={styles.goldIconText}>{isThisBought ? "✓" : "✦"}</Text>
-            </View>
-            <View style={{ flexShrink: 1 }}>
-              <Text style={styles.pkgLabel}>{display.label}</Text>
-              {display.bonus > 0 && !isThisBought ? (
-                <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]} numberOfLines={1}>
-                  {display.gold} <Text style={styles.pkgGoldUnit}>Altın</Text>
-                  <Text style={styles.pkgGoldBonus}> + {display.bonus} Bonus Altın</Text>
-                </Text>
-              ) : (
-                <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>
-                  {display.gold} <Text style={styles.pkgGoldUnit}>{isThisBought ? "✓ Eklendi" : "Altın"}</Text>
-                </Text>
-              )}
-              {!isThisBought && (
-                <Text style={styles.pkgDesc} numberOfLines={1}>
-                  {lang === "tr" ? display.desc : display.descEn}
-                </Text>
-              )}
-            </View>
-          </View>
-          <View style={styles.pkgRight}>
-            {isThisBought ? (
-              <View style={[styles.pkgBuyBtn, styles.pkgBuyBtnSuccess]}>
-                <Text style={[styles.pkgBuyBtnText, { color: "#fff" }]}>Tamam</Text>
-              </View>
-            ) : isBuying ? (
-              <View style={[styles.pkgBuyBtn, styles.pkgBuyBtnBuying]}>
-                <ActivityIndicator size="small" color="#fff" />
-              </View>
+          <View style={{ flexShrink: 1 }}>
+            <Text style={styles.pkgLabel}>{display.label}</Text>
+            {display.bonus > 0 ? (
+              <Text style={styles.pkgGold} numberOfLines={1}>
+                {display.gold} <Text style={styles.pkgGoldUnit}>Altın</Text>
+                <Text style={styles.pkgGoldBonus}> + {display.bonus} Bonus</Text>
+              </Text>
             ) : (
-              <View>
-                <Text style={styles.pkgPrice}>{pkg.price}</Text>
-                <View style={styles.pkgBuyBtn}>
-                  <Text style={styles.pkgBuyBtnText}>Satın Al</Text>
-                </View>
-              </View>
+              <Text style={styles.pkgGold}>
+                {display.gold} <Text style={styles.pkgGoldUnit}>Altın</Text>
+              </Text>
             )}
+            <Text style={styles.pkgDesc} numberOfLines={1}>
+              {lang === "tr" ? display.desc : display.descEn}
+            </Text>
           </View>
-        </LinearGradient>
-      </Animated.View>
-    </Pressable>
+        </View>
+        <View style={styles.pkgRight}>
+          <View style={[styles.pkgBuyBtn, { backgroundColor: Colors.cardBorder }]}>
+            <Text style={[styles.pkgBuyBtnText, { color: Colors.textDim }]}>
+              {lang === "tr" ? "Yakında" : "Soon"}
+            </Text>
+          </View>
+        </View>
+      </LinearGradient>
+    </Animated.View>
   );
 }
 
@@ -367,22 +318,6 @@ export default function PurchaseScreen() {
     } finally {
       setBuying(false);
     }
-  };
-
-  const handleMockBuy = async (pkgId: string) => {
-    if (!isLoggedIn || buying || boughtId) return;
-    setPurchaseError("");
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setBuying(true);
-    await new Promise(r => setTimeout(r, 800));
-    const meta = PKG_DISPLAY[pkgId];
-    const gold = (meta?.gold ?? 0) + (meta?.bonus ?? 0);
-    addGold(gold);
-    setBoughtId(pkgId);
-    setBoughtGold(gold);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setBuying(false);
-    setTimeout(() => router.back(), 1800);
   };
 
   const handleRestore = async () => {
@@ -492,7 +427,7 @@ export default function PurchaseScreen() {
                     {rcPkg ? (
                       <GoldPackageCard rcPkg={rcPkg} onBuy={handleRcBuy} buying={buying} boughtId={boughtId} lang={lang} />
                     ) : (
-                      <MockPackageCard pkgId={pkgId} onBuy={handleMockBuy} buying={buying} boughtId={boughtId} lang={lang} />
+                      <UnavailablePackageCard pkgId={pkgId} lang={lang} />
                     )}
                   </Animated.View>
                 );
