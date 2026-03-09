@@ -276,8 +276,8 @@ function TwinkleStars({ centerX, centerY }: { centerX: number; centerY: number }
   const stars = React.useMemo(() =>
     Array.from({ length: 12 }, (_, i) => {
       const angle = (i / 12) * 2 * Math.PI + i * 0.52;
-      const r = 118 + (i % 4) * 7;
-      const sz = i % 4 === 0 ? 10 : i % 3 === 0 ? 8 : 6;
+      const r = 77 + (i % 4) * 5;
+      const sz = i % 4 === 0 ? 8 : i % 3 === 0 ? 7 : 5;
       return {
         left: centerX + Math.cos(angle) * r - sz / 2,
         top:  centerY + Math.sin(angle) * r - sz / 2,
@@ -329,7 +329,7 @@ function AnimatedLogo() {
     backgroundColor: interpolateColor(phase.value, [0, 1], ["#FF69B4", "#9B59B6"]),
   }));
 
-  const CX = 110, CY = 110;
+  const CX = 72, CY = 72;
 
   return (
     <View style={styles.logoContainer}>
@@ -337,12 +337,12 @@ function AnimatedLogo() {
       <Animated.View style={[styles.logoGlowMid, glowMidStyle]} />
 
       {/* Renkli mandala halkaları */}
-      <MandalaRing radius={90} dotCount={24} color="#5B9BD5" duration={12000} />
-      <MandalaRing radius={72} dotCount={16} color="#FF6B9D" duration={9000} reverse />
-      <MandalaRing radius={108} dotCount={8} color="#9B59B6" duration={18000} />
+      <MandalaRing radius={58} dotCount={20} color="#5B9BD5" duration={12000} />
+      <MandalaRing radius={47} dotCount={14} color="#FF6B9D" duration={9000} reverse />
+      <MandalaRing radius={70} dotCount={8}  color="#9B59B6" duration={18000} />
 
       {/* ✦ Altın yıldız halkası — yavaş, ters yönde döner */}
-      <StarRing radius={112} count={16} color={Colors.gold} duration={28000} reverse />
+      <StarRing radius={73} count={14} color={Colors.gold} duration={28000} reverse />
 
       {/* Etrafta titreşen yıldızlar */}
       <TwinkleStars centerX={CX} centerY={CY} />
@@ -698,7 +698,7 @@ export default function HomeScreen() {
       { translateY: interpolate(scrollY.value, [0, 130], [0, -50], Extrapolation.CLAMP) },
       { scale: interpolate(scrollY.value, [0, 130], [1, 0.72], Extrapolation.CLAMP) },
     ],
-    marginBottom: interpolate(scrollY.value, [0, 130], [18, -180], Extrapolation.CLAMP),
+    marginBottom: interpolate(scrollY.value, [0, 130], [10, -148], Extrapolation.CLAMP),
   }));
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
@@ -885,48 +885,48 @@ const styles = StyleSheet.create({
   shootingStar: { height: 2, borderRadius: 1 },
 
   logoContainer: {
-    width: 220,
-    height: 220,
+    width: 144,
+    height: 144,
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "center",
   },
   logoGlowOuter: {
     position: "absolute",
-    width: 200,
-    height: 200,
-    borderRadius: 100,
+    width: 130,
+    height: 130,
+    borderRadius: 65,
     backgroundColor: "#5B9BD5",
     opacity: 0.12,
   },
   logoGlowMid: {
     position: "absolute",
-    width: 130,
-    height: 130,
-    borderRadius: 65,
+    width: 85,
+    height: 85,
+    borderRadius: 42,
     backgroundColor: "#FF6B9D",
     opacity: 0.08,
   },
-  logoImage: { width: 150, height: 150 },
+  logoImage: { width: 96, height: 96 },
 
-  hero: { alignItems: "center", paddingTop: 8, marginBottom: 18 },
+  hero: { alignItems: "center", paddingTop: 4, marginBottom: 10 },
   heroTitle: {
-    fontSize: 24,
+    fontSize: 21,
     fontFamily: "Lora_700Bold",
     color: Colors.text,
     textAlign: "center",
     letterSpacing: 2,
-    marginBottom: 8,
-    marginTop: 4,
+    marginBottom: 4,
+    marginTop: 6,
   },
   heroDesc: {
-    fontSize: 13,
+    fontSize: 12,
     color: "#C8B47A",
     textAlign: "center",
     fontFamily: "Lora_400Regular_Italic",
-    lineHeight: 22,
+    lineHeight: 20,
     paddingHorizontal: 24,
-    marginTop: 2,
+    marginTop: 0,
   },
 
   scroll: { paddingHorizontal: 18 },
