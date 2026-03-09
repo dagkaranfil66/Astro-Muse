@@ -649,57 +649,6 @@ const CATEGORY_SERVICES: Record<CategoryId, string[]> = {
   ask:       ["ask"],
 };
 
-// ────────── Tengri Message Card ──────────
-function TengriMessageCard({ lang }: { lang: string }) {
-  const glow = useSharedValue(0.4);
-  const scale = useSharedValue(1);
-
-  React.useEffect(() => {
-    glow.value = withRepeat(
-      withSequence(
-        withTiming(0.9, { duration: 2200, easing: Easing.inOut(Easing.sin) }),
-        withTiming(0.4, { duration: 2200, easing: Easing.inOut(Easing.sin) })
-      ), -1, false
-    );
-    scale.value = withRepeat(
-      withSequence(
-        withTiming(1.02, { duration: 3000, easing: Easing.inOut(Easing.sin) }),
-        withTiming(1.00, { duration: 3000, easing: Easing.inOut(Easing.sin) })
-      ), -1, false
-    );
-  }, []);
-
-  const glowStyle = useAnimatedStyle(() => ({ opacity: glow.value }));
-  const scaleStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-
-  return (
-    <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.msgCard}>
-      <Pressable onPress={() => router.push("/reading/ruh" as any)}>
-        <LinearGradient
-          colors={["#1A0E30", "#0D1020"]}
-          style={styles.msgCardInner}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-        >
-          <Animated.View style={[styles.msgGlow, glowStyle]} />
-          <Animated.Text style={[styles.msgStar, scaleStyle]}>✦</Animated.Text>
-          <View style={styles.msgCenter}>
-            <Text style={styles.msgTitle}>
-              {lang === "tr" ? "Tengri'den Günlük Mesajın Hazır" : "Your Daily Message From Tengri"}
-            </Text>
-          </View>
-          <View style={styles.msgBtnSmall}>
-            <Text style={styles.msgBtnSmallText}>
-              {lang === "tr" ? "Aç" : "Open"}
-            </Text>
-            <Ionicons name="chevron-forward" size={12} color="#08051A" />
-          </View>
-        </LinearGradient>
-      </Pressable>
-    </Animated.View>
-  );
-}
-
 // ────────── Category Slider ──────────
 function CategorySlider({ selected, onSelect, lang }: {
   selected: CategoryId;
@@ -844,8 +793,6 @@ export default function HomeScreen() {
           onSelect={setSelectedCategory}
           lang={lang}
         />
-
-        <TengriMessageCard lang={lang} />
 
         <DailyFreeCard />
         <DailyHoroscopeCard />
@@ -1031,22 +978,6 @@ const styles = StyleSheet.create({
   dailySub: { fontSize: 11, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary, marginTop: 1 },
   dailyBadge: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3 },
   dailyBadgeText: { fontSize: 11, fontFamily: "Lora_700Bold" },
-
-  msgCard: { marginBottom: 14, borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: Colors.gold + "35" },
-  msgCardInner: { flexDirection: "row", alignItems: "center", paddingVertical: 11, paddingHorizontal: 14, gap: 10 },
-  msgGlow: {
-    position: "absolute", width: 120, height: 120, borderRadius: 60,
-    backgroundColor: Colors.gold, top: -50, left: -20,
-  },
-  msgCenter: { flex: 1 },
-  msgStar: { fontSize: 16, color: Colors.gold },
-  msgTitle: { fontSize: 13, fontFamily: "Lora_700Bold", color: Colors.text },
-  msgBtnSmall: {
-    flexDirection: "row", alignItems: "center", gap: 2,
-    backgroundColor: Colors.gold, borderRadius: 8,
-    paddingVertical: 6, paddingHorizontal: 10,
-  },
-  msgBtnSmallText: { fontSize: 11, fontFamily: "Lora_700Bold", color: "#08051A" },
 
   catSlider: { marginBottom: 14 },
   catSliderContent: { paddingHorizontal: 0, gap: 8, paddingVertical: 4 },
