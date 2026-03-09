@@ -548,7 +548,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { service, userInput, imageBase64, imageType, images } = req.body;
       if (!service) return res.status(400).json({ error: "Servis türü gerekli" });
-      const validServices = ["astroloji","kahve","el","tarot","samanizm","numeroloji","ruh","dogum","ruya","compat","crystal"];
+      const validServices = ["astroloji","kahve","el","tarot","samanizm","numeroloji","ruh","dogum","ruya","burclar","ask","compat","crystal"];
       if (!validServices.includes(service)) return res.status(400).json({ error: "Geçersiz servis" });
       if (userInput && userInput.length > 2000) return res.status(400).json({ error: "Mesaj çok uzun (maks 2000 karakter)" });
       const systemPrompt = serviceSystemPrompts[service] || serviceSystemPrompts.astroloji;

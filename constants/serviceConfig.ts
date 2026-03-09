@@ -1,15 +1,15 @@
 export const SERVICE_GOLD_COST: Record<string, number> = {
-  samanizm: 2,
-  burclar: 3,
-  ruh: 4,
-  astroloji: 4,
-  kahve: 4,
-  el: 4,
-  numeroloji: 4,
-  ruya: 3,
-  ask: 4,
-  tarot: 3,
-  dogum: 4,
+  samanizm:  2,
+  burclar:   4,
+  ruya:      4,
+  tarot:     4,
+  ruh:       6,
+  astroloji: 6,
+  kahve:     6,
+  el:        6,
+  numeroloji:6,
+  ask:       6,
+  dogum:     6,
 };
 
 // 20 altın  = 49,99 ₺  (2,50 ₺/altın — baz)
@@ -44,7 +44,7 @@ export const GOLD_PACKAGES = [
   {
     id: "tengri_premium",
     nameKey: "pkgPremium",
-    label: "Premium Paket",
+    label: "Büyük Paket",
     gold: 120,
     bonus: 20,
     price: "199,99 ₺",
