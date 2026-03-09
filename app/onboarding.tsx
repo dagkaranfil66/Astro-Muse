@@ -415,7 +415,7 @@ export default function OnboardingScreen() {
               </Text>
               <View style={styles.disclaimerLinksRow}>
                 <TouchableOpacity
-                  onPress={() => Linking.openURL("https://tengristar.com/privacy")}
+                  onPress={() => router.push("/privacy")}
                   activeOpacity={0.7}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
@@ -425,7 +425,7 @@ export default function OnboardingScreen() {
                 </TouchableOpacity>
                 <Text style={[styles.disclaimerLinkSep, { fontFamily: "Lora_400Regular" }]}>·</Text>
                 <TouchableOpacity
-                  onPress={() => Linking.openURL("https://tengristar.com/terms")}
+                  onPress={() => router.push("/terms")}
                   activeOpacity={0.7}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
