@@ -25,7 +25,7 @@ const GUIDE_SECTIONS = [
     title: "Altın Sistemi Nasıl Çalışır?",
     body: "Her okuma belirli miktarda altın kullanır. Altını üç şekilde kazanabilirsiniz:",
     items: [
-      "🎁 Kayıt olduğunuzda 10 ücretsiz altın hediye",
+      "🎁 Kayıt olduğunuzda 15 ücretsiz altın hediye",
       "🎡 Her gün çarkı çevirerek 2–10 altın kazanın",
       "✦ Altın paketlerinden dilediğinizi satın alın",
     ],

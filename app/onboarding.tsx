@@ -341,7 +341,7 @@ const SLIDES = [
     icon: "✦",
     title: "Ücretsiz\nBaşla",
     subtitle: "Her gün şans çarkını çevir, altın kazan.",
-    detail: "✨ Günlük ücretsiz mistik okuma seni bekliyor.\n\nYeni üyeler 10 altın ile başlar.",
+    detail: "✨ Günlük ücretsiz mistik okuma seni bekliyor.\n\nYeni üyeler 15 altın ile başlar.",
     accent: Colors.gold,
     cta: "Devam Et",
   },
