@@ -1,0 +1,129 @@
+Tengri Astroloji uygulamamda Burçlar bölümünü geliştir ama çok önemli bir kurala uy:
+
+MEVCUT GÖRÜNÜMÜ, TEMA DİLİNİ VE GENEL TASARIM HİSSİNİ KORU.
+Burç ekranını sıfırdan yeniden tasarlama.
+Var olan koyu mistik atmosferi, renk düzenini ve premium hissi bozma.
+Sadece mevcut yapıyı daha güçlü, daha kullanışlı, daha kişisel ve daha günlük geri dönüş sağlayacak hale getir.
+
+Amaç:
+- Kullanıcının her gün uygulamaya girme isteğini artırmak
+- Burç bölümünü tek metinlik sıradan yapıdan çıkarmak
+- Daha premium ve daha kişisel his vermek
+- Burç ekranını diğer kategorilere trafik gönderen güçlü bir bölüme dönüştürmek
+- İlk deneyimi bozmadan ileride premium detay katmanları kurabilmek
+
+İstediğim yapı:
+
+1) Günlük Burç Yorumu
+Her burç için tek parça metin yerine bölümlü yapı kur:
+
+- Genel Enerji
+- Aşk
+- Para
+- Ruh Hali
+- Dikkat Edilmesi Gereken
+
+Bu alanlar kısa, okunaklı ve premium kartlar halinde gösterilsin.
+Metinler doğal, akıcı, mistik ve tekrar etmeyen tonda olsun.
+
+2) Günün Şansı alanı
+Burç ekranına küçük ama dikkat çekici bir bölüm ekle:
+
+- Şanslı Sayı
+- Şanslı Renk
+- Şanslı Saat
+
+Bu alan sade ama premium görünsün.
+Mevcut tasarımla uyumlu küçük kartlar şeklinde olabilir.
+
+3) Günün Tarot Kartı entegrasyonu
+Burç ekranına küçük bir widget ekle:
+
+- “Bugünün Tarot Kartı”
+- kart adı
+- kısa 1 cümlelik özet
+
+Bu alan kullanıcıyı tarot bölümüne yönlendirebilsin.
+Ama ekranı kalabalıklaştırmasın.
+
+4) Haftalık Burç Özeti
+Burç ekranına günlük yorumun altında veya uygun bir yerde haftalık özet alanı ekle.
+
+Mantık:
+- kısa haftalık özet göster
+- isterse detaylı haftalık yoruma gidebilsin
+
+İlk aşamada sert kilit koyma.
+Yumuşak premium mantık kullan:
+- “İstersen haftalık detaylı yorumu da açabilirsin”
+
+5) Uyumlu burçlar alanı
+Her burç için küçük bir alan ekle:
+- “Bugün en uyumlu enerjiler”
+veya
+- “Uyumlu burçlar”
+
+Örnek:
+Koç için:
+- Yay
+- Aslan
+- İkizler
+
+Bu alan Aşk Uyumu bölümüne trafik yönlendirebilsin.
+
+6) Günlük mini mesaj
+Burç ekranına küçük bir “Günün Mesajı” veya “Evrenden Mesaj” kartı ekle.
+Örnek ton:
+- “Bugün sezgilerin düşündüğünden daha güçlü olabilir.”
+- “İç sesin seni doğru yöne çağırıyor olabilir.”
+- “Akşam saatlerinde enerji değişimi hissedebilirsin.”
+
+7) Geri dönüş motivasyonu
+Kullanıcının ertesi gün tekrar gelmesini teşvik et.
+Bunun için uygun bir alan ekle:
+- “Yarın yeni yorum seni bekliyor”
+- günlük yenilenme hissi
+- gerekiyorsa küçük geri sayım mantığı
+
+8) Diğer kategorilere yönlendirme
+Burç ekranı sadece kendi içinde kalmasın.
+Uygun yerlerde küçük yönlendirme kartları olabilir:
+- “Bugün Sana Özel Tarot”
+- “Aşk enerjini daha derin gör”
+- “Günün kahve falı mesajını keşfet”
+
+Ama bu alanlar satış baskısı gibi görünmesin.
+Doğal ve premium hissedilsin.
+
+9) Metin kalitesi
+Burç yorumları:
+- robotik olmasın
+- tekrar eden aynı kalıp cümleler olmasın
+- kısa ama etkili olsun
+- mistik ama anlaşılır olsun
+
+Örnek ton:
+- “Bugün içsel motivasyonun yükseliyor olabilir.”
+- “Duygusal tarafta beklenmedik bir yakınlaşma enerjisi var.”
+- “Maddi konularda acele kararlar yerine gözlem daha faydalı olabilir.”
+- “Akşam saatlerinde zihnini netleştiren bir gelişme yaşayabilirsin.”
+
+10) Premium denge
+Burç bölümü günlük kullanım aracı olduğu için ilk aşamada aşırı kilitli olmasın.
+Ana günlük içerik mümkün olduğunca erişilebilir olsun.
+Premium katmanlar varsa:
+- haftalık detay
+- aşk detayı
+- günün derin mesajı
+gibi alanlarda yumuşak şekilde sunulsun.
+
+11) Teknik istek
+- Mevcut navigation yapısını bozma
+- Mevcut tema ve component mantığıyla uyumlu ilerle
+- Kod temiz, modüler ve sürdürülebilir olsun
+- Burç ekranını sıfırdan yeniden tasarlama
+- Mevcut yapıyı koruyup iyileştir
+
+Son not:
+Amaç yeni bir burç ekranı çizmek değil.
+Amaç mevcut burç görünümünü koruyarak daha profesyonel, daha zengin, daha günlük kullanılan ve diğer kategorilere trafik gönderen bir yapıya dönüştürmek.

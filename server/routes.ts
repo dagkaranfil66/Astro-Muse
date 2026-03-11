@@ -197,7 +197,15 @@ Her bölüm 2-3 cümle olsun. Sayıyı açıkça belirt. "Sen" diyerek hitap et.
 
 Her bölüm 2-3 cümle olsun. "Sen" diyerek hitap et. Gizemli ve derin bir dil kullan. Türkçe.`,
 
-  burclar: `Sen TENGRI'nin burç ustasısın. Bu dönemde burcun genel enerjisini, aşk, kariyer ve sağlık mesajını yaz. Şans faktörünü belirt. Tengri'nin özel burç mesajıyla bitir. "Sen" diyerek hitap et. Türkçe. Spesifik, mistik ama somut ol. Kısa ve güçlü tut.`,
+  burclar: `Sen TENGRI'nin bilge burç ustasısın. Kullanıcının bugünkü burç yorumunu 5 bölüm halinde yaz. Her bölüm için ## ile başlayan başlık kullan. Tam olarak bu format:
+
+## ✦ Genel Enerji
+## ♥ Aşk
+## ✦ Para
+## ☽ Ruh Hali
+## ⚡ Dikkat
+
+Her bölüm 2-3 cümle olsun. "Sen" diyerek hitap et. Mistik, akıcı ve robotik olmayan bir dil kullan. Tekrar eden kalıplardan kaçın. Her bölümde farklı ve spesifik bir enerji mesajı ver. Türkçe.`,
 
   ask: `Sen TENGRI'nin aşk ustasısın. İki burcun uyumunu, duygusal bağı ve çekim enerjisini yorumla. En büyük zorluğu ve ilişkiyi güçlendirecek 2 öneriyi yaz. Tengri'nin aşk mesajıyla bitir. Türkçe. Romantik ve bilge bir dil kullan. Kısa ve güçlü tut.`,
 };
@@ -498,6 +506,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Daily horoscope teaser error:", error);
       if (res.headersSent) { res.write(`data: ${JSON.stringify({ error: "Teaser alınamadı" })}\n\n`); res.end(); }
       else res.status(500).json({ error: "Teaser alınamadı" });
+    }
+  });
+
+  // ─── Weekly Horoscope (free) ───────────────────────────────────────────────
+  app.post("/api/weekly-horoscope", async (req: Request, res: Response) => {
+    try {
+      const { zodiacSign } = req.body;
+      if (!zodiacSign) return res.status(400).json({ error: "Burç gerekli" });
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+      const openai = getOpenAIClient();
+      const now = new Date();
+      const weekStr = `${now.getFullYear()} yılının ${Math.ceil((now.getDate() + new Date(now.getFullYear(), now.getMonth(), 1).getDay()) / 7)}. haftası`;
+      const stream = await openai.chat.completions.create({
+        model: "gpt-5.2",
+        messages: [
+          {
+            role: "system",
+            content: `Sen TENGRI'nin haftalık burç danışmanısın. 2-3 cümleyle bu haftanın genel enerjisini, öne çıkan bir teması ve kısa bir mesajı yaz. Akıcı, mistik ve özgün bir dil kullan. Tekrar eden kalıplardan kaçın. "Sen" diyerek hitap et. Türkçe.`,
+          },
+          {
+            role: "user",
+            content: `${zodiacSign} burcu için ${weekStr} haftalık enerjisini kısaca özetle.`,
+          },
+        ],
+        stream: true,
+        max_completion_tokens: 150,
+      });
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content || "";
+        if (content) res.write(`data: ${JSON.stringify({ content })}\n\n`);
+      }
+      res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+      res.end();
+    } catch (error) {
+      console.error("Weekly horoscope error:", error);
+      if (res.headersSent) { res.write(`data: ${JSON.stringify({ error: "Haftalık yorum alınamadı" })}\n\n`); res.end(); }
+      else res.status(500).json({ error: "Haftalık yorum alınamadı" });
     }
   });
 
