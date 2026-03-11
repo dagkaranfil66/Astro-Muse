@@ -34,6 +34,7 @@ import { useLang } from "@/context/LanguageContext";
 import { SERVICE_GOLD_COST } from "@/constants/serviceConfig";
 import { getApiUrl } from "@/lib/query-client";
 import InsufficientGoldModal from "@/components/InsufficientGoldModal";
+import { SectionedReading, parseKahveSections } from "@/components/SectionedReading";
 
 const DAILY_SERVICE = "kahve";
 
@@ -406,26 +407,41 @@ export default function DailyReadingScreen() {
                 {lang === "tr" ? "✦ Mistik Mesajınız" : "✦ Your Mystical Message"}
               </Text>
 
-              {/* Visible teaser text */}
-              <Text style={s.resultText}>{visibleText}</Text>
-
-              {/* Loading indicator while streaming */}
-              {isLoading && !isDone && (
-                <ActivityIndicator size="small" color={meta.color} style={{ marginTop: 8 }} />
-              )}
-
-              {/* Gradient fade + hidden text blur overlay */}
-              {hasHiddenText && (
-                <View style={s.blurWrap} pointerEvents="none">
-                  <Text style={[s.resultText, s.blurText]} aria-hidden>
-                    {readingText.slice(TEASER_CHARS)}
-                  </Text>
-                  <LinearGradient
-                    colors={["#0D102000", "#0D1020EE", "#0D1020"]}
-                    style={s.blurGradient}
-                    pointerEvents="none"
+              {/* Kahve: bölümlü sonuç */}
+              {todayService === "kahve" && parseKahveSections(readingText).length > 0 ? (
+                <>
+                  <SectionedReading
+                    text={readingText}
+                    color={meta.color}
+                    isLoading={isLoading}
+                    visibleCount={isDone ? 2 : undefined}
                   />
-                </View>
+                  {isLoading && !isDone && (
+                    <ActivityIndicator size="small" color={meta.color} style={{ marginTop: 8 }} />
+                  )}
+                </>
+              ) : (
+                <>
+                  {/* Diğer servisler: düz metin teaser */}
+                  <Text style={s.resultText}>{visibleText}</Text>
+
+                  {isLoading && !isDone && (
+                    <ActivityIndicator size="small" color={meta.color} style={{ marginTop: 8 }} />
+                  )}
+
+                  {hasHiddenText && (
+                    <View style={s.blurWrap} pointerEvents="none">
+                      <Text style={[s.resultText, s.blurText]} aria-hidden>
+                        {readingText.slice(TEASER_CHARS)}
+                      </Text>
+                      <LinearGradient
+                        colors={["#0D102000", "#0D1020EE", "#0D1020"]}
+                        style={s.blurGradient}
+                        pointerEvents="none"
+                      />
+                    </View>
+                  )}
+                </>
               )}
             </LinearGradient>
           </Animated.View>

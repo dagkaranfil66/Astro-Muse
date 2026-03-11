@@ -44,6 +44,7 @@ import { getApiUrl } from "@/lib/query-client";
 import { SHARE_CONFIG } from "@/constants/shareConfig";
 import InsufficientGoldModal from "@/components/InsufficientGoldModal";
 import CameraKahveModal from "@/components/CameraKahveModal";
+import { SectionedReading, parseKahveSections } from "@/components/SectionedReading";
 
 const { width } = Dimensions.get("window");
 
@@ -732,6 +733,7 @@ export default function ReadingScreen() {
 
   const isKahve = service === "kahve";
   const isEl = service === "el";
+  const isTarot = service === "tarot";
 
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -743,12 +745,23 @@ export default function ReadingScreen() {
   const [showGoldModal, setShowGoldModal] = useState(false);
   const [showCameraModal, setShowCameraModal] = useState(false);
   const [inputError, setInputError] = useState(false);
+  const [tarotTopic, setTarotTopic] = useState("");
+  const [tarotSpread, setTarotSpread] = useState("3 Kart");
+  const [elHand, setElHand] = useState<"sağ" | "sol" | "">("");
+  const [birthDay, setBirthDay] = useState("");
+  const [birthMonth, setBirthMonth] = useState("");
+  const [birthYear, setBirthYear] = useState("");
+  const isNumeroloji = service === "numeroloji";
+  const isRuya = service === "ruya";
+  const [ruyaTags, setRuyaTags] = useState<string[]>([]);
   const scrollRef = useRef<ScrollView>(null);
 
   const hasValidInput = isKahve
     ? (kahvePhotos.length > 0 || userInput.trim().length > 0)
     : isEl
     ? (photo !== null || userInput.trim().length > 0)
+    : isTarot
+    ? true
     : userInput.trim().length > 0;
 
   const sendButtonScale = useSharedValue(1);
@@ -852,7 +865,20 @@ export default function ReadingScreen() {
 
     try {
       const baseUrl = getApiUrl();
-      const body: Record<string, any> = { service, userInput: userInput.trim() || "" };
+      const effectiveInput = isTarot
+        ? [
+            tarotTopic ? `Konu: ${tarotTopic}` : "",
+            `Açılım: ${tarotSpread}`,
+            userInput.trim() ? `Soru: ${userInput.trim()}` : "",
+          ].filter(Boolean).join(" | ")
+        : isEl && elHand
+        ? [elHand === "sağ" ? "Sağ el" : "Sol el", userInput.trim()].filter(Boolean).join(" — ")
+        : isNumeroloji && (birthDay || birthMonth || birthYear)
+        ? [`Doğum tarihi: ${birthDay || "?"}/${birthMonth || "?"}/${birthYear || "?"}`, userInput.trim()].filter(Boolean).join(" | ")
+        : isRuya && ruyaTags.length > 0
+        ? [`Rüyada gördüklerim: ${ruyaTags.join(", ")}`, userInput.trim()].filter(Boolean).join(". ")
+        : userInput.trim() || "";
+      const body: Record<string, any> = { service, userInput: effectiveInput };
       const photosToUse = photosOverride ?? kahvePhotos;
       if (isKahve && photosToUse.length > 0) {
         body.images = photosToUse.map((p) => ({ base64: p.base64, type: p.type }));
@@ -1029,8 +1055,17 @@ export default function ReadingScreen() {
                 <Ionicons name="sparkles" size={13} color={base.color} />
                 <Text style={[styles.readingHeaderText, { color: base.color }]}>{t.tengriMessage}</Text>
               </View>
-              <Text style={styles.readingText}>{readingText}</Text>
-              {isLoading && <ActivityIndicator size="small" color={base.color} style={{ padding: 12 }} />}
+              {(service === "kahve" || service === "el" || service === "numeroloji" || service === "ruya") && parseKahveSections(readingText).length > 0 ? (
+                <View style={{ padding: 12 }}>
+                  <SectionedReading text={readingText} color={base.color} isLoading={isLoading} />
+                  {isLoading && <ActivityIndicator size="small" color={base.color} style={{ padding: 8 }} />}
+                </View>
+              ) : (
+                <>
+                  <Text style={styles.readingText}>{readingText}</Text>
+                  {isLoading && <ActivityIndicator size="small" color={base.color} style={{ padding: 12 }} />}
+                </>
+              )}
             </Animated.View>
           )}
 
@@ -1049,6 +1084,30 @@ export default function ReadingScreen() {
         {/* Input Area - always stays above keyboard */}
         {!isDone && (
           <View style={[styles.inputArea, { paddingBottom: botPad + 16 }]}>
+            {/* El Falı — sağ/sol seçimi */}
+            {isEl && !isLoading && (
+              <View style={styles.tarotSelectorWrap}>
+                <Text style={[styles.tarotSelectorLabel, { color: base.color }]}>
+                  {lang === "tr" ? "Hangi el?" : "Which hand?"}
+                </Text>
+                <View style={styles.tarotChipRow}>
+                  {(lang === "tr" ? ["Sağ El", "Sol El"] : ["Right Hand", "Left Hand"]).map((label, i) => {
+                    const val = i === 0 ? "sağ" : "sol";
+                    const isActive = elHand === val;
+                    return (
+                      <Pressable
+                        key={label}
+                        onPress={() => { setElHand(isActive ? "" : val as "sağ" | "sol"); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+                        style={[styles.tarotChip, isActive && { backgroundColor: base.color + "25", borderColor: base.color }]}
+                      >
+                        <Text style={[styles.tarotChipText, isActive && { color: base.color }]}>{label}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
             {/* El Falı — camera + gallery */}
             {isEl && (
               <View style={styles.photoSection}>
@@ -1112,6 +1171,130 @@ export default function ReadingScreen() {
                     </View>
                   </View>
                 )}
+              </View>
+            )}
+
+            {/* Tarot: Konu + Açılım seçimi */}
+            {isTarot && !isLoading && (
+              <View style={styles.tarotSelectorWrap}>
+                {/* Açılım tipi */}
+                <Text style={[styles.tarotSelectorLabel, { color: base.color }]}>
+                  {lang === "tr" ? "Açılım" : "Spread"}
+                </Text>
+                <View style={styles.tarotChipRow}>
+                  {(lang === "tr"
+                    ? ["Tek Kart", "3 Kart", "Aşk Açılımı"]
+                    : ["Single Card", "3 Cards", "Love Spread"]
+                  ).map((s, i) => {
+                    const vals = ["Tek Kart", "3 Kart", "Aşk Açılımı"];
+                    const isActive = tarotSpread === vals[i];
+                    return (
+                      <Pressable
+                        key={s}
+                        onPress={() => { setTarotSpread(vals[i]); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+                        style={[styles.tarotChip, isActive && { backgroundColor: base.color + "25", borderColor: base.color }]}
+                      >
+                        <Text style={[styles.tarotChipText, isActive && { color: base.color }]}>{s}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                {/* Konu */}
+                <Text style={[styles.tarotSelectorLabel, { color: base.color, marginTop: 8 }]}>
+                  {lang === "tr" ? "Konu (isteğe bağlı)" : "Topic (optional)"}
+                </Text>
+                <View style={styles.tarotChipRow}>
+                  {(lang === "tr"
+                    ? ["Aşk", "Para", "Kariyer", "Gelecek", "Onun Duyguları", "Ruhsal Mesaj"]
+                    : ["Love", "Money", "Career", "Future", "Their Feelings", "Spiritual"]
+                  ).map((topic, i) => {
+                    const vals = ["Aşk", "Para", "Kariyer", "Gelecek", "Onun Duyguları", "Ruhsal Mesaj"];
+                    const isActive = tarotTopic === vals[i];
+                    return (
+                      <Pressable
+                        key={topic}
+                        onPress={() => {
+                          setTarotTopic(isActive ? "" : vals[i]);
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }}
+                        style={[styles.tarotChip, isActive && { backgroundColor: base.color + "25", borderColor: base.color }]}
+                      >
+                        <Text style={[styles.tarotChipText, isActive && { color: base.color }]}>{topic}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
+            {/* Numeroloji: Doğum tarihi girişi */}
+            {isNumeroloji && !isLoading && (
+              <View style={styles.tarotSelectorWrap}>
+                <Text style={[styles.tarotSelectorLabel, { color: base.color }]}>
+                  {lang === "tr" ? "Doğum Tarihi" : "Birth Date"}
+                </Text>
+                <View style={styles.birthDateRow}>
+                  <TextInput
+                    style={[styles.birthDateField, { borderColor: birthDay ? base.color + "60" : Colors.cardBorder, color: Colors.text }]}
+                    placeholder={lang === "tr" ? "GG" : "DD"}
+                    placeholderTextColor={Colors.textDim}
+                    value={birthDay}
+                    onChangeText={(v) => setBirthDay(v.replace(/\D/g, "").slice(0, 2))}
+                    keyboardType="numeric"
+                    maxLength={2}
+                  />
+                  <Text style={{ color: Colors.textDim, fontSize: 18 }}>/</Text>
+                  <TextInput
+                    style={[styles.birthDateField, { borderColor: birthMonth ? base.color + "60" : Colors.cardBorder, color: Colors.text }]}
+                    placeholder={lang === "tr" ? "AA" : "MM"}
+                    placeholderTextColor={Colors.textDim}
+                    value={birthMonth}
+                    onChangeText={(v) => setBirthMonth(v.replace(/\D/g, "").slice(0, 2))}
+                    keyboardType="numeric"
+                    maxLength={2}
+                  />
+                  <Text style={{ color: Colors.textDim, fontSize: 18 }}>/</Text>
+                  <TextInput
+                    style={[styles.birthDateField, styles.birthYearField, { borderColor: birthYear ? base.color + "60" : Colors.cardBorder, color: Colors.text }]}
+                    placeholder="YYYY"
+                    placeholderTextColor={Colors.textDim}
+                    value={birthYear}
+                    onChangeText={(v) => setBirthYear(v.replace(/\D/g, "").slice(0, 4))}
+                    keyboardType="numeric"
+                    maxLength={4}
+                  />
+                </View>
+              </View>
+            )}
+
+            {/* Rüya: Hızlı etiket seçimi */}
+            {isRuya && !isLoading && (
+              <View style={styles.tarotSelectorWrap}>
+                <Text style={[styles.tarotSelectorLabel, { color: base.color }]}>
+                  {lang === "tr" ? "Hızlı Etiket" : "Quick Tags"}
+                </Text>
+                <View style={styles.tarotChipRow}>
+                  {(lang === "tr"
+                    ? ["Uçmak", "Su/Deniz", "Düşmek", "Kovalanmak", "Yılan", "Ölüm", "Ev", "Çocuk", "Yangın", "Karanlık"]
+                    : ["Flying", "Water/Sea", "Falling", "Being Chased", "Snake", "Death", "House", "Child", "Fire", "Darkness"]
+                  ).map((tag, i) => {
+                    const trVals = ["Uçmak", "Su/Deniz", "Düşmek", "Kovalanmak", "Yılan", "Ölüm", "Ev", "Çocuk", "Yangın", "Karanlık"];
+                    const val = trVals[i];
+                    const isActive = ruyaTags.includes(val);
+                    return (
+                      <Pressable
+                        key={tag}
+                        onPress={() => {
+                          setRuyaTags(prev => isActive ? prev.filter(t => t !== val) : [...prev, val]);
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }}
+                        style={[styles.tarotChip, isActive && { backgroundColor: base.color + "25", borderColor: base.color }]}
+                      >
+                        <Text style={[styles.tarotChipText, isActive && { color: base.color }]}>{tag}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
               </View>
             )}
 
@@ -1218,6 +1401,22 @@ const styles = StyleSheet.create({
   palmLine: { position: "absolute", height: 1.5, borderRadius: 1, opacity: 0.6, left: "30%" as any },
 
   // Tarot
+  tarotSelectorWrap: { paddingHorizontal: 4, paddingBottom: 10, gap: 6 },
+  tarotSelectorLabel: { fontSize: 11, fontFamily: "Lora_700Bold", letterSpacing: 1, textTransform: "uppercase" },
+  tarotChipRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  tarotChip: {
+    paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20,
+    borderWidth: 1, borderColor: Colors.cardBorder, backgroundColor: Colors.surfaceElevated,
+  },
+  tarotChipText: { fontSize: 12, fontFamily: "Lora_700Bold", color: Colors.textSecondary },
+  birthDateRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  birthDateField: {
+    width: 52, height: 44, borderRadius: 10, borderWidth: 1,
+    backgroundColor: Colors.surfaceElevated, textAlign: "center",
+    fontFamily: "Lora_700Bold", fontSize: 15,
+  },
+  birthYearField: { width: 72 },
+
   tarotIntro: { alignItems: "center", paddingVertical: 16, gap: 12 },
   tarotCardsRow: { flexDirection: "row", gap: 12, justifyContent: "center" },
   tarotCardWrap: { alignItems: "center", gap: 6 },
