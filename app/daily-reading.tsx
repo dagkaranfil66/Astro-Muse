@@ -332,7 +332,7 @@ export default function DailyReadingScreen() {
               </Text>
               <TextInput
                 style={[s.noteInput, { color: "#E8DFC8", borderColor: meta.color + "30" }]}
-                placeholder={lang === "tr" ? "Fincanda gördüklerini buraya yaz…" : "Describe what you see in the cup…"}
+                placeholder={lang === "tr" ? "Fincanda gördüklerini buraya yaz… (isteğe bağlı)" : "Describe what you see in the cup… (optional)"}
                 placeholderTextColor="#6B5F4A"
                 value={userNote}
                 onChangeText={setUserNote}
