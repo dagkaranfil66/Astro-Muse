@@ -1,0 +1,177 @@
+Tengri Astroloji uygulamasına viral paylaşım sistemi ekle.
+
+Teknoloji:
+
+* Expo / React Native
+* TypeScript
+* Mevcut UI bozulmasın
+* Kod modüler ve temiz olsun
+
+AMAÇ:
+Kullanıcı fal sonucunu sosyal medyada paylaşabilsin ve paylaşım karşılığında ödül kazansın.
+
+PLATFORMLAR:
+
+* TikTok
+* Instagram
+* X (Twitter)
+* Generic Share (diğer uygulamalar)
+
+PAYLAŞIM AKIŞI:
+
+1. Fal sonucu ekranına “Paylaş, 2 Altın Kazan” butonu ekle.
+
+2. Butona basınca Share Modal açılsın.
+
+Modal içinde:
+
+Başlık:
+“Paylaş, 2 Altın Kazan”
+
+Alt açıklama:
+“Fal sonucunu sosyal medyada paylaş ve ödül kazan.”
+
+Butonlar:
+
+* TikTok’ta paylaş +2 altın
+* Instagram’da paylaş +2 altın
+* X’te paylaş +2 altın
+* Diğer uygulamalarla paylaş
+
+PAYLAŞIM MESAJI:
+
+Dinamik paylaşım metni oluştur.
+
+Örnek:
+
+“Falımda ilginç bir mesaj çıktı 🔮
+
+Tengri Astroloji’de kahve falı, tarot ve burç yorumlarımı gördüm.
+
+Sen de dene 👇
+https://tengriastroloji.app”
+
+CONFIG YAPISI:
+
+APP_SHARE_URL = "https://tengriastroloji.app"
+
+İleride şu alanlar da desteklensin:
+
+IOS_APP_URL
+ANDROID_APP_URL
+
+PAYLAŞIM BAŞARILI OLURSA:
+
+onShareSuccess(platform) fonksiyonu çalışsın.
+
+Ekranda toast göster:
+
+“Paylaşım başarılı 🎉 2 altın hesabına eklendi”
+
+PAYLAŞIM İPTAL EDİLİRSE:
+
+ödül verilmesin.
+
+REWARD SİSTEMİ:
+
+Fonksiyonlar oluştur:
+
+getShareRewardAmount(platform)
+shouldRewardShare(platform)
+createPendingShareReward(platform)
+
+Şimdilik tüm platformlar için ödül:
+
+2 altın
+
+GÜNLÜK LİMİT:
+
+Günde maksimum:
+
+3 paylaşım
+
+Yani günlük maksimum ödül:
+
+6 altın
+
+Bunun için değişkenler oluştur:
+
+maxDailyReward
+shareCountToday
+lastShareTimestamp
+
+PLATFORM FONKSİYONLARI:
+
+shareToTikTok()
+shareToInstagram()
+shareToX()
+shareGeneric()
+
+Platform açılabiliyorsa direkt aç.
+
+Açılamazsa sistem share ekranına fallback yap.
+
+BONUS: REFERRAL SİSTEMİ
+
+Paylaşılan link kullanıcıya özel olsun:
+
+https://tengriastroloji.app/?ref=USER_ID
+
+Arkadaş indirirse:
+
+referrerReward = 10 altın
+
+Fonksiyonlar:
+
+generateReferralLink(userId)
+trackReferralInstall(refCode)
+rewardReferralUser(userId)
+
+BONUS: PAYLAŞIM GÖRSELİ
+
+İleride paylaşım görseli eklenebilmesi için altyapı bırak.
+
+share payload şu alanları desteklesin:
+
+text
+imageUri
+backgroundImage
+previewCard
+
+Paylaşım öncesi küçük bir preview kartı göster.
+
+BONUS: ANALYTICS
+
+Eventler oluştur:
+
+share_opened
+share_platform_selected
+share_success
+share_cancelled
+share_failed
+share_reward_granted
+
+BONUS: UI
+
+* koyu tema ile uyumlu
+* altın renkli ödül vurgusu
+* premium görünüm
+* hızlı tıklamalara karşı koruma
+* loading state
+
+SONUNDA ŞUNLARI YAZ:
+
+* hangi paketler kurulmalı
+* hangi dosyalar oluşturuldu
+* entegrasyon örneği
+* ödül sistemi nasıl bağlanır
+
+ÖNEMLİ:
+
+TikTok / Instagram / X paylaşımı her cihazda çalışmayabilir.
+
+Bu yüzden sistem:
+
+1. önce platformu açmayı denesin
+2. olmazsa generic share kullansın
+3. uygulama hiçbir durumda crash olmasın

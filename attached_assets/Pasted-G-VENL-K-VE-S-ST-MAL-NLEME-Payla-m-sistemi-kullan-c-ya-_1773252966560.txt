@@ -1,0 +1,143 @@
+GÜVENLİK VE SÜİSTİMAL ÖNLEME
+
+Paylaşım sistemi kullanıcıya özel olmalı ve abuse önlenmeli.
+
+1. HER PAYLAŞIM KULLANICIYA ÖZEL OLSUN
+
+Paylaşılan link kullanıcı ID içersin.
+
+Örnek:
+
+https://tengriastroloji.app/?ref=USER_ID
+
+USER_ID uygulamadaki gerçek kullanıcı ID’si olsun.
+
+Fonksiyon:
+generateReferralLink(userId)
+
+2. AYNI SONUÇ İÇİN TEKRAR ÖDÜL VERME
+
+Kullanıcı aynı fal sonucunu tekrar tekrar paylaşarak ödül kazanamasın.
+
+Her fal sonucuna bir ID ver:
+
+fortuneResultId
+
+Database alanları:
+
+sharedFortuneIds[]
+
+Eğer aynı fortuneResultId daha önce paylaşılmışsa:
+
+reward verilmesin.
+
+3. GÜNLÜK PAYLAŞIM LİMİTİ
+
+Kullanıcı günde maksimum:
+
+3 paylaşım
+
+Ödül limiti:
+
+6 altın
+
+Değişkenler:
+
+shareCountToday
+maxDailyReward
+lastShareTimestamp
+
+4. GERÇEK PAYLAŞIM KONTROLÜ
+
+Kullanıcı sadece butona basarak ödül alamaz.
+
+Ödül sadece şu durumda verilsin:
+
+Share API response = success
+
+Fonksiyon:
+
+onShareSuccess(platform)
+
+5. PAYLAŞIM COOLDOWN
+
+Spam önlemek için paylaşım arasında minimum süre olsun:
+
+cooldown = 60 saniye
+
+Değişken:
+
+lastShareTimestamp
+
+6. REFERRAL ABUSE ÖNLEME
+
+Bir kullanıcı kendi linkiyle kendi cihazından indirirse ödül verilmesin.
+
+Kontroller:
+
+* aynı deviceId
+* aynı ip
+* aynı kullanıcı hesabı
+
+Fonksiyon:
+
+validateReferralInstall(refCode, deviceId)
+
+7. GÜNLÜK REFERRAL LİMİTİ
+
+Kullanıcı günde maksimum:
+
+3 referral ödülü alabilsin.
+
+Değişken:
+
+referralCountToday
+
+8. PAYLAŞIM TOKEN SİSTEMİ
+
+Her paylaşım için backend bir token üretsin.
+
+Örnek:
+
+shareToken
+
+Paylaşım sonrası:
+
+verifyShareToken(shareToken)
+
+Token doğrulanmadan ödül verilmesin.
+
+9. DATABASE ALANLARI
+
+User tablosuna şu alanları ekle:
+
+shareCountToday
+lastShareTimestamp
+sharedFortuneIds
+referralCountToday
+
+10. LOG VE ANALYTICS
+
+Aşağıdaki eventleri kaydet:
+
+share_opened
+share_platform_selected
+share_success
+share_cancelled
+share_failed
+share_reward_granted
+share_reward_denied
+
+11. FRONTEND KORUMA
+
+Buton spamını önlemek için:
+
+* loading state
+* disable state
+* debounce
+
+12. KULLANICIYA BİLGİ VER
+
+Limit dolunca mesaj göster:
+
+“Bugünkü paylaşım ödül limitine ulaştın. Yarın tekrar kazanabilirsin.”
