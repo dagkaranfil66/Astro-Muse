@@ -116,12 +116,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const isNewUser = goldStr === null;
     let startGold = goldStr !== null ? parseInt(goldStr, 10) : FREE_START_GOLD;
 
-    // One-time welcome bonus: +10 gold for brand new accounts
+    // One-time welcome bonus: +15 gold for brand new accounts
     if (isNewUser && wbStr === null) {
-      startGold = startGold + 10;
+      startGold = startGold + 15;
       await AsyncStorage.setItem(k.welcomeBonus, 'given');
       await AsyncStorage.setItem(k.gold, String(startGold));
-      console.log('[Tengri] Welcome bonus granted: +10 gold');
+      console.log('[Tengri] Welcome bonus granted: +15 gold');
     }
 
     setGoldBalance(startGold);
