@@ -403,10 +403,11 @@ const SERVICE_IMAGES: Record<string, any> = {
 };
 
 const ALL_SERVICES = [
-  "kahve", "ask", "tarot", "burclar", "ruya",
-  "el", "numeroloji", "astroloji", "ruh", "samanizm", "dogum",
+  "kahve", "tarot", "ask", "burclar", "ruya",
+  "el", "numeroloji", "dogum", "astroloji", "ruh", "samanizm",
 ];
-const POPULAR_SERVICE = "kahve";
+const POPULAR_SERVICE  = "kahve";
+const TRENDING_SERVICE = "tarot";
 
 const ANIM_TYPES = ["rotate", "pulse", "bounce", "flip", "slide", "spin", "glow", "rotate", "pulse", "bounce", "flip"];
 
@@ -520,6 +521,11 @@ function ServiceCard({ serviceId, index, label, desc, onPress }: {
             {serviceId === POPULAR_SERVICE && (
               <View style={styles.popularBadge}>
                 <Text style={styles.popularBadgeText}>⭐ En Popüler</Text>
+              </View>
+            )}
+            {serviceId === TRENDING_SERVICE && (
+              <View style={styles.trendingBadge}>
+                <Text style={styles.trendingBadgeText}>🔥 Bugün Çok Tercih Edilen</Text>
               </View>
             )}
             <Animated.View style={[styles.iconCircle, { borderColor: color + "50" }, iconStyle]}>
@@ -738,7 +744,7 @@ const CATEGORIES = [
 type CategoryId = typeof CATEGORIES[number]["id"];
 
 const CATEGORY_SERVICES: Record<CategoryId, string[]> = {
-  tumu:      ["kahve", "ask", "tarot", "burclar", "ruya", "el", "numeroloji", "astroloji", "ruh", "samanizm", "dogum"],
+  tumu:      ["kahve", "tarot", "ask", "burclar", "ruya", "el", "numeroloji", "dogum", "astroloji", "ruh", "samanizm"],
   fal:       ["kahve", "el"],
   tarot:     ["tarot", "ruh"],
   astroloji: ["astroloji", "burclar", "dogum"],
@@ -1164,6 +1170,12 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   popularBadgeText: { fontSize: 9, fontFamily: "Lora_700Bold", color: "#000", letterSpacing: 0.3 },
+  trendingBadge: {
+    position: "absolute", top: 8, right: 44,
+    backgroundColor: "#E7B00820", borderWidth: 1, borderColor: "#E7B00860",
+    borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3, zIndex: 10,
+  },
+  trendingBadgeText: { fontSize: 9, fontFamily: "Lora_700Bold", color: "#E7B008", letterSpacing: 0.3 },
 
   // ── Big free coffee banner ──
   freeBanner: {
