@@ -42,6 +42,7 @@ const SERVICE_NAMES_TR: Record<string, string> = {
 const PKG_DISPLAY: Record<string, {
   gradient: [string, string];
   popular: boolean;
+  advantage: boolean;
   gold: number;
   bonus: number;
   label: string;
@@ -49,10 +50,10 @@ const PKG_DISPLAY: Record<string, {
   desc: string;
   descEn: string;
 }> = {
-  tengri_starter:  { gradient: ["#1A1A30", "#0D1526"], popular: false, gold: 20,  bonus: 0,  label: "Başlangıç Paketi", discount: 0,  desc: "5 okuma için yeterli",  descEn: "Good for 5 readings" },
-  tengri_premium:  { gradient: ["#1A1030", "#0D1526"], popular: true,  gold: 50,  bonus: 0,  label: "Popüler Paket",    discount: 27, desc: "10 okuma için yeterli", descEn: "Good for 10 readings" },
-  tengri_standard: { gradient: ["#1A0A20", "#0D1526"], popular: false, gold: 120, bonus: 0,  label: "Büyük Paket",      discount: 43, desc: "13 okuma için yeterli", descEn: "Good for 13 readings" },
-  tengri_vip:      { gradient: ["#1A0805", "#0D1526"], popular: false, gold: 300, bonus: 0,  label: "Mega Paket",       discount: 56, desc: "50 okuma için yeterli", descEn: "Good for 50 readings" },
+  tengri_starter:  { gradient: ["#1A1A30", "#0D1526"], popular: false, advantage: false, gold: 20,  bonus: 0, label: "Başlangıç Paketi", discount: 0,  desc: "", descEn: "" },
+  tengri_premium:  { gradient: ["#1A1030", "#0D1526"], popular: true,  advantage: false, gold: 50,  bonus: 0, label: "Popüler Paket",    discount: 27, desc: "", descEn: "" },
+  tengri_standard: { gradient: ["#1A0A20", "#0D1526"], popular: false, advantage: false, gold: 120, bonus: 0, label: "Büyük Paket",      discount: 43, desc: "", descEn: "" },
+  tengri_vip:      { gradient: ["#1A0805", "#0D1526"], popular: false, advantage: true,  gold: 300, bonus: 0, label: "Mega Paket",       discount: 56, desc: "", descEn: "" },
 };
 
 // ─── Auth Gate (not logged in) ─────────────────────────────────────────────
@@ -146,6 +147,7 @@ function GoldPackageCard({
   const display = PKG_DISPLAY[rcPkg.identifier] ?? {
     gradient: ["#1A1A30", "#0D1526"] as [string, string],
     popular: false,
+    advantage: false,
     gold: PACKAGE_GOLD_MAP[rcPkg.identifier] ?? 0,
     bonus: 0,
     label: rcPkg.identifier,
@@ -163,10 +165,15 @@ function GoldPackageCard({
       onPress={() => onBuy(rcPkg)}
       disabled={buying || !!boughtId}
     >
-      <Animated.View style={[styles.pkgCard, display.popular && styles.pkgCardPopular, animStyle]}>
+      <Animated.View style={[styles.pkgCard, display.popular && styles.pkgCardPopular, display.advantage && styles.pkgCardAdvantage, animStyle]}>
         {display.popular && !isThisBought && (
           <View style={styles.popularBadge}>
-            <Text style={styles.popularBadgeText}>⭐ EN POPÜLER</Text>
+            <Text style={styles.popularBadgeText}>⭐ POPÜLER</Text>
+          </View>
+        )}
+        {display.advantage && !isThisBought && (
+          <View style={styles.advantageBadge}>
+            <Text style={styles.advantageBadgeText}>✦ AVANTAJLI</Text>
           </View>
         )}
         {display.discount > 0 && !isThisBought && (
@@ -189,11 +196,6 @@ function GoldPackageCard({
               ) : (
                 <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>
                   {display.gold} <Text style={styles.pkgGoldUnit}>{isThisBought ? "✓ Eklendi" : "Altın"}</Text>
-                </Text>
-              )}
-              {!isThisBought && (
-                <Text style={styles.pkgDesc} numberOfLines={1}>
-                  {lang === "tr" ? display.desc : display.descEn}
                 </Text>
               )}
             </View>
@@ -245,9 +247,6 @@ function UnavailablePackageCard({ pkgId, lang }: { pkgId: string; lang: string }
                 {display.gold} <Text style={styles.pkgGoldUnit}>Altın</Text>
               </Text>
             )}
-            <Text style={styles.pkgDesc} numberOfLines={1}>
-              {lang === "tr" ? display.desc : display.descEn}
-            </Text>
           </View>
         </View>
         <View style={styles.pkgRight}>
@@ -590,9 +589,12 @@ const styles = StyleSheet.create({
 
   pkgCard: { borderRadius: 16, borderWidth: 1, borderColor: Colors.cardBorder, overflow: "hidden", marginBottom: 2 },
   pkgCardPopular: { borderColor: Colors.gold + "60", borderWidth: 2 },
+  pkgCardAdvantage: { borderColor: "#C084FC" + "60", borderWidth: 2 },
   pkgCardInner: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 16, paddingTop: 20 },
   popularBadge: { position: "absolute", top: 0, left: 12, backgroundColor: Colors.gold, paddingHorizontal: 10, paddingVertical: 3, borderBottomLeftRadius: 8, borderBottomRightRadius: 8, zIndex: 2 },
   popularBadgeText: { fontSize: 9, fontFamily: "Lora_700Bold", color: Colors.background, letterSpacing: 1 },
+  advantageBadge: { position: "absolute", top: 0, left: 12, backgroundColor: "#9333EA", paddingHorizontal: 10, paddingVertical: 3, borderBottomLeftRadius: 8, borderBottomRightRadius: 8, zIndex: 2 },
+  advantageBadgeText: { fontSize: 9, fontFamily: "Lora_700Bold", color: "#fff", letterSpacing: 1 },
   discountBadge: { position: "absolute", top: 0, right: 12, backgroundColor: Colors.success, paddingHorizontal: 8, paddingVertical: 3, borderBottomLeftRadius: 8, borderBottomRightRadius: 8, zIndex: 2 },
   discountBadgeText: { fontSize: 9, fontFamily: "Lora_700Bold", color: "#fff", letterSpacing: 0.5 },
   pkgLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
