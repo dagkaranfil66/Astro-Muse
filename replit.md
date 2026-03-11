@@ -20,7 +20,7 @@ Turkish mystical guidance app with AI-powered readings (tengristar.com).
 - Reading history with AsyncStorage
 
 ## Gold Economy
-- FREE_START_GOLD = 10
+- FREE_START_GOLD = 15
 - Service costs: Şamanizm=2✦, Tarot/Rüya/Burçlar=3✦, all others=4✦
 - Packages: Başlangıç 20✦/49.99₺, Popüler 50+5bonus✦/99.99₺, Premium 120+20bonus✦/199.99₺, Mega 300+60bonus✦/399.99₺ — RC IDs: tengri_basic/plus/premium/vip
 - Daily Free Reading: 1 free teaser/day (150-token), 24h reset — promotes upsell to full reading
@@ -30,9 +30,14 @@ Turkish mystical guidance app with AI-powered readings (tengristar.com).
 - **Frontend**: Expo / React Native with Expo Router
 - **Backend**: Express.js on port 5000
 - **AI**: OpenAI via Replit AI Integrations (priority: OPENAI_API_KEY_ → OPENAI_API_KEY → AI_INTEGRATIONS)
-- **Payments**: RevenueCat (`react-native-purchases`) — 4 gold packages (tengri_starter/standard/premium/vip); EXPO_PUBLIC_REVENUECAT_TEST/IOS/ANDROID_API_KEY env vars set
-- **Storage**: PostgreSQL (Drizzle ORM) for users; AsyncStorage (local) for gold/history
+- **Payments**: RevenueCat (`react-native-purchases`) — 4 gold packages; EXPO_PUBLIC_REVENUECAT_TEST/IOS/ANDROID_API_KEY env vars set
 - **Fonts**: CinzelDecorative (ASCII/decorative), Lora (Turkish content)
+
+## Data Layer (Audited — no Supabase)
+- **PostgreSQL** (Drizzle ORM via `server/db.ts`): ONLY for user auth (register, login, email verify, password reset, delete account) and share-reward tracking (shareCountToday, lastShareTimestamp, lastShareDate, sharedReadingIds columns)
+- **AsyncStorage** (device-local, scoped per email): gold balance, reading history, profile photo URI, last spin date, daily free date, trial count, purchase state, zodiac sign, welcome bonus flag, onboarding flag
+- **NOT used**: Supabase (never configured), cloud image storage (photos sent as base64 in API body)
+- `server/seedRevenueCat.ts` + `server/revenueCatClient.ts` — one-time RevenueCat setup scripts only, not called at runtime
 
 ## Architecture
 - `app/(tabs)/index.tsx` — Home screen, service cards, gold bar, spin wheel button
