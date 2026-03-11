@@ -67,4 +67,4 @@ export const GOLD_PACKAGES = [
   },
 ];
 
-export const FREE_START_GOLD = 10;
+export const FREE_START_GOLD = 15;
