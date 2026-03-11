@@ -546,10 +546,15 @@ function ServiceCard({ serviceId, index, label, desc, onPress }: {
 }
 
 // ────────── Daily Free Card (big hero banner) ──────────
+const SOCIAL_COUNT = (3200 + Math.floor(Math.random() * 600)).toLocaleString("tr-TR");
+
 function DailyFreeCard() {
   const { canDailyFree } = useApp();
   const { lang } = useLang();
-  const pulse = useSharedValue(1);
+  const pulse     = useSharedValue(1);
+  const iconScale = useSharedValue(1);
+  const iconGlow  = useSharedValue(0);
+  const shimmerX  = useSharedValue(-100);
 
   React.useEffect(() => {
     if (!canDailyFree) return;
@@ -559,9 +564,30 @@ function DailyFreeCard() {
         withTiming(1.0,   { duration: 1800, easing: Easing.inOut(Easing.sin) }),
       ), -1, false
     );
+    iconScale.value = withRepeat(
+      withSequence(
+        withTiming(1.15, { duration: 1400, easing: Easing.inOut(Easing.sin) }),
+        withTiming(1.0,  { duration: 1400, easing: Easing.inOut(Easing.sin) }),
+      ), -1, false
+    );
+    iconGlow.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 1000 }),
+        withTiming(0.4, { duration: 1000 }),
+      ), -1, true
+    );
+    shimmerX.value = withRepeat(
+      withSequence(
+        withTiming(width + 100, { duration: 1800, easing: Easing.inOut(Easing.ease) }),
+        withDelay(1800, withTiming(-100, { duration: 0 })),
+      ), -1, false
+    );
   }, [canDailyFree]);
 
-  const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }));
+  const pulseStyle    = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }));
+  const iconStyle     = useAnimatedStyle(() => ({ transform: [{ scale: iconScale.value }] }));
+  const iconGlowStyle = useAnimatedStyle(() => ({ opacity: iconGlow.value }));
+  const shimmerStyle  = useAnimatedStyle(() => ({ transform: [{ translateX: shimmerX.value }] }));
 
   if (!canDailyFree) {
     return (
@@ -591,14 +617,17 @@ function DailyFreeCard() {
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
-          {/* Gold glow border */}
           <View style={styles.freeBannerGlowBorder} />
 
           <View style={styles.freeBannerTop}>
             <View style={styles.freeBadge}>
               <Text style={styles.freeBadgeText}>{lang === "tr" ? "ÜCRETSİZ" : "FREE"}</Text>
             </View>
-            <Text style={styles.freeBannerEmoji}>☕</Text>
+            {/* Animated coffee cup with glow */}
+            <View style={styles.freeBannerEmojiWrap}>
+              <Animated.View style={[styles.freeBannerEmojiGlow, iconGlowStyle]} />
+              <Animated.Text style={[styles.freeBannerEmoji, iconStyle]}>☕</Animated.Text>
+            </View>
           </View>
 
           <Text style={styles.freeBannerTitle}>
@@ -610,10 +639,31 @@ function DailyFreeCard() {
               : "Upload your cup photo — get your mystical reading at no cost"}
           </Text>
 
+          {/* Mystical energy text */}
+          <Text style={styles.freeMysticalText}>
+            {lang === "tr" ? "✨ Enerjin fincana yansıdı…" : "✨ Your energy reflects in the cup…"}
+          </Text>
+
+          {/* Social proof */}
+          <Text style={styles.freeSocialProof}>
+            🔮 {lang === "tr"
+              ? `Bugün ${SOCIAL_COUNT} kişi falına baktı`
+              : `${SOCIAL_COUNT} people checked their fortune today`}
+          </Text>
+
+          {/* Shimmer CTA button */}
           <View style={styles.freeBannerBtn}>
             <Text style={styles.freeBannerBtnText}>
               {lang === "tr" ? "Hemen Ücretsiz Dene  →" : "Try For Free Now  →"}
             </Text>
+            <Animated.View pointerEvents="none" style={[styles.freeBannerShimmer, shimmerStyle]}>
+              <LinearGradient
+                colors={["transparent", "rgba(255,255,255,0.45)", "transparent"]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={{ flex: 1 }}
+              />
+            </Animated.View>
           </View>
         </LinearGradient>
       </Pressable>
@@ -813,14 +863,17 @@ export default function HomeScreen() {
         {/* Gold Balance Bar */}
         <Animated.View entering={FadeInDown.delay(200).springify()}>
           <Pressable onPress={() => router.push("/purchase")} style={styles.trialsBar}>
-            <LinearGradient colors={["#1A1205", "#0D1526"]} style={styles.trialsBarInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              <Text style={{ fontSize: 16 }}>✦</Text>
+            <LinearGradient colors={["#241800", "#1A1205", "#0E0C20"]} style={styles.trialsBarInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+              <View style={styles.goldCoinIcon}>
+                <Text style={{ fontSize: 14, color: "#1A0A00" }}>✦</Text>
+              </View>
               <Text style={styles.trialsText}>
                 {goldBalance > 0
-                  ? (lang === "tr" ? `✨ Altın Bakiyeniz: ${goldBalance}` : `✨ Gold Balance: ${goldBalance}`)
-                  : (lang === "tr" ? "✨ Altın tükendi — Satın alın" : "✨ Gold depleted — Buy more")}
+                  ? (lang === "tr" ? "Altın Bakiyeniz" : "Gold Balance")
+                  : (lang === "tr" ? "Altın tükendi — Satın alın" : "Gold depleted — Buy more")}
               </Text>
-              <Ionicons name="chevron-forward" size={13} color={Colors.gold} />
+              {goldBalance > 0 && <Text style={styles.trialsGoldCount}>{goldBalance} ✦</Text>}
+              <Ionicons name="chevron-forward" size={14} color={Colors.gold} />
             </LinearGradient>
           </Pressable>
         </Animated.View>
@@ -975,9 +1028,25 @@ const styles = StyleSheet.create({
   },
 
   scroll: { paddingHorizontal: 18 },
-  trialsBar: { marginBottom: 12, borderRadius: 14, overflow: "hidden", borderWidth: 1, borderColor: Colors.gold + "45" },
-  trialsBarInner: { flexDirection: "row", alignItems: "center", paddingVertical: 13, paddingHorizontal: 16, gap: 10 },
+  trialsBar: {
+    marginBottom: 12, borderRadius: 14, overflow: "hidden",
+    borderWidth: 1.5, borderColor: Colors.gold + "70",
+    shadowColor: Colors.gold,
+    shadowOpacity: 0.3, shadowRadius: 12, shadowOffset: { width: 0, height: 0 },
+    elevation: 8,
+  },
+  trialsBarInner: { flexDirection: "row", alignItems: "center", paddingVertical: 14, paddingHorizontal: 16, gap: 10 },
   trialsText: { flex: 1, color: Colors.gold, fontSize: 13, fontFamily: "Lora_700Bold", letterSpacing: 0.2 },
+  goldCoinIcon: {
+    width: 30, height: 30, borderRadius: 15,
+    backgroundColor: Colors.gold,
+    alignItems: "center", justifyContent: "center",
+    shadowColor: Colors.gold, shadowOpacity: 0.6, shadowRadius: 8, shadowOffset: { width: 0, height: 0 },
+  },
+  trialsGoldCount: {
+    fontSize: 20, fontFamily: "Lora_700Bold", color: Colors.gold,
+    marginRight: 2,
+  },
 
   purchaseCta: { marginBottom: 14, borderRadius: 12, overflow: "hidden" },
   purchaseCtaInner: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 14, gap: 10 },
@@ -1058,7 +1127,24 @@ const styles = StyleSheet.create({
     color: "#000",
     letterSpacing: 1.5,
   },
-  freeBannerEmoji: { fontSize: 40 },
+  freeBannerEmojiWrap: {
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 68, height: 68,
+  },
+  freeBannerEmojiGlow: {
+    position: "absolute",
+    width: 68, height: 68,
+    borderRadius: 34,
+    backgroundColor: Colors.gold,
+    opacity: 0.35,
+    shadowColor: Colors.gold,
+    shadowOpacity: 1,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  freeBannerEmoji: { fontSize: 52 },
   freeBannerTitle: {
     fontSize: 22,
     fontFamily: "Lora_700Bold",
@@ -1073,17 +1159,40 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 16,
   },
+  freeMysticalText: {
+    fontSize: 12,
+    fontFamily: "Lora_400Regular_Italic",
+    color: "#E8C87A",
+    letterSpacing: 0.5,
+    marginBottom: 6,
+    textAlign: "center",
+  },
+  freeSocialProof: {
+    fontSize: 12,
+    fontFamily: "Lora_400Regular",
+    color: "#C8A860",
+    textAlign: "center",
+    marginBottom: 16,
+    opacity: 0.85,
+  },
   freeBannerBtn: {
     backgroundColor: Colors.gold,
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: "center",
+    overflow: "hidden",
   },
   freeBannerBtnText: {
     fontSize: 15,
     fontFamily: "Lora_700Bold",
     color: "#1A0A00",
     letterSpacing: 0.3,
+  },
+  freeBannerShimmer: {
+    position: "absolute",
+    top: 0, bottom: 0,
+    width: 90,
+    left: 0,
   },
   // ── Used state (small strip) ──
   freeCardUsed: {
@@ -1109,15 +1218,21 @@ const styles = StyleSheet.create({
   },
   freeCardUsedBadgeText: { fontSize: 10, fontFamily: "Lora_700Bold", color: Colors.textDim, letterSpacing: 0.5 },
 
-  // ── Horoscope card (unchanged) ──
-  dailyCard: { marginBottom: 14, borderRadius: 14, overflow: "hidden", borderWidth: 1, borderColor: Colors.cardBorder },
-  dailyCardInner: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 13, paddingHorizontal: 14 },
-  dailyLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
-  dailyEmoji: { fontSize: 28 },
-  dailyTitle: { fontSize: 13, fontFamily: "Lora_700Bold", letterSpacing: 0.2 },
-  dailySub: { fontSize: 11, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary, marginTop: 1 },
-  dailyBadge: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3 },
-  dailyBadgeText: { fontSize: 11, fontFamily: "Lora_700Bold" },
+  // ── Horoscope card ──
+  dailyCard: {
+    marginBottom: 14, borderRadius: 14, overflow: "hidden",
+    borderWidth: 1.5, borderColor: Colors.gold + "40",
+    shadowColor: Colors.gold,
+    shadowOpacity: 0.18, shadowRadius: 10, shadowOffset: { width: 0, height: 0 },
+    elevation: 5,
+  },
+  dailyCardInner: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 18, paddingHorizontal: 18 },
+  dailyLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
+  dailyEmoji: { fontSize: 36 },
+  dailyTitle: { fontSize: 14, fontFamily: "Lora_700Bold", letterSpacing: 0.2 },
+  dailySub: { fontSize: 12, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary, marginTop: 2 },
+  dailyBadge: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 4 },
+  dailyBadgeText: { fontSize: 12, fontFamily: "Lora_700Bold" },
 
   catSlider: { marginBottom: 14 },
   catSliderContent: { paddingHorizontal: 0, gap: 8, paddingVertical: 4 },
