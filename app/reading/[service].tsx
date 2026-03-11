@@ -425,9 +425,23 @@ function DefaultIntro({ serviceId, color, label, hint }: { serviceId: string; co
 }
 
 // ────────── Share Panel ──────────
-function SharePanel({ text, serviceLabel, readingId }: { text: string; serviceLabel: string; readingId: string | null }) {
+// ── Service-specific share copy ───────────────────────────────────────────
+const SERVICE_SHARE_COPY: Record<string, { headerTR: string; btnTR: string; headerEN: string; btnEN: string }> = {
+  kahve:      { headerTR: "KAHVE FALINI PAYLAŞ",              btnTR: "Kahve Falımı Paylaş",          headerEN: "SHARE YOUR COFFEE READING",     btnEN: "Share My Coffee Reading" },
+  el:         { headerTR: "EL FALINI PAYLAŞ",                 btnTR: "El Falımı Paylaş",             headerEN: "SHARE YOUR PALM READING",       btnEN: "Share My Palm Reading" },
+  tarot:      { headerTR: "TAROTUNU PAYLAŞ",                  btnTR: "Tarotumu Paylaş",              headerEN: "SHARE YOUR TAROT",              btnEN: "Share My Tarot" },
+  samanizm:   { headerTR: "ŞAMANİZM REHBERLİĞİNİ PAYLAŞ",   btnTR: "Şamanizm Rehberliğimi Paylaş", headerEN: "SHARE YOUR SHAMANISM GUIDANCE", btnEN: "Share My Shamanism Guidance" },
+  numeroloji: { headerTR: "NUMEROLOJİNİ PAYLAŞ",             btnTR: "Numerolojimi Paylaş",          headerEN: "SHARE YOUR NUMEROLOGY",         btnEN: "Share My Numerology" },
+  ruya:       { headerTR: "RÜYA YORUMUNU PAYLAŞ",             btnTR: "Rüya Yorumumu Paylaş",         headerEN: "SHARE YOUR DREAM READING",      btnEN: "Share My Dream Reading" },
+  burclar:    { headerTR: "BURÇ YORUMUNU PAYLAŞ",             btnTR: "Burç Yorumumu Paylaş",         headerEN: "SHARE YOUR HOROSCOPE",          btnEN: "Share My Horoscope" },
+  ask:        { headerTR: "AŞK YORUMUNU PAYLAŞ",              btnTR: "Aşk Yorumumu Paylaş",          headerEN: "SHARE YOUR LOVE READING",       btnEN: "Share My Love Reading" },
+};
+const DEFAULT_SHARE_COPY = { headerTR: "YORUMUNU PAYLAŞ", btnTR: "Yorumumu Paylaş", headerEN: "SHARE YOUR READING", btnEN: "Share My Reading" };
+
+function SharePanel({ text, serviceLabel, readingId, service }: { text: string; serviceLabel: string; readingId: string | null; service: string }) {
   const { t, lang } = useLang();
   const { addGold } = useApp();
+  const copy = SERVICE_SHARE_COPY[service] ?? DEFAULT_SHARE_COPY;
   const [copied, setCopied] = useState(false);
 
   // ── Reward state ──────────────────────────────────────────────────────────
@@ -611,13 +625,20 @@ function SharePanel({ text, serviceLabel, readingId }: { text: string; serviceLa
     // idle — show incentive hint
     if (readingId) {
       return (
-        <View style={styles.rewardBadge}>
-          <Ionicons name="gift-outline" size={13} color={Colors.gold} />
-          <Text style={styles.rewardBadgeText}>
-            {lang === "tr"
-              ? `Paylaş, +${SHARE_CONFIG.REWARD_PER_SHARE} altın kazan! (Günde ${SHARE_CONFIG.MAX_DAILY_SHARES}x)`
-              : `Share & earn +${SHARE_CONFIG.REWARD_PER_SHARE} gold! (${SHARE_CONFIG.MAX_DAILY_SHARES}x/day)`}
-          </Text>
+        <View style={styles.rewardBadgeGold}>
+          <Ionicons name="gift-outline" size={14} color={Colors.gold} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rewardBadgeGoldText}>
+              {lang === "tr"
+                ? `Paylaşınca +${SHARE_CONFIG.REWARD_PER_SHARE} ✦ altın kazanırsın!`
+                : `Earn +${SHARE_CONFIG.REWARD_PER_SHARE} ✦ gold when you share!`}
+            </Text>
+            <Text style={styles.rewardBadgeSubText}>
+              {lang === "tr"
+                ? `Günde ${SHARE_CONFIG.MAX_DAILY_SHARES} paylaşım → ${SHARE_CONFIG.MAX_DAILY_GOLD} ✦ altın`
+                : `${SHARE_CONFIG.MAX_DAILY_SHARES} shares/day → ${SHARE_CONFIG.MAX_DAILY_GOLD} ✦ gold max`}
+            </Text>
+          </View>
         </View>
       );
     }
@@ -630,13 +651,13 @@ function SharePanel({ text, serviceLabel, readingId }: { text: string; serviceLa
       <View style={styles.sharePanelHeader}>
         <Ionicons name="share-social-outline" size={13} color={Colors.gold} />
         <Text style={styles.sharePanelTitle}>
-          {lang === "tr" ? "FALINI PAYLAŞ" : "SHARE YOUR READING"}
+          {lang === "tr" ? copy.headerTR : copy.headerEN}
         </Text>
       </View>
 
       {/* Teaser preview */}
       <Text style={styles.sharePreviewText} numberOfLines={2}>
-        {"🔮 " + (lang === "tr" ? "TENGRI uygulamasından fal yorumum" : "My fortune reading from TENGRI app")}
+        {"🔮 " + (lang === "tr" ? `TENGRI'den ${serviceLabel.toLowerCase()} yorumum` : `My ${serviceLabel} from TENGRI`)}
       </Text>
 
       {/* Reward badge */}
@@ -653,7 +674,7 @@ function SharePanel({ text, serviceLabel, readingId }: { text: string; serviceLa
           >
             <Ionicons name="share-social" size={20} color="#000" />
             <Text style={styles.sharePrimaryBtnText}>
-              {lang === "tr" ? "Falımı Paylaş" : "Share My Reading"}
+              {lang === "tr" ? copy.btnTR : copy.btnEN}
             </Text>
           </LinearGradient>
         </Pressable>
@@ -993,7 +1014,7 @@ export default function ReadingScreen() {
           )}
 
           {/* Share + New reading */}
-          {isDone && readingText && <SharePanel text={readingText} serviceLabel={serviceLabel} readingId={readingId} />}
+          {isDone && readingText && <SharePanel text={readingText} serviceLabel={serviceLabel} readingId={readingId} service={service} />}
           {isDone && (
             <Animated.View entering={FadeIn.delay(400)} style={styles.doneActions}>
               <Pressable onPress={() => { setReadingText(""); setIsDone(false); setUserInput(""); setPhoto(null); }} style={styles.newReadBtn}>
@@ -1227,8 +1248,9 @@ const styles = StyleSheet.create({
   shareSecondaryLabel: { fontSize: 12, fontFamily: "Lora_700Bold" },
   rewardBadge: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8, backgroundColor: Colors.surfaceElevated, borderWidth: 1, borderColor: Colors.cardBorder },
   rewardBadgeText: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textSecondary, flex: 1 },
-  rewardBadgeGold: { backgroundColor: Colors.gold + "18", borderColor: Colors.gold + "60" },
-  rewardBadgeGoldText: { fontSize: 12, fontFamily: "Lora_700Bold", color: Colors.gold, flex: 1 },
+  rewardBadgeGold: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10, backgroundColor: Colors.gold + "15", borderWidth: 1, borderColor: Colors.gold + "50" },
+  rewardBadgeGoldText: { fontSize: 12, fontFamily: "Lora_700Bold", color: Colors.gold },
+  rewardBadgeSubText: { fontSize: 10, fontFamily: "Lora_400Regular", color: Colors.gold + "BB", marginTop: 2 },
 
   // Done
   doneActions: { alignItems: "center", paddingVertical: 6 },
