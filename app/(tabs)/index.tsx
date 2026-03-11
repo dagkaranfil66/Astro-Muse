@@ -546,11 +546,12 @@ function ServiceCard({ serviceId, index, label, desc, onPress }: {
 }
 
 // ────────── Daily Free Card (big hero banner) ──────────
-const SOCIAL_COUNT = (3200 + Math.floor(Math.random() * 600)).toLocaleString("tr-TR");
-
 function DailyFreeCard() {
   const { canDailyFree } = useApp();
   const { lang } = useLang();
+  const [socialCount] = useState<string>(
+    () => (3100 + Math.floor(Math.random() * 800)).toLocaleString("tr-TR")
+  );
   const pulse     = useSharedValue(1);
   const iconScale = useSharedValue(1);
   const iconGlow  = useSharedValue(0);
@@ -647,8 +648,8 @@ function DailyFreeCard() {
           {/* Social proof */}
           <Text style={styles.freeSocialProof}>
             🔮 {lang === "tr"
-              ? `Bugün ${SOCIAL_COUNT} kişi falına baktı`
-              : `${SOCIAL_COUNT} people checked their fortune today`}
+              ? `Bugün ${socialCount} kişi falına baktı`
+              : `${socialCount} people checked their fortune today`}
           </Text>
 
           {/* Shimmer CTA button */}
