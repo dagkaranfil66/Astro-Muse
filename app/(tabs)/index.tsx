@@ -35,6 +35,7 @@ import { Colors } from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
 import { SERVICE_GOLD_COST } from "@/constants/serviceConfig";
+import WelcomeBonusModal from "@/components/WelcomeBonusModal";
 
 const { width, height } = Dimensions.get("window");
 
@@ -834,7 +835,7 @@ function SpinCountdownBtn() {
 // ────────── Main Screen ──────────
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { goldBalance, userProfile, canSpin } = useApp();
+  const { goldBalance, userProfile, canSpin, showWelcomeBonus, dismissWelcomeBonus } = useApp();
   const { lang, t, toggleLang } = useLang();
   const scrollY = useSharedValue(0);
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>("tumu");
@@ -968,6 +969,8 @@ export default function HomeScreen() {
           />
         ))}
       </Animated.ScrollView>
+
+      <WelcomeBonusModal visible={showWelcomeBonus} onDismiss={dismissWelcomeBonus} />
     </View>
   );
 }

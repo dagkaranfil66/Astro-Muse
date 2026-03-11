@@ -46,6 +46,8 @@ interface AppContextValue {
   setZodiacSign: (sign: string) => Promise<void>;
   canDailyFree: boolean;
   markDailyFreeUsed: () => Promise<void>;
+  showWelcomeBonus: boolean;
+  dismissWelcomeBonus: () => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -89,6 +91,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isPurchased, setIsPurchased]           = useState(false);
   const [zodiacSign, setZodiacState]            = useState<string | null>(null);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
+  const [showWelcomeBonus, setShowWelcomeBonus]   = useState(false);
 
   // Track current user's email so write helpers can scope their keys
   const emailRef = useRef<string | null>(null);
@@ -122,6 +125,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await AsyncStorage.setItem(k.welcomeBonus, 'given');
       await AsyncStorage.setItem(k.gold, String(startGold));
       console.log('[Tengri] Welcome bonus granted: +15 gold');
+      setShowWelcomeBonus(true);
     }
 
     setGoldBalance(startGold);
@@ -288,6 +292,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const remainingReadings = isPurchased ? 30 : Math.max(0, 5 - trialCount);
 
+  const dismissWelcomeBonus = () => setShowWelcomeBonus(false);
+
   const value = useMemo(() => ({
     goldBalance, readings, userProfile, profilePhotoUri,
     setProfilePhoto, isLoaded, hasSeenOnboarding, markOnboardingDone,
@@ -296,10 +302,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     canSpin, lastSpinDate, performSpin, isPurchased,
     remainingReadings, consumeTrial, purchase,
     zodiacSign, setZodiacSign, canDailyFree, markDailyFreeUsed,
+    showWelcomeBonus, dismissWelcomeBonus,
   }), [
     goldBalance, readings, userProfile, profilePhotoUri,
     isLoaded, hasSeenOnboarding, trialCount, isPurchased,
-    lastSpinDate, zodiacSign, lastDailyFreeDate,
+    lastSpinDate, zodiacSign, lastDailyFreeDate, showWelcomeBonus,
   ]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
