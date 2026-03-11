@@ -10,7 +10,7 @@ import * as Haptics from "expo-haptics";
 import Animated, {
   FadeIn, FadeInDown, FadeInUp, ZoomIn,
   useSharedValue, useAnimatedStyle, withTiming, withRepeat,
-  withSequence, withSpring, withDelay, Easing,
+  withSequence, withSpring, Easing,
 } from "react-native-reanimated";
 import { router } from "expo-router";
 import { fetch } from "expo/fetch";
@@ -135,75 +135,33 @@ function genTeaserLines(d: LoveFormData, s: LoveScores): string[] {
   return lines;
 }
 
-// ─── Love hero animation ───────────────────────────────────────────────────────
-const LOVE_COLOR = "#E8587A";
+// ─── Love hero banner (same Ken Burns as main screen ServiceCard) ──────────────
+const ASK_IMAGE = require("@/assets/images/services/ask.png");
+const ASK_COLOR = "#FF4757";
 
-function OrbitHeart({ angle, radius, delay }: { angle: number; radius: number; delay: number }) {
-  const progress = useSharedValue(angle);
-  const op = useSharedValue(0.6);
+function LoveHeroBanner() {
+  const scale = useSharedValue(1.06);
   useEffect(() => {
-    progress.value = withDelay(delay, withRepeat(
-      withTiming(angle + Math.PI * 2, { duration: 4200, easing: Easing.linear }),
-      -1, false
-    ));
-    op.value = withDelay(delay, withRepeat(
-      withSequence(withTiming(1, { duration: 900 }), withTiming(0.55, { duration: 900 })),
+    scale.value = withRepeat(
+      withSequence(withTiming(1, { duration: 4000 }), withTiming(1.06, { duration: 4000 })),
       -1, true
-    ));
-  }, []);
-  const orbitStyle = useAnimatedStyle(() => {
-    const x = Math.cos(progress.value) * radius;
-    const y = Math.sin(progress.value) * radius * 0.4;
-    return { transform: [{ translateX: x }, { translateY: y }], opacity: op.value };
-  });
-  return (
-    <Animated.View style={[sLove.orbitHeart, orbitStyle]}>
-      <Ionicons name="heart" size={12} color={LOVE_COLOR} />
-    </Animated.View>
-  );
-}
-
-function LoveHeroAnim() {
-  const pulse = useSharedValue(1);
-  const glow = useSharedValue(0.5);
-  useEffect(() => {
-    pulse.value = withRepeat(
-      withSequence(withTiming(1.14, { duration: 700, easing: Easing.ease }), withTiming(1, { duration: 700, easing: Easing.ease })),
-      -1, false
-    );
-    glow.value = withRepeat(
-      withSequence(withTiming(1, { duration: 1400, easing: Easing.ease }), withTiming(0.5, { duration: 1400, easing: Easing.ease })),
-      -1, false
     );
   }, []);
-  const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }));
-  const glowStyle = useAnimatedStyle(() => ({ opacity: glow.value }));
+  const imgStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   return (
-    <View style={sLove.container}>
-      <Animated.View style={[sLove.glowRing, glowStyle]} />
-      <Animated.View style={[sLove.glowRingOuter, glowStyle]} />
-      <OrbitHeart angle={0}               radius={38} delay={0}    />
-      <OrbitHeart angle={Math.PI}         radius={38} delay={0}    />
-      <OrbitHeart angle={Math.PI / 2}     radius={32} delay={600}  />
-      <OrbitHeart angle={Math.PI * 1.5}   radius={32} delay={600}  />
-      <Animated.View style={pulseStyle}>
-        <Ionicons name="heart" size={44} color={LOVE_COLOR} />
-      </Animated.View>
+    <View style={sLoveBanner.wrap}>
+      <Animated.Image source={ASK_IMAGE} style={[sLoveBanner.img, imgStyle]} resizeMode="cover" />
+      <LinearGradient
+        colors={["transparent", ASK_COLOR + "44", Colors.background]}
+        style={StyleSheet.absoluteFill}
+        locations={[0, 0.6, 1]}
+      />
     </View>
   );
 }
-
-const sLove = StyleSheet.create({
-  container: { width: 110, height: 110, alignItems: "center", justifyContent: "center", marginBottom: 8 },
-  glowRing: {
-    position: "absolute", width: 88, height: 88, borderRadius: 44,
-    backgroundColor: LOVE_COLOR + "20", borderWidth: 1, borderColor: LOVE_COLOR + "50",
-  },
-  glowRingOuter: {
-    position: "absolute", width: 110, height: 110, borderRadius: 55,
-    backgroundColor: LOVE_COLOR + "08", borderWidth: 1, borderColor: LOVE_COLOR + "25",
-  },
-  orbitHeart: { position: "absolute" },
+const sLoveBanner = StyleSheet.create({
+  wrap: { width: "100%", height: 180, borderRadius: 18, overflow: "hidden", marginBottom: 16 },
+  img: { width: "100%", height: "100%", position: "absolute" },
 });
 
 // ─── UI helpers ───────────────────────────────────────────────────────────────
@@ -458,9 +416,7 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
         {/* ── FORM ─────────────────────────────────────────────────── */}
         {phase === "form" && (
           <Animated.View entering={FadeIn} style={styles.section}>
-            <View style={{ alignItems: "center", marginBottom: 2 }}>
-              <LoveHeroAnim />
-            </View>
+            <LoveHeroBanner />
             <StepProgress current={step} />
 
             {step === 1 && (
