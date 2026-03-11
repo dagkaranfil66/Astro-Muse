@@ -1,0 +1,545 @@
+Tengri Astroloji uygulamamda mevcut kategorileri daha güçlü, daha premium, daha kişisel ve kullanıcıyı daha uzun süre uygulamada tutacak şekilde geliştir.
+
+Ancak çok önemli yeni strateji:
+Bu uygulama kullanıcı için yeni olduğu için ilk deneyimde aşırı kilitli yapı kurma.
+İlk amaç para istemek değil, kullanıcıya uygulamanın kaliteli ve bağımlılık yapıcı olduğunu hissettirmek.
+Önce güven ve alışkanlık oluştur, sonra altın kullanımını artır.
+
+Ana hedefler:
+- Kullanıcının uygulamada kalma süresini artırmak
+- Kategorileri daha etkileşimli hale getirmek
+- Sonuçları daha kişisel hissettirmek
+- Merak duygusunu yükseltmek
+- Altın kullanımını artırmak ama ilk deneyimi bozmamak
+- Günlük geri dönüş oranını yükseltmek
+- Paylaşılabilir ve viral olabilecek içerik altyapısı kurmak
+
+Genel kurallar:
+- Mevcut koyu mistik tema korunsun
+- Tüm ekranlar premium ve modern görünsün
+- Türkçe metinler doğal, akıcı, mistik ve merak uyandırıcı olsun
+- Sonuçlar tek parça düz metin gibi verilmesin
+- Ön izleme + kilitli detay mantığı birçok kategoride kullanılabilsin
+- Mevcut navigation ve altın sistemi bozulmasın
+- Kod temiz, component bazlı ve sürdürülebilir olsun
+
+==================================================
+0) YENİ KULLANICI STRATEJİSİ (ÇOK ÖNEMLİ)
+==================================================
+
+Yeni kullanıcı için agresif kilit sistemi kullanma.
+İlk deneyimde amaç:
+- uygulamayı öğretmek
+- kaliteyi göstermek
+- kullanıcıyı uygulamaya bağlamak
+- altın sistemini doğal şekilde tanıtmak
+
+İstediğim onboarding / monetization mantığı:
+
+A) Hoş geldin sistemi
+Yeni kullanıcıya ilk girişte hoş geldin deneyimi ver:
+- kısa bir karşılama alanı
+- mistik ama sade bir mesaj
+Örnek:
+- “Mistik yolculuğuna hoş geldin”
+- “İlk yorumların seni bekliyor”
+- “Bugün senin için özel bir başlangıç enerjisi var”
+
+B) İlk deneyim tamamen kapalı olmasın
+İlk kullanımda kullanıcıya çok erken altın isteme.
+Şu mantığı uygula:
+- ilk kahve falı veya ilk tarot deneyimi ücretsiz olabilir
+veya
+- kullanıcıya başlangıç altını verilip ilk birkaç deneyimi rahat yaşatılabilir
+
+C) Başlangıç altını
+Yeni kullanıcıya hoş geldin hediyesi olarak altın ver:
+Örnek:
+- 10 altın hoş geldin hediyesi
+veya
+- ilk yorum ücretsiz + ek birkaç altın
+Bu yapı mevcut coin/gold sistemine uyumlu olsun.
+
+D) Kilit sistemi kademeli olsun
+İlk deneyimde:
+- sonuç çok sert şekilde kesilmesin
+- kullanıcı en azından tatmin edici bir yorum görsün
+- ama detay katmanı mantığı da hissedilsin
+
+Önerilen mantık:
+- İlk kullanım: tam veya büyük ölçüde açık deneyim
+- İkinci kullanım: ön izleme + küçük kilit mantığı
+- Sonraki kullanımlar: normal altın sistemi
+
+E) Altın sistemini öğret
+Kullanıcıya altın mantığı sadece ödeme gibi görünmesin.
+Şunlar da gösterilsin:
+- günlük çark ile altın kazan
+- paylaşım ile altın kazan
+- günlük giriş ödülü
+- ilk kullanım fırsatı
+
+F) Mikro metin tonu
+Başta para isteyen agresif dil kullanma.
+Şu tarz premium ve yumuşak dil kullan:
+- “Detaylı yorum katmanı açılabilir”
+- “Daha derin analiz için altın kullanabilirsin”
+- “İstersen yorumun gizli bölümünü de açabilirsin”
+Aşırı sert satış dili kullanma.
+
+==================================================
+1) KAHVE FALI BÖLÜMÜNÜ GELİŞTİR
+==================================================
+
+Kahve falı uygulamanın en güçlü kategorilerinden biri olmalı.
+Bu bölümü daha gerçekçi, daha kişisel ve daha etkileyici hale getir.
+
+İstediğim kahve falı yapısı:
+
+A) Fotoğraf yükleme deneyimi
+Kullanıcı:
+- fincan fotoğrafı yükleyebilsin
+- tabak fotoğrafı da ekleyebilsin (opsiyonel)
+- isterse sadece fincanla da devam edebilsin
+
+Yükleme ekranında kısa mikro metinler kullan:
+- “Telve izleri dikkatle inceleniyor...”
+- “Semboller fincanın içinde saklı olabilir...”
+- “Enerjiyi daha doğru okumak için net bir fotoğraf yükle...”
+
+B) Fal akışı
+Fotoğraf yüklendikten sonra direkt uzun metin verme.
+Önce kısa bir analiz ekranı olsun:
+- “Telve sembolleri analiz ediliyor...”
+- “Fincandaki işaretler yorumlanıyor...”
+- “Yakın gelecek enerjisi okunuyor...”
+
+C) Kahve falı sonucu bölümleri
+Sonuç metni tek blok olmasın.
+Şu başlıklarla bölümlere ayrılabilsin:
+- Genel Fal Enerjisi
+- Aşk
+- Para
+- İş / Kariyer
+- Yakın Gelecek
+- Uyarı
+- Nazar / Çevresel Etki
+
+D) Sembol sistemi
+Fal yorumunda sembol algısı hissi ver.
+Yorumlarda şu tarz ifadeler üret:
+- “Falında kalp sembolüne benzer bir iz dikkat çekiyor...”
+- “Yol benzeri bir şekil, hareket ve değişim enerjisini gösteriyor olabilir...”
+- “Kuşa benzeyen bir iz, haber alma enerjisi taşıyor olabilir...”
+- “Göz benzeri bir şekil nazar etkisini düşündürüyor olabilir...”
+
+E) Yeni kullanıcıya özel sonuç mantığı
+İlk kahve falında kullanıcıyı yarıda bırakma.
+İlk deneyimde:
+- anlamlı ve tatmin edici bir yorum göster
+- bölümlerin çoğu açık olsun
+- ekstra derin analiz veya bonus bölüm istenirse altın kullanılabilsin
+
+Sonraki kullanımlarda:
+- önce kısa ön analiz
+- sonra daha derin katman için altın seçeneği sun
+
+Örnek yumuşak kilit metinleri:
+- “Falında açılmayı bekleyen daha derin bir yorum katmanı var...”
+- “İstersen detaylı fal katmanını da açabilirsin”
+- “Bu falın saklı bölümünde daha özel mesajlar bulunuyor olabilir”
+
+F) Detaylı kahve falı
+Kilit açıldıktan sonra daha uzun ve kişisel yorum ver.
+Metinler tekrar eden ve robotik görünmesin.
+Bölümlere göre farklılaşsın.
+Yorum dili mistik ama anlaşılır olsun.
+
+G) Paylaşım kartı
+Kahve falı sonucu için paylaşılabilir mini kart üretilebilir altyapı kur:
+- kısa başlık
+- 1 cümlelik özet
+- mistik arka plan
+- story paylaşımına uygun görünüm
+
+==================================================
+2) TAROT BÖLÜMÜNÜ GELİŞTİR
+==================================================
+
+Tarot bölümünü düz yorum ekranından çıkar.
+Daha etkileşimli, daha ritüel hissi veren bir yapıya dönüştür.
+
+İstediğim tarot yapısı:
+
+A) Konu seçimi
+Tarot açmadan önce kullanıcıya sor:
+“Hangi konuda tarot açmak istiyorsun?”
+
+Seçenekler:
+- Aşk
+- Para
+- Kariyer
+- Gelecek
+- Onun Duyguları
+- Ruhsal Mesaj
+
+B) Açılım tipi seçimi
+Kullanıcı tarot tipi seçsin:
+- Tek Kart Açılımı
+- 3 Kart Açılımı
+- Aşk Açılımı
+
+Açıklamalar:
+- Tek Kart: hızlı günlük mesaj
+- 3 Kart: geçmiş / şimdi / gelecek
+- Aşk Açılımı: duygular / engeller / sonuç
+
+C) Kart seçme deneyimi
+Kartlar kapalı şekilde görünsün.
+Kullanıcı kendi kartını seçsin.
+Seçim hissi önemli olsun.
+Seçilen kart:
+- hafif parlama efekti alsın
+- ters dönme animasyonu ile açılsın
+- fazla ağır olmayan akıcı bir animasyon olsun
+
+D) 3 kart açılımı rolleri
+3 Kart Açılımı için:
+- Geçmiş
+- Şimdi
+- Gelecek
+
+Aşk Açılımı için:
+- Kalbindeki Duygu
+- Aradaki Engel
+- Yakın Gelecek
+
+E) Tarot yorumlama mantığı
+Yorumlar şunlara göre değişsin:
+- seçilen konu
+- açılım tipi
+- çekilen kartlar
+- kartların olumlu / zorlayıcı enerjileri
+
+Örnek ton:
+- Aşk seçildiyse daha romantik ve duygusal
+- Kariyer seçildiyse fırsat ve karar odaklı
+- Onun Duyguları seçildiyse gizemli ve merak artırıcı
+
+F) Yeni kullanıcıya özel tarot deneyimi
+İlk tarot deneyiminde kullanıcıya anlamlı ve tatmin edici yorum ver.
+İlk kullanımda kart açtırıp çok kısa gösterip kesme.
+İlk tarot deneyimi güven oluşturmalı.
+
+Sonraki tarot deneyimlerinde:
+- önce kısa ön izleme
+- sonra daha derin yorum katmanı için altın kullanımı sunulabilir
+
+Örnek:
+- Tek Kart Açılımı ilk kez ücretsiz veya başlangıç altınıyla rahat erişilebilir olsun
+- 3 Kart Açılımı premium hissi veren daha değerli deneyim olsun
+
+G) Detaylı tarot bölümleri
+Kilit açıldıktan sonra:
+- Kartın ana mesajı
+- Sana vermek istediği uyarı
+- Yakın dönem enerjisi
+- Dikkat edilmesi gereken konu
+- Kısa spiritüel öneri
+
+3 kart açılımında ayrıca:
+- Geçmiş etkisi
+- Şu anki enerji
+- Yakın gelecek yorumu
+
+H) Günün tarot kartı
+Ana ekranda veya burç ekranında küçük bir widget oluştur:
+- “Bugünün Tarot Kartı”
+- kısa ücretsiz özet
+- detay için tarot ekranına yönlendirme veya altınla açma
+
+==================================================
+3) EL FALI BÖLÜMÜNÜ GELİŞTİR
+==================================================
+
+El falını daha gerçekçi ve ilgi çekici hale getir.
+
+İstediğim yapı:
+
+A) Kullanıcı el fotoğrafı yükleyebilsin
+- mümkünse sağ veya sol el seçimi sorulsun
+- net fotoğraf yönlendirmesi yapılsın
+
+B) Analiz başlıkları
+Yorum şu alanlara ayrılabilsin:
+- Yaşam Çizgisi
+- Aşk Çizgisi
+- Zihin Çizgisi
+- Kader Çizgisi
+
+C) Ön izleme + kilit
+İlk kullanımda daha cömert deneyim ver.
+Sonraki kullanımlarda ön izleme + detay katmanı mantığı kur.
+
+Ön izleme örnekleri:
+- “Aşk çizgin oldukça dikkat çekici görünüyor...”
+- “Kader çizginde yön değişimini gösteren bir işaret olabilir...”
+- “Elindeki enerjiler düşündüğünden daha güçlü olabilir...”
+
+Sonra daha yumuşak metin kullan:
+- “Daha derin el falı katmanını açmak için 3 altın kullanabilirsin”
+
+D) Sonuç dili
+Gerçekçi, mistik ve kişisel his versin.
+Metinler tekrar etmesin.
+
+==================================================
+4) NUMEROLOJİ BÖLÜMÜNÜ GELİŞTİR
+==================================================
+
+Numeroloji daha bilimsi ve spiritüel bir his vermeli.
+
+İstediğim yapı:
+
+A) Girdi alanı
+Kullanıcı doğum tarihini girsin.
+
+B) Hesaplanan başlıklar
+- Yaşam Yolu Sayısı
+- Ruh Dürtüsü
+- Karakter Enerjisi
+- Kader Sayısı (uygunsa)
+- Günün Numeroloji Mesajı
+
+C) Sonuç örnek yapısı
+- “Yaşam yolu sayın 7”
+- “Bu sayı sezgi, içsel derinlik ve ruhsal arayışı temsil eder.”
+- “Bugün sayısal enerjinde dikkat çeken bir içe dönüş etkisi var...”
+
+D) Premium detay
+Kısa yorum ücretsiz gösterilebilir.
+İlk kullanımda mümkünse daha zengin deneyim ver.
+Daha detaylı katman için yumuşak premium mesaj kullan:
+- “İstersen detaylı numeroloji yorumunu da açabilirsin”
+- “Daha derin numeroloji yorumu için 2 altın kullanabilirsin”
+
+==================================================
+5) RÜYA YORUMU BÖLÜMÜNÜ GELİŞTİR
+==================================================
+
+Rüya yorumu daha serbest girişli olabilir.
+
+İstediğim yapı:
+
+A) Kullanıcı rüyasını kısa metin olarak yazabilsin
+Örnek placeholder:
+- “Rüyanda ne gördün? Kısa ve net yaz...”
+
+B) Kategori destekleri
+İstersen küçük hızlı seçimler de ekle:
+- Su
+- Deniz
+- Yılan
+- Bebek
+- Düşmek
+- Uçmak
+- Eski sevgili
+- Ölüm
+- Kalabalık
+- Ev
+
+C) Sonuç mantığı
+- Genel bilinçaltı yorumu
+- Duygusal anlamı
+- Yakın dönem mesajı
+- Uyarı / dikkat edilmesi gereken enerji
+
+D) Kilitli yapı
+İlk kullanımda daha tatmin edici içerik ver.
+Sonraki kullanımlarda kısa ön yorumdan sonra:
+- “Rüyanın derin anlamını görmek için 2 altın kullanabilirsin”
+
+==================================================
+6) GÜNLÜK GERİ DÖNÜŞ SİSTEMİ
+==================================================
+
+Kullanıcının her gün uygulamaya girmesi için ana ekranda veya kategorilerde günlük mini alanlar oluştur:
+
+- Bugünün Tarot Kartı
+- Günlük Mini Kahve Mesajı
+- Günün Numeroloji Enerjisi
+- Günlük Burç Özeti
+- Günün Spiritüel Mesajı
+
+Bu alanlar her gün yenilenmiş hissi vermeli.
+
+Kullanıcıya “yarın tekrar gel” duygusu oluştur:
+- günlük içerikler
+- geri sayım
+- günlük ödül veya çark sistemi ile uyum
+
+Ayrıca günlük altın kazanım mantığı ekle:
+- günlük giriş ödülü
+- günlük çark
+- paylaşım sonrası ödül
+- ilk gün bonusu
+
+==================================================
+7) MERAK VE GELİR OPTİMİZASYONU
+==================================================
+
+Tüm kategorilerde kullanıcı psikolojisini zorlamadan merak artırıcı yapı kur.
+
+Genel mantık:
+- önce tatmin edici bir ön deneyim
+- sonra daha derin katman hissi
+- sonra altınla açılan premium detay
+
+Çok önemli:
+Yeni kullanıcıya ilk anda sert duvar koyma.
+Premium yapı hissetsin ama kullanıcı kandırılmış hissetmesin.
+
+Kullanılabilecek örnek mikro metinler:
+- “Yorumun içinde dikkat çeken bir detay daha var...”
+- “Asıl mesaj henüz tamamlanmadı...”
+- “Bu enerjinin ardında daha derin bir işaret olabilir...”
+- “Devamında en belirleyici bölüm açılacak...”
+- “Yakın geleceği etkileyen kritik bir detay bulundu...”
+
+Daha yumuşak alternatifler de kullan:
+- “İstersen yorumun derin katmanını da açabilirsin”
+- “Burada daha özel bir analiz bölümü seni bekliyor olabilir”
+- “Daha detaylı yorum, daha net işaretler gösterebilir”
+
+Bu metinler korkutucu değil; mistik, premium ve merak uyandırıcı olsun.
+
+==================================================
+8) PAYLAŞIM VE VİRAL BÜYÜME
+==================================================
+
+Mümkünse tüm kategoriler için paylaşım altyapısı hazırla.
+
+Paylaşılabilir mini kart mantığı:
+- kategori adı
+- kısa sonuç özeti
+- mistik arka plan
+- yüzdelik veya kısa vurucu cümle
+- story / WhatsApp / Instagram paylaşımına uygun görünüm
+
+Örnek:
+- “Bugünün Kartı: The Star”
+- “Aşk enerjinde hareketlenme var”
+- “Kahve falında yol sembolü öne çıktı”
+- “Numeroloji sayın: 7”
+
+Ayrıca paylaşım ödül mantığına uygun altyapı düşün:
+- sonuç paylaşınca altın kazanma
+- günlük paylaşım limiti
+- suistimali önleyecek yapı
+
+==================================================
+9) TEKNİK İSTEKLER
+==================================================
+
+- Mevcut proje yapısını bozma
+- Navigation ile uyumlu ilerle
+- Var olan altın / coin sistemi varsa onunla bağla
+- Altın yetersizse kullanıcıyı altın kazanma veya satın alma ekranına yönlendir
+- Türkçe metinler kullan
+- Kod temiz, modüler ve sürdürülebilir olsun
+
+Önerilen component yapısı:
+
+Genel:
+- WelcomeGiftModal
+- FirstTimeExperienceManager
+- RewardInfoCard
+- PremiumUnlockCard
+- DailyRewardWidget
+
+Kahve Falı:
+- CoffeeFortuneScreen
+- CoffeePhotoUploader
+- CoffeeAnalysisLoading
+- CoffeePreviewCard
+- CoffeeDetailedResult
+- CoffeeShareCard
+
+Tarot:
+- TarotScreen
+- TarotTopicSelector
+- TarotSpreadSelector
+- TarotCardPicker
+- TarotRevealAnimation
+- TarotPreviewCard
+- TarotDetailedResult
+
+El Falı:
+- PalmReadingScreen
+- PalmPhotoUploader
+- PalmPreviewCard
+- PalmDetailedResult
+
+Numeroloji:
+- NumerologyScreen
+- NumerologyInputForm
+- NumerologySummaryCard
+- NumerologyDetailedResult
+
+Rüya Yorumu:
+- DreamInterpretationScreen
+- DreamInputForm
+- DreamPreviewCard
+- DreamDetailedResult
+
+==================================================
+10) İÇERİK ÜRETİM KALİTESİ
+==================================================
+
+Metinler:
+- tekrar eden
+- robotik
+- aynı kalıpta dönen
+yapıda olmasın.
+
+Yorumlar daha doğal, varyasyonlu ve mistik olsun.
+
+Örnek ton:
+- “Burada duygusal bir kıpırdanma dikkat çekiyor...”
+- “Yakın çevrenden gelecek bir haber enerjisi görünüyor olabilir...”
+- “Sezgilerin şu dönemde düşündüğünden daha açık olabilir...”
+- “Kararsız kaldığın bir konuda netleşme zamanı yaklaşıyor...”
+- “Bu sembol, beklenmedik bir hareketliliğe işaret ediyor olabilir...”
+
+==================================================
+11) BONUS KATEGORİ FİKRİ
+==================================================
+
+Mümkünse ileride eklenebilecek güçlü kategori altyapısı da düşün:
+- “O Şu An Ne Düşünüyor?”
+- “Geri Dönecek mi?”
+- “Üzerimde Nazar Var mı?”
+- “Bugün Beni Ne Bekliyor?”
+
+Bu kategoriler mevcut tema ve para kazanma modeline çok uygundur.
+Şimdilik sadece altyapı düşün, ama mevcut sistemi bozma.
+
+==================================================
+12) EN KRİTİK DENGELER
+==================================================
+
+Bu projede şu dengeyi koru:
+- Premium his olsun ama kullanıcıyı başta kaçırmasın
+- Altın sistemi olsun ama ilk deneyimi bozmasın
+- Merak duygusu olsun ama kandırılmış hissi vermesin
+- İlk kullanım kolay ve tatmin edici olsun
+- Sonraki kullanımlarda premium derinlik giderek artsın
+
+Amaç:
+Önce bağımlılık, sonra gelir.
+Önce güven, sonra premium açılım.
+Önce tatmin, sonra monetization.
+
+Lütfen tüm bu geliştirmeleri Tengri Astroloji projesine entegre et.
+Kodları mevcut yapıya uyarlayarak düzenle.
+Türkçe metinlerle çalışır, premium his veren, tutarlı, yeni kullanıcıyı kaçırmayan ve kullanıcıyı uygulamaya geri getiren bir deneyim oluştur.
