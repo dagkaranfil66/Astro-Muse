@@ -368,19 +368,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/reading/daily-free", async (req: Request, res: Response) => {
     try {
-      const { service, lang, photos } = req.body as {
+      const { service, lang, photos, userInput } = req.body as {
         service: string;
         lang?: string;
         photos?: { base64: string; type: string }[];
+        userInput?: string;
       };
       if (!service) return res.status(400).json({ error: "Servis gerekli" });
       const basePrompt = serviceSystemPrompts[service] || serviceSystemPrompts.astroloji;
       const teaserPrompt = `${basePrompt}
 
 ÖNEMLİ: Bu ücretsiz bir ön okuma önizlemesidir. 4-6 cümle yaz, gizemli ve merak uyandırıcı bir ton kullan, metnin ortasında cümleyi tam bitirme — kullanıcı devamını görmek için ödeme yapmalı. Türkçe veya İngilizce yaz (kullanıcı diline göre).`;
-      const userMsg = lang === "en"
+
+      const baseUserMsg = lang === "en"
         ? "Give me today's mystical reading preview."
         : "Bugün için mistik ön okumamı ver.";
+      const userMsg = userInput
+        ? (lang === "en"
+            ? `Give me today's mystical reading preview. I see in the cup: ${userInput}`
+            : `Bugün için mistik ön okumamı ver. Fincanda şunları gördüm: ${userInput}`)
+        : baseUserMsg;
 
       const isPhotoService = service === "kahve" || service === "el";
       const hasPhotos = isPhotoService && Array.isArray(photos) && photos.length > 0;

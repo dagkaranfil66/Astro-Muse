@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  TextInput,
   Pressable,
   Platform,
   ActivityIndicator,
@@ -115,13 +116,14 @@ export default function DailyReadingScreen() {
   const [readingText, setReadingText] = useState("");
   const [isDone, setIsDone] = useState(false);
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
+  const [userNote, setUserNote] = useState("");
   const [showGoldModal, setShowGoldModal] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
 
-  const canStartReading = !needsPhoto || photos.length > 0;
+  const canStartReading = !needsPhoto || photos.length > 0 || userNote.trim().length > 0;
 
   const pickPhoto = async (useCamera: boolean) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -182,6 +184,9 @@ export default function DailyReadingScreen() {
       const body: Record<string, unknown> = { service: todayService, lang };
       if (photos.length > 0) {
         body.photos = photos.map((p) => ({ base64: p.base64, type: p.type }));
+      }
+      if (userNote.trim()) {
+        body.userInput = userNote.trim();
       }
 
       const resp = await fetch(url.toString(), {
@@ -317,6 +322,26 @@ export default function DailyReadingScreen() {
                 </Pressable>
               </View>
             )}
+
+            {/* User note — what they see in the cup/palm */}
+            <View style={[s.noteBox, { borderColor: meta.color + "40" }]}>
+              <Text style={[s.noteLabel, { color: meta.color }]}>
+                {todayService === "kahve"
+                  ? (lang === "tr" ? "☕ Fincanda ne gördün?" : "☕ What do you see in the cup?")
+                  : (lang === "tr" ? "🤲 Avucunda ne görüyorsun?" : "🤲 What do you see in your palm?")}
+              </Text>
+              <TextInput
+                style={[s.noteInput, { color: "#E8DFC8", borderColor: meta.color + "30" }]}
+                placeholder={lang === "tr" ? "Gördüklerini buraya yaz… (isteğe bağlı)" : "Describe what you see… (optional)"}
+                placeholderTextColor="#6B5F4A"
+                value={userNote}
+                onChangeText={setUserNote}
+                multiline
+                numberOfLines={3}
+                maxLength={400}
+                textAlignVertical="top"
+              />
+            </View>
           </Animated.View>
         )}
 
@@ -506,6 +531,19 @@ const s = StyleSheet.create({
     backgroundColor: "#FFFFFF08",
   },
   photoBtnText: { fontSize: 14, fontFamily: "Lora_700Bold" },
+
+  noteBox: { marginTop: 16, borderRadius: 12, borderWidth: 1, backgroundColor: "#FFFFFF06", padding: 12 },
+  noteLabel: { fontSize: 13, fontFamily: "Lora_700Bold", marginBottom: 8 },
+  noteInput: {
+    fontFamily: "Lora_400Regular",
+    fontSize: 14,
+    lineHeight: 21,
+    minHeight: 72,
+    borderWidth: 1,
+    borderRadius: 8,
+    backgroundColor: "#FFFFFF06",
+    padding: 10,
+  },
 
   ctaCard: { borderRadius: 16, overflow: "hidden", marginBottom: 16 },
   ctaCardInner: { padding: 24, alignItems: "center" },
