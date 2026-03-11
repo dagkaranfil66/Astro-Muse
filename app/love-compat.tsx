@@ -135,75 +135,251 @@ function genTeaserLines(d: LoveFormData, s: LoveScores): string[] {
   return lines;
 }
 
-// ─── Love hero animation ───────────────────────────────────────────────────────
-const LOVE_COLOR = "#E8587A";
+// ─── Love Hero Mystical Animation ─────────────────────────────────────────────
+const LP1 = "#FF4D8A";   // Soul 1 — rose
+const LP2 = "#7B6FE8";   // Soul 2 — violet
+const LGOLD = "#F0CC60"; // Gold accent
 
-function OrbitHeart({ angle, radius, delay }: { angle: number; radius: number; delay: number }) {
-  const progress = useSharedValue(angle);
-  const op = useSharedValue(0.6);
+// Rotating mandala ring (dots in a circle)
+function LoveMandalaRing({ radius, dotCount, color, duration, reverse }: {
+  radius: number; dotCount: number; color: string; duration: number; reverse?: boolean;
+}) {
+  const rotate = useSharedValue(0);
   useEffect(() => {
-    progress.value = withDelay(delay, withRepeat(
-      withTiming(angle + Math.PI * 2, { duration: 4200, easing: Easing.linear }),
+    rotate.value = withRepeat(
+      withTiming(reverse ? -360 : 360, { duration, easing: Easing.linear }),
       -1, false
-    ));
-    op.value = withDelay(delay, withRepeat(
-      withSequence(withTiming(1, { duration: 900 }), withTiming(0.55, { duration: 900 })),
-      -1, true
-    ));
+    );
   }, []);
-  const orbitStyle = useAnimatedStyle(() => {
-    const x = Math.cos(progress.value) * radius;
-    const y = Math.sin(progress.value) * radius * 0.4;
-    return { transform: [{ translateX: x }, { translateY: y }], opacity: op.value };
-  });
+  const style = useAnimatedStyle(() => ({ transform: [{ rotate: `${rotate.value}deg` }] }));
+  const size = radius * 2 + 8;
   return (
-    <Animated.View style={[sLove.orbitHeart, orbitStyle]}>
-      <Ionicons name="heart" size={12} color={LOVE_COLOR} />
+    <Animated.View style={[{ width: size, height: size, position: "absolute", alignItems: "center", justifyContent: "center" }, style]}>
+      {Array.from({ length: dotCount }, (_, i) => {
+        const a = (i / dotCount) * 2 * Math.PI;
+        const x = Math.cos(a) * radius;
+        const y = Math.sin(a) * radius;
+        const big = i % 3 === 0;
+        const dotColor = i % 2 === 0 ? LP1 : LP2;
+        return (
+          <View key={i} style={{
+            position: "absolute",
+            width: big ? 5 : 2.5,
+            height: big ? 5 : 2.5,
+            borderRadius: 3,
+            backgroundColor: big ? dotColor : LGOLD,
+            opacity: big ? 0.9 : 0.45,
+            left: size / 2 + x - 2.5,
+            top:  size / 2 + y - 2.5,
+          }} />
+        );
+      })}
     </Animated.View>
   );
 }
 
-function LoveHeroAnim() {
-  const pulse = useSharedValue(1);
-  const glow = useSharedValue(0.5);
+// Rotating star ring (✦ symbols)
+function LoveStarRing({ radius, count, duration, reverse }: {
+  radius: number; count: number; duration: number; reverse?: boolean;
+}) {
+  const rotate = useSharedValue(0);
   useEffect(() => {
-    pulse.value = withRepeat(
-      withSequence(withTiming(1.14, { duration: 700, easing: Easing.ease }), withTiming(1, { duration: 700, easing: Easing.ease })),
+    rotate.value = withRepeat(
+      withTiming(reverse ? -360 : 360, { duration, easing: Easing.linear }),
+      -1, false
+    );
+  }, []);
+  const style = useAnimatedStyle(() => ({ transform: [{ rotate: `${rotate.value}deg` }] }));
+  const size = radius * 2 + 24;
+  return (
+    <Animated.View style={[{ width: size, height: size, position: "absolute", alignItems: "center", justifyContent: "center" }, style]}>
+      {Array.from({ length: count }, (_, i) => {
+        const a = (i / count) * 2 * Math.PI;
+        const x = Math.cos(a) * radius;
+        const y = Math.sin(a) * radius;
+        const big = i % 2 === 0;
+        return (
+          <Text key={i} style={{
+            position: "absolute",
+            fontSize: big ? 10 : 6,
+            color: i % 3 === 0 ? LP1 : i % 3 === 1 ? LP2 : LGOLD,
+            opacity: big ? 0.9 : 0.4,
+            left: size / 2 + x - (big ? 5 : 3),
+            top:  size / 2 + y - (big ? 5 : 3),
+          }}>✦</Text>
+        );
+      })}
+    </Animated.View>
+  );
+}
+
+// Soul orb — represents one person's energy
+function SoulOrb({ color, angle0, duration, rx, ry, reverse }: {
+  color: string; angle0: number; duration: number; rx: number; ry: number; reverse?: boolean;
+}) {
+  const angle = useSharedValue(angle0);
+  const glow  = useSharedValue(0.65);
+  useEffect(() => {
+    angle.value = withRepeat(
+      withTiming(angle0 + (reverse ? -Math.PI * 2 : Math.PI * 2), { duration, easing: Easing.linear }),
       -1, false
     );
     glow.value = withRepeat(
-      withSequence(withTiming(1, { duration: 1400, easing: Easing.ease }), withTiming(0.5, { duration: 1400, easing: Easing.ease })),
+      withSequence(withTiming(1, { duration: 900, easing: Easing.ease }), withTiming(0.65, { duration: 900, easing: Easing.ease })),
+      -1, true
+    );
+  }, []);
+  const style = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: Math.cos(angle.value) * rx },
+      { translateY: Math.sin(angle.value) * ry },
+    ],
+    opacity: glow.value,
+  }));
+  return (
+    <Animated.View style={[sLove.soulOrb, style]}>
+      <View style={[sLove.soulOrbGlow, { backgroundColor: color + "30", borderColor: color + "60" }]} />
+      <View style={[sLove.soulOrbCore, { backgroundColor: color }]} />
+    </Animated.View>
+  );
+}
+
+// Trailing energy particle behind a soul orb
+function EnergyTrail({ color, angle0, duration, rx, ry, delay, size, reverse }: {
+  color: string; angle0: number; duration: number; rx: number; ry: number; delay: number; size: number; reverse?: boolean;
+}) {
+  const angle = useSharedValue(angle0);
+  const op    = useSharedValue(0);
+  useEffect(() => {
+    angle.value = withDelay(delay, withRepeat(
+      withTiming(angle0 + (reverse ? -Math.PI * 2 : Math.PI * 2), { duration, easing: Easing.linear }),
+      -1, false
+    ));
+    op.value = withDelay(delay, withRepeat(
+      withSequence(withTiming(0.8, { duration: 400 }), withTiming(0.1, { duration: 400 })),
+      -1, true
+    ));
+  }, []);
+  const style = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: Math.cos(angle.value) * rx },
+      { translateY: Math.sin(angle.value) * ry },
+    ],
+    opacity: op.value,
+  }));
+  return (
+    <Animated.View style={[{ position: "absolute", width: size, height: size, borderRadius: size / 2, backgroundColor: color }, style]} />
+  );
+}
+
+// Twinkling ✦ sparkle
+function LoveTwinkle({ left, top, delay, dur, color }: {
+  left: number; top: number; delay: number; dur: number; color: string;
+}) {
+  const op = useSharedValue(0.05);
+  useEffect(() => {
+    op.value = withDelay(delay, withRepeat(
+      withSequence(withTiming(1, { duration: dur, easing: Easing.ease }), withTiming(0.05, { duration: dur, easing: Easing.ease })),
+      -1, false
+    ));
+  }, []);
+  const style = useAnimatedStyle(() => ({ opacity: op.value }));
+  return <Animated.Text style={[{ position: "absolute", fontSize: 9, color, left, top }, style]}>✦</Animated.Text>;
+}
+
+// Static sparkle positions (relative to center = 110,95)
+const SPARKLES = [
+  { l: 10,  t: 20,  d: 0,    dur: 1200, c: LP1   },
+  { l: 190, t: 15,  d: 400,  dur: 900,  c: LP2   },
+  { l: 5,   t: 140, d: 800,  dur: 1400, c: LGOLD },
+  { l: 195, t: 145, d: 200,  dur: 1100, c: LP1   },
+  { l: 95,  t: 5,   d: 600,  dur: 1000, c: LGOLD },
+  { l: 35,  t: 80,  d: 1000, dur: 800,  c: LP2   },
+  { l: 165, t: 85,  d: 300,  dur: 1300, c: LP1   },
+  { l: 110, t: 170, d: 700,  dur: 950,  c: LP2   },
+];
+
+function LoveHeroAnim() {
+  const pulse = useSharedValue(1);
+  const halo  = useSharedValue(0.4);
+  useEffect(() => {
+    pulse.value = withRepeat(
+      withSequence(withTiming(1.18, { duration: 650, easing: Easing.ease }), withTiming(1, { duration: 650, easing: Easing.ease })),
+      -1, false
+    );
+    halo.value = withRepeat(
+      withSequence(withTiming(1, { duration: 1600, easing: Easing.ease }), withTiming(0.4, { duration: 1600, easing: Easing.ease })),
       -1, false
     );
   }, []);
   const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }));
-  const glowStyle = useAnimatedStyle(() => ({ opacity: glow.value }));
+  const haloStyle  = useAnimatedStyle(() => ({ opacity: halo.value }));
+
   return (
     <View style={sLove.container}>
-      <Animated.View style={[sLove.glowRing, glowStyle]} />
-      <Animated.View style={[sLove.glowRingOuter, glowStyle]} />
-      <OrbitHeart angle={0}               radius={38} delay={0}    />
-      <OrbitHeart angle={Math.PI}         radius={38} delay={0}    />
-      <OrbitHeart angle={Math.PI / 2}     radius={32} delay={600}  />
-      <OrbitHeart angle={Math.PI * 1.5}   radius={32} delay={600}  />
-      <Animated.View style={pulseStyle}>
-        <Ionicons name="heart" size={44} color={LOVE_COLOR} />
+      {/* Sparkles */}
+      {SPARKLES.map((s, i) => (
+        <LoveTwinkle key={i} left={s.l} top={s.t} delay={s.d} dur={s.dur} color={s.c} />
+      ))}
+
+      {/* Outer star ring — CW */}
+      <LoveStarRing radius={90} count={16} duration={12000} />
+      {/* Mid mandala ring — CCW */}
+      <LoveMandalaRing radius={66} dotCount={24} color={LP1} duration={8000} reverse />
+      {/* Inner star ring — CW, faster */}
+      <LoveStarRing radius={44} count={10} duration={6500} reverse />
+
+      {/* Soft core glow halos */}
+      <Animated.View style={[sLove.haloOuter, haloStyle]} />
+      <Animated.View style={[sLove.haloInner, haloStyle]} />
+
+      {/* Soul Orb 1 (Rose) — CW 4.2s, elliptical */}
+      <SoulOrb color={LP1} angle0={0}       duration={4200} rx={56} ry={22} />
+      {/* Soul Orb 2 (Violet) — CCW 5s, same ellipse */}
+      <SoulOrb color={LP2} angle0={Math.PI} duration={5000} rx={56} ry={22} reverse />
+
+      {/* Energy trails */}
+      {[0, 1, 2, 3].map(i => (
+        <EnergyTrail key={`p1-${i}`} color={LP1}  angle0={(-i * Math.PI) / 2.5} duration={4200}  rx={56} ry={22} delay={i * 140} size={4} />
+      ))}
+      {[0, 1, 2, 3].map(i => (
+        <EnergyTrail key={`p2-${i}`} color={LP2}  angle0={Math.PI + (i * Math.PI) / 2.5} duration={5000} rx={56} ry={22} delay={i * 180} size={4} reverse />
+      ))}
+
+      {/* Central pulsing heart */}
+      <Animated.View style={[sLove.heartWrap, pulseStyle]}>
+        <Ionicons name="heart" size={36} color={LP1} />
       </Animated.View>
     </View>
   );
 }
 
 const sLove = StyleSheet.create({
-  container: { width: 110, height: 110, alignItems: "center", justifyContent: "center", marginBottom: 8 },
-  glowRing: {
-    position: "absolute", width: 88, height: 88, borderRadius: 44,
-    backgroundColor: LOVE_COLOR + "20", borderWidth: 1, borderColor: LOVE_COLOR + "50",
+  container: {
+    width: 220, height: 200,
+    alignItems: "center", justifyContent: "center",
+    marginBottom: 6, marginTop: 4,
+    overflow: "visible",
   },
-  glowRingOuter: {
-    position: "absolute", width: 110, height: 110, borderRadius: 55,
-    backgroundColor: LOVE_COLOR + "08", borderWidth: 1, borderColor: LOVE_COLOR + "25",
+  haloOuter: {
+    position: "absolute",
+    width: 100, height: 100, borderRadius: 50,
+    backgroundColor: LP1 + "12",
+    borderWidth: 1, borderColor: LP1 + "35",
   },
-  orbitHeart: { position: "absolute" },
+  haloInner: {
+    position: "absolute",
+    width: 68, height: 68, borderRadius: 34,
+    backgroundColor: LP2 + "18",
+    borderWidth: 1, borderColor: LP2 + "45",
+  },
+  heartWrap: { position: "absolute" },
+  soulOrb: { position: "absolute", alignItems: "center", justifyContent: "center" },
+  soulOrbGlow: {
+    position: "absolute", width: 28, height: 28, borderRadius: 14,
+    borderWidth: 1,
+  },
+  soulOrbCore: { width: 10, height: 10, borderRadius: 5 },
 });
 
 // ─── UI helpers ───────────────────────────────────────────────────────────────
