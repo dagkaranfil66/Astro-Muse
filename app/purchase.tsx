@@ -7,7 +7,6 @@ import {
   Pressable,
   Platform,
   ActivityIndicator,
-  Linking,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -525,6 +524,18 @@ export default function PurchaseScreen() {
           </Pressable>
         )}
 
+        <Pressable
+          onPress={() => router.push("/guide" as any)}
+          style={styles.guideBtn}
+          hitSlop={8}
+        >
+          <Ionicons name="book-outline" size={14} color={Colors.gold} />
+          <Text style={styles.guideBtnText}>
+            {lang === "tr" ? "İlk Üyeler Kılavuzu" : "First Members Guide"}
+          </Text>
+          <Ionicons name="chevron-forward" size={12} color={Colors.gold + "80"} />
+        </Pressable>
+
         <View style={styles.legalRow}>
           <Text style={styles.legal}>
             {lang === "tr"
@@ -532,7 +543,7 @@ export default function PurchaseScreen() {
               : "No commitment • Use anytime"}
           </Text>
           <Pressable
-            onPress={() => Linking.openURL("https://tengristar.com/privacy")}
+            onPress={() => router.push("/legal?doc=privacy" as any)}
             hitSlop={8}
           >
             <Text style={styles.legalLink}>
@@ -541,7 +552,7 @@ export default function PurchaseScreen() {
           </Pressable>
           <Text style={styles.legal}> • </Text>
           <Pressable
-            onPress={() => Linking.openURL("https://tengristar.com/terms")}
+            onPress={() => router.push("/legal?doc=terms" as any)}
             hitSlop={8}
           >
             <Text style={styles.legalLink}>
@@ -642,6 +653,8 @@ const styles = StyleSheet.create({
   restoreBtn: { alignSelf: "center", paddingVertical: 10, paddingHorizontal: 20, borderRadius: 10, borderWidth: 1, borderColor: Colors.textDim + "40", minHeight: 36, alignItems: "center", justifyContent: "center" },
   restoreBtnText: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textDim, textDecorationLine: "underline" },
 
+  guideBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 10, borderWidth: 1, borderColor: Colors.gold + "30", backgroundColor: Colors.gold + "08" },
+  guideBtnText: { fontSize: 12, fontFamily: "Lora_700Bold", color: Colors.gold, letterSpacing: 0.5 },
   legalRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 2 },
   legal: { fontSize: 10, fontFamily: "Lora_400Regular", color: Colors.textDim, textAlign: "center", lineHeight: 16 },
   legalLink: { fontSize: 10, fontFamily: "Lora_400Regular", color: Colors.gold + "90", textAlign: "center", lineHeight: 16, textDecorationLine: "underline" },

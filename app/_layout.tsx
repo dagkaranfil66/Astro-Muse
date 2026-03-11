@@ -122,6 +122,8 @@ function RootLayoutNav() {
       <Stack.Screen name="auth" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="daily-horoscope" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="spin" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="legal" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="guide" options={{ headerShown: false, presentation: "modal" }} />
     </Stack>
   );
 }
