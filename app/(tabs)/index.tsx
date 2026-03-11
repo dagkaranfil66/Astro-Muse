@@ -451,6 +451,40 @@ function MysticalWheelIcon({ size = 22, active = false }: { size?: number; activ
   );
 }
 
+function TrendingBadge() {
+  const glow  = useSharedValue(0);
+  const scale = useSharedValue(1);
+
+  React.useEffect(() => {
+    glow.value = withRepeat(
+      withSequence(
+        withTiming(1,   { duration: 900 }),
+        withTiming(0.4, { duration: 900 }),
+      ), -1, false
+    );
+    scale.value = withRepeat(
+      withSequence(
+        withTiming(1.06, { duration: 800 }),
+        withTiming(1.0,  { duration: 800 }),
+      ), -1, false
+    );
+  }, []);
+
+  const badgeStyle = useAnimatedStyle(() => ({
+    shadowOpacity: glow.value * 0.7,
+    transform: [{ scale: scale.value }],
+  }));
+  const textStyle = useAnimatedStyle(() => ({
+    opacity: 0.75 + glow.value * 0.25,
+  }));
+
+  return (
+    <Animated.View style={[styles.trendingBadge, badgeStyle]}>
+      <Animated.Text style={[styles.trendingBadgeText, textStyle]}>🔥 Trend</Animated.Text>
+    </Animated.View>
+  );
+}
+
 function ServiceCard({ serviceId, index, label, desc, onPress }: {
   serviceId: string; index: number; label: string; desc: string; onPress: () => void;
 }) {
@@ -523,11 +557,7 @@ function ServiceCard({ serviceId, index, label, desc, onPress }: {
                 <Text style={styles.popularBadgeText}>⭐ En Popüler</Text>
               </View>
             )}
-            {serviceId === TRENDING_SERVICE && (
-              <View style={styles.trendingBadge}>
-                <Text style={styles.trendingBadgeText}>🔥 Trend</Text>
-              </View>
-            )}
+            {serviceId === TRENDING_SERVICE && <TrendingBadge />}
             <Animated.View style={[styles.iconCircle, { borderColor: color + "50" }, iconStyle]}>
               {serviceImage ? (
                 <Image source={serviceImage} style={styles.serviceImg} resizeMode="cover" />
@@ -1172,10 +1202,11 @@ const styles = StyleSheet.create({
   popularBadgeText: { fontSize: 9, fontFamily: "Lora_700Bold", color: "#000", letterSpacing: 0.3 },
   trendingBadge: {
     position: "absolute", top: 8, right: 44,
-    backgroundColor: "#E7B00820", borderWidth: 1, borderColor: "#E7B00860",
+    backgroundColor: "#E7B00818", borderWidth: 1, borderColor: "#E7B008AA",
     borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3, zIndex: 10,
+    shadowColor: "#E7B008", shadowOffset: { width: 0, height: 0 }, shadowRadius: 6, elevation: 4,
   },
-  trendingBadgeText: { fontSize: 9, fontFamily: "Lora_700Bold", color: "#E7B008", letterSpacing: 0.3 },
+  trendingBadgeText: { fontSize: 9, fontFamily: "Lora_700Bold", color: "#F5C842", letterSpacing: 0.5 },
 
   // ── Big free coffee banner ──
   freeBanner: {
