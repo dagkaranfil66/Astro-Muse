@@ -240,10 +240,6 @@ export default function DailyReadingScreen() {
     <View style={s.container}>
       <LinearGradient colors={["#04080F", "#070D1A", meta.gradient[0]]} style={StyleSheet.absoluteFill} />
 
-      <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center", pointerEvents: "none" }]}>
-        <PulseOrb color={meta.color} />
-      </View>
-
       <ScrollView
         ref={scrollRef}
         contentContainerStyle={[s.scroll, { paddingTop: topPad + 16, paddingBottom: botPad + 32 }]}
