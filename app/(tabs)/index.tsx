@@ -525,7 +525,7 @@ function ServiceCard({ serviceId, index, label, desc, onPress }: {
             )}
             {serviceId === TRENDING_SERVICE && (
               <View style={styles.trendingBadge}>
-                <Text style={styles.trendingBadgeText}>🔥 Bugün Çok Tercih Edilen</Text>
+                <Text style={styles.trendingBadgeText}>🔥 Trend</Text>
               </View>
             )}
             <Animated.View style={[styles.iconCircle, { borderColor: color + "50" }, iconStyle]}>
