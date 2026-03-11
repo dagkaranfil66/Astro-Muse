@@ -49,9 +49,18 @@ Turkish mystical guidance app with AI-powered readings (tengristar.com).
 - `context/AppContext.tsx` — Gold balance, readings, user profile, spin wheel state, daily free tracking
 - `context/LanguageContext.tsx` — TR/EN translations
 - `constants/serviceConfig.ts` — Gold costs, packages
-- `server/routes.ts` — Auth, AI reading streaming endpoint, supports multi-photo for kahve
+- `server/routes.ts` — Auth, AI reading streaming endpoint, supports multi-photo for kahve, share reward (`POST /api/share/claim-reward`)
 - `server/db.ts` — Drizzle ORM + pg Pool connection
-- `shared/schema.ts` — PostgreSQL users table (id, name, email, passwordHash, verified, verifyToken, resetCode, resetCodeExpiry)
+- `shared/schema.ts` — PostgreSQL users table (id, name, email, passwordHash, verified, verifyToken, resetCode, resetCodeExpiry, shareCountToday, lastShareTimestamp, lastShareDate, sharedReadingIds)
+- `constants/shareConfig.ts` — App Store / Play Store URLs + share reward params (single source of truth)
+- `app/legal.tsx` — Privacy Policy + Terms of Use (tab switcher)
+- `app/guide.tsx` — First members guide (all 11 services, gold system, contact)
+
+## Share Reward System
+- After reading completes, SharePanel shows "+2 gold on share" incentive
+- `POST /api/share/claim-reward` validates: daily limit (3 shares/6 gold), 60s cooldown, no duplicate per reading
+- Frontend tracks reward status: idle → claiming → awarded/duplicate/daily_limit/cooldown
+- Countdown timer for cooldown state, real-time gold update via addGold()
 
 ## Logo Animation
 - Blue (#5B9BD5) ↔ Pink (#FF6B9D) animated color transition on mandala rings and glow

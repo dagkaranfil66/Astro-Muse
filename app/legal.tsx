@@ -17,7 +17,7 @@ import { Colors } from "@/constants/colors";
 const PRIVACY_SECTIONS = [
   {
     title: "Genel Bakış",
-    body: "Tengri ("biz", "uygulama") olarak kullanıcılarımızın gizliliğine büyük önem veriyoruz. Bu politika, uygulamayı kullandığınızda hangi verileri topladığımızı, nasıl kullandığımızı ve koruduğumuzu açıklar.",
+    body: 'Tengri ("biz", "uygulama") olarak kullanıcılarımızın gizliliğine büyük önem veriyoruz. Bu politika, uygulamayı kullandığınızda hangi verileri topladığımızı, nasıl kullandığımızı ve koruduğumuzu açıklar.',
   },
   {
     title: "Topladığımız Veriler",

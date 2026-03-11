@@ -30,7 +30,7 @@ interface AppContextValue {
   canAfford: (service: string) => boolean;
   spendGold: (service: string) => boolean;
   addGold: (amount: number) => void;
-  addReading: (reading: Omit<Reading, 'id' | 'date'>) => Promise<void>;
+  addReading: (reading: Omit<Reading, 'id' | 'date'>) => Promise<string>;
   setUserProfile: (profile: UserProfile) => Promise<void>;
   clearUserProfile: () => Promise<void>;
   getServiceCost: (service: string) => number;
@@ -180,7 +180,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   // ── Readings ───────────────────────────────────────────────────────────
-  const addReading = async (reading: Omit<Reading, 'id' | 'date'>) => {
+  const addReading = async (reading: Omit<Reading, 'id' | 'date'>): Promise<string> => {
     const newReading: Reading = {
       ...reading,
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
@@ -191,6 +191,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setReadings(updated);
     const k = uKeys();
     if (k) await AsyncStorage.setItem(k.readings, JSON.stringify(updated));
+    return newReading.id;
   };
 
   // ── Profile ────────────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, boolean, bigint } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, boolean, bigint, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -13,6 +13,11 @@ export const users = pgTable("users", {
   resetCode: text("reset_code"),
   resetCodeExpiry: bigint("reset_code_expiry", { mode: "number" }),
   createdAt: text("created_at").notNull().default(sql`now()`),
+  // ── Share reward tracking ──────────────────────────────────────────────
+  shareCountToday:    integer("share_count_today").notNull().default(0),
+  lastShareTimestamp: bigint("last_share_timestamp", { mode: "number" }),
+  lastShareDate:      text("last_share_date"),          // YYYY-MM-DD (TR timezone)
+  sharedReadingIds:   text("shared_reading_ids"),        // JSON array of reading IDs
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({

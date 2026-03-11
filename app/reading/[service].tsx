@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -40,6 +40,7 @@ import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
 import { scheduleReadingReadyNotification } from "@/lib/notifications";
 import { getApiUrl } from "@/lib/query-client";
+import { SHARE_CONFIG } from "@/constants/shareConfig";
 import InsufficientGoldModal from "@/components/InsufficientGoldModal";
 import CameraKahveModal from "@/components/CameraKahveModal";
 
@@ -424,13 +425,90 @@ function DefaultIntro({ serviceId, color, label, hint }: { serviceId: string; co
 }
 
 // ────────── Share Panel ──────────
-function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string }) {
+function SharePanel({ text, serviceLabel, readingId }: { text: string; serviceLabel: string; readingId: string | null }) {
   const { t, lang } = useLang();
+  const { addGold } = useApp();
   const [copied, setCopied] = useState(false);
+
+  // ── Reward state ──────────────────────────────────────────────────────────
+  const [rewardStatus, setRewardStatus] = useState<
+    "idle" | "claiming" | "awarded" | "duplicate" | "daily_limit" | "cooldown" | "no_auth"
+  >("idle");
+  const [cooldownSecs, setCooldownSecs] = useState(0);
+  const [sharesLeft, setSharesLeft] = useState<number | null>(null);
+  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const shareText = t.shareText(serviceLabel, text);
   const encodedFull = encodeURIComponent(shareText.slice(0, 1000));
   const btnScale = useSharedValue(1);
   const btnStyle = useAnimatedStyle(() => ({ transform: [{ scale: btnScale.value }] }));
+
+  useEffect(() => () => { if (cooldownRef.current) clearInterval(cooldownRef.current); }, []);
+
+  const startCooldown = (secs: number) => {
+    setCooldownSecs(secs);
+    if (cooldownRef.current) clearInterval(cooldownRef.current);
+    cooldownRef.current = setInterval(() => {
+      setCooldownSecs(prev => {
+        if (prev <= 1) {
+          clearInterval(cooldownRef.current!);
+          setRewardStatus("idle");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const claimReward = async () => {
+    if (!readingId) return;
+    if (rewardStatus === "claiming" || rewardStatus === "awarded" || rewardStatus === "daily_limit") return;
+    setRewardStatus("claiming");
+    try {
+      const url = new URL("/api/share/claim-reward", getApiUrl());
+      const res = await fetch(url.toString(), {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ readingId }),
+      });
+      const data = await res.json() as {
+        success: boolean;
+        reason?: string;
+        goldAwarded?: number;
+        sharesRemainingToday?: number;
+        remainingSeconds?: number;
+        message?: string;
+      };
+
+      if (res.status === 401) { setRewardStatus("no_auth"); return; }
+
+      if (data.success) {
+        addGold(data.goldAwarded ?? SHARE_CONFIG.REWARD_PER_SHARE);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setSharesLeft(data.sharesRemainingToday ?? 0);
+        setRewardStatus("awarded");
+      } else {
+        switch (data.reason) {
+          case "duplicate":
+            setRewardStatus("duplicate");
+            break;
+          case "daily_limit":
+          case "gold_limit":
+            setRewardStatus("daily_limit");
+            break;
+          case "cooldown":
+            setRewardStatus("cooldown");
+            startCooldown(data.remainingSeconds ?? SHARE_CONFIG.COOLDOWN_SECONDS);
+            break;
+          default:
+            setRewardStatus("idle");
+        }
+      }
+    } catch {
+      setRewardStatus("idle");
+    }
+  };
 
   const copyToClipboard = async (fullText: string) => {
     try {
@@ -463,14 +541,87 @@ function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string
     btnScale.value = withSequence(withTiming(0.95, { duration: 80 }), withTiming(1, { duration: 160 }));
     try {
       await Share.share({ message: shareText });
+      await claimReward();
     } catch {
       await copyToClipboard(shareText);
     }
   };
 
-  const handleWhatsApp = () => {
+  const handleWhatsApp = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Linking.openURL(`https://wa.me/?text=${encodedFull}`).catch(() => Share.share({ message: shareText }));
+    await claimReward();
+  };
+
+  // ── Reward badge ──────────────────────────────────────────────────────────
+  const renderRewardBadge = () => {
+    if (rewardStatus === "claiming") {
+      return (
+        <View style={styles.rewardBadge}>
+          <ActivityIndicator size="small" color={Colors.gold} />
+          <Text style={styles.rewardBadgeText}>{lang === "tr" ? "Ödül hesaplanıyor…" : "Claiming reward…"}</Text>
+        </View>
+      );
+    }
+    if (rewardStatus === "awarded") {
+      return (
+        <Animated.View entering={ZoomIn.springify()} style={[styles.rewardBadge, styles.rewardBadgeGold]}>
+          <Text style={styles.rewardBadgeGoldText}>
+            +{SHARE_CONFIG.REWARD_PER_SHARE} ✦ {lang === "tr" ? "Altın kazandın!" : "Gold earned!"}
+            {sharesLeft !== null && sharesLeft > 0
+              ? `  (${lang === "tr" ? `Bugün ${sharesLeft} paylaşım hakkın kaldı` : `${sharesLeft} shares left today`})`
+              : ""}
+          </Text>
+        </Animated.View>
+      );
+    }
+    if (rewardStatus === "duplicate") {
+      return (
+        <View style={styles.rewardBadge}>
+          <Ionicons name="checkmark-circle-outline" size={13} color={Colors.textSecondary} />
+          <Text style={styles.rewardBadgeText}>
+            {lang === "tr" ? "Bu okuma için ödül alındı" : "Reward already claimed"}
+          </Text>
+        </View>
+      );
+    }
+    if (rewardStatus === "daily_limit") {
+      return (
+        <View style={styles.rewardBadge}>
+          <Ionicons name="moon-outline" size={13} color={Colors.textSecondary} />
+          <Text style={styles.rewardBadgeText}>
+            {lang === "tr" ? "Günlük paylaşım ödülü tamamlandı" : "Daily share reward limit reached"}
+          </Text>
+        </View>
+      );
+    }
+    if (rewardStatus === "cooldown") {
+      return (
+        <View style={styles.rewardBadge}>
+          <Ionicons name="time-outline" size={13} color={Colors.gold} />
+          <Text style={styles.rewardBadgeText}>
+            {lang === "tr"
+              ? `Sonraki ödül için ${cooldownSecs}s bekle`
+              : `Next reward in ${cooldownSecs}s`}
+          </Text>
+        </View>
+      );
+    }
+    if (rewardStatus === "no_auth") return null;
+    // idle — show incentive hint
+    if (readingId) {
+      return (
+        <View style={styles.rewardBadge}>
+          <Ionicons name="gift-outline" size={13} color={Colors.gold} />
+          <Text style={styles.rewardBadgeText}>
+            {lang === "tr"
+              ? `Paylaş, +${SHARE_CONFIG.REWARD_PER_SHARE} altın kazan! (Günde ${SHARE_CONFIG.MAX_DAILY_SHARES}x)`
+              : `Share & earn +${SHARE_CONFIG.REWARD_PER_SHARE} gold! (${SHARE_CONFIG.MAX_DAILY_SHARES}x/day)`}
+          </Text>
+        </View>
+      );
+    }
+    return null;
   };
 
   return (
@@ -487,6 +638,9 @@ function SharePanel({ text, serviceLabel }: { text: string; serviceLabel: string
       <Text style={styles.sharePreviewText} numberOfLines={2}>
         {"🔮 " + (lang === "tr" ? "TENGRI uygulamasından fal yorumum" : "My fortune reading from TENGRI app")}
       </Text>
+
+      {/* Reward badge */}
+      {renderRewardBadge()}
 
       {/* BIG primary share button */}
       <Animated.View style={[btnStyle, { width: "100%" }]}>
@@ -541,6 +695,7 @@ export default function ReadingScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [readingText, setReadingText] = useState("");
   const [isDone, setIsDone] = useState(false);
+  const [readingId, setReadingId] = useState<string | null>(null);
   const [photo, setPhoto] = useState<{ uri: string; base64: string; type: string } | null>(null);
   const [kahvePhotos, setKahvePhotos] = useState<{ uri: string; base64: string; type: string }[]>([]);
   const [showGoldModal, setShowGoldModal] = useState(false);
@@ -694,7 +849,8 @@ export default function ReadingScreen() {
             if (evt.done) {
               setIsDone(true);
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-              await addReading({ service, serviceLabel, content: fullText, userInput });
+              const newId = await addReading({ service, serviceLabel, content: fullText, userInput });
+              setReadingId(newId);
               scheduleReadingReadyNotification(lang, service).catch(() => {});
             }
           } catch {}
@@ -837,7 +993,7 @@ export default function ReadingScreen() {
           )}
 
           {/* Share + New reading */}
-          {isDone && readingText && <SharePanel text={readingText} serviceLabel={serviceLabel} />}
+          {isDone && readingText && <SharePanel text={readingText} serviceLabel={serviceLabel} readingId={readingId} />}
           {isDone && (
             <Animated.View entering={FadeIn.delay(400)} style={styles.doneActions}>
               <Pressable onPress={() => { setReadingText(""); setIsDone(false); setUserInput(""); setPhoto(null); }} style={styles.newReadBtn}>
@@ -1069,6 +1225,10 @@ const styles = StyleSheet.create({
   shareSecondaryRow: { flexDirection: "row", gap: 10 },
   shareSecondaryBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: Colors.cardBorder, backgroundColor: Colors.surfaceElevated },
   shareSecondaryLabel: { fontSize: 12, fontFamily: "Lora_700Bold" },
+  rewardBadge: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8, backgroundColor: Colors.surfaceElevated, borderWidth: 1, borderColor: Colors.cardBorder },
+  rewardBadgeText: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textSecondary, flex: 1 },
+  rewardBadgeGold: { backgroundColor: Colors.gold + "18", borderColor: Colors.gold + "60" },
+  rewardBadgeGoldText: { fontSize: 12, fontFamily: "Lora_700Bold", color: Colors.gold, flex: 1 },
 
   // Done
   doneActions: { alignItems: "center", paddingVertical: 6 },

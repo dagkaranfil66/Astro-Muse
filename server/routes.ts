@@ -456,6 +456,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ─── Share Reward ─────────────────────────────────────────────────────────
+  app.post("/api/share/claim-reward", async (req: Request, res: Response) => {
+    try {
+      const userId = (req.session as any)?.userId;
+      if (!userId) return res.status(401).json({ error: "Giriş gerekli" });
+
+      const { readingId } = req.body as { readingId?: string };
+      if (!readingId) return res.status(400).json({ error: "readingId gerekli" });
+
+      const REWARD_PER_SHARE = 2;
+      const MAX_DAILY_SHARES = 3;
+      const MAX_DAILY_GOLD   = 6;
+      const COOLDOWN_MS      = 60 * 1000;
+
+      const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      if (!user) return res.status(404).json({ error: "Kullanıcı bulunamadı" });
+
+      const todayTR = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Istanbul" }); // YYYY-MM-DD
+      const isNewDay = user.lastShareDate !== todayTR;
+
+      const shareCountToday    = isNewDay ? 0 : (user.shareCountToday ?? 0);
+      const sharedReadingIds   = JSON.parse(user.sharedReadingIds ?? "[]") as string[];
+
+      // 1. Günlük limit kontrolü
+      if (shareCountToday >= MAX_DAILY_SHARES) {
+        return res.json({
+          success: false,
+          reason: "daily_limit",
+          message: "Bugünkü paylaşım ödül limitine ulaştın. Yarın tekrar kazanabilirsin.",
+          goldAwarded: 0,
+        });
+      }
+
+      // 2. Toplam günlük altın kontrolü
+      if (shareCountToday * REWARD_PER_SHARE >= MAX_DAILY_GOLD) {
+        return res.json({
+          success: false,
+          reason: "gold_limit",
+          message: "Bugünkü altın ödül limitine ulaştın.",
+          goldAwarded: 0,
+        });
+      }
+
+      // 3. Cooldown kontrolü
+      const now = Date.now();
+      if (!isNewDay && user.lastShareTimestamp && now - user.lastShareTimestamp < COOLDOWN_MS) {
+        const remaining = Math.ceil((COOLDOWN_MS - (now - user.lastShareTimestamp)) / 1000);
+        return res.json({
+          success: false,
+          reason: "cooldown",
+          message: `Bir sonraki ödülü ${remaining} saniye sonra alabilirsin.`,
+          goldAwarded: 0,
+          remainingSeconds: remaining,
+        });
+      }
+
+      // 4. Aynı okuma tekrar paylaşılamaz
+      if (sharedReadingIds.includes(readingId)) {
+        return res.json({
+          success: false,
+          reason: "duplicate",
+          message: "Bu okuma için daha önce ödül aldın.",
+          goldAwarded: 0,
+        });
+      }
+
+      // ── Ödülü ver ───────────────────────────────────────────────────────
+      const updatedIds = [...sharedReadingIds, readingId];
+      await db.update(users)
+        .set({
+          shareCountToday:    shareCountToday + 1,
+          lastShareTimestamp: now,
+          lastShareDate:      todayTR,
+          sharedReadingIds:   JSON.stringify(updatedIds),
+        })
+        .where(eq(users.id, userId));
+
+      return res.json({
+        success: true,
+        goldAwarded: REWARD_PER_SHARE,
+        sharesRemainingToday: MAX_DAILY_SHARES - (shareCountToday + 1),
+        message: `+${REWARD_PER_SHARE} altın kazandın!`,
+      });
+    } catch (err) {
+      console.error("[share/claim-reward]", err);
+      return res.status(500).json({ error: "Ödül verilemedi" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
