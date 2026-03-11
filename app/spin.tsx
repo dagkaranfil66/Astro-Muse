@@ -290,26 +290,47 @@ export default function SpinScreen() {
           </Animated.View>
         )}
 
-        {done && result && (
+      </View>
+
+      {/* Result overlay — floats above everything */}
+      {done && result && (
+        <Animated.View style={styles.resultOverlay} entering={FadeIn.duration(300)}>
           <Animated.View style={[styles.resultBox, resultStyle]}>
-            <LinearGradient colors={["#1A0F35", "#0D1526"]} style={styles.resultInner}>
+            <LinearGradient
+              colors={["#1A0F35", "#100828", "#0D1526"]}
+              style={styles.resultInner}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              {/* Gold ring glow */}
+              <View style={styles.resultGlowRing} />
               <Text style={styles.resultEmoji}>🎉</Text>
               <Text style={styles.resultTitle}>
                 {lang === "tr" ? "Tebrikler!" : "Congratulations!"}
               </Text>
               <Text style={styles.resultGold}>
-                +{result.gold} <Text style={{ color: Colors.gold }}>✦ Altın</Text>
+                +{result.gold}{" "}
+                <Text style={{ color: Colors.gold }}>✦ Altın</Text>
               </Text>
               <Text style={styles.resultDesc}>
-                {lang === "tr" ? "Yarın tekrar çevirebilirsin!" : "Come back tomorrow to spin again!"}
+                {lang === "tr"
+                  ? "Altın bakiyene eklendi 🌟"
+                  : "Added to your gold balance 🌟"}
+              </Text>
+              <Text style={styles.resultSubDesc}>
+                {lang === "tr"
+                  ? "Yarın tekrar çevirebilirsin!"
+                  : "Come back tomorrow to spin again!"}
               </Text>
               <Pressable onPress={() => router.back()} style={styles.closeBtn}>
-                <Text style={styles.closeBtnText}>{lang === "tr" ? "Harika!" : "Awesome!"}</Text>
+                <Text style={styles.closeBtnText}>
+                  {lang === "tr" ? "🚀  Harika!" : "🚀  Awesome!"}
+                </Text>
               </Pressable>
             </LinearGradient>
           </Animated.View>
-        )}
-      </View>
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -390,18 +411,42 @@ const styles = StyleSheet.create({
   },
   spinBtnText: { fontSize: 16, fontFamily: "Lora_700Bold", color: "#fff" },
 
-  resultBox: { width: "100%", marginTop: 8 },
+  resultOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.82)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+    zIndex: 200,
+  },
+  resultBox: { width: "100%" },
   resultInner: {
-    borderRadius: 18, padding: 28, alignItems: "center",
-    borderWidth: 1, borderColor: Colors.gold + "40",
+    borderRadius: 22, padding: 32, alignItems: "center",
+    borderWidth: 1.5, borderColor: Colors.gold + "60",
+    overflow: "hidden",
+    shadowColor: Colors.gold,
+    shadowOpacity: 0.45,
+    shadowRadius: 28,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 20,
   },
-  resultEmoji: { fontSize: 48, marginBottom: 8 },
-  resultTitle: { fontSize: 22, fontFamily: "Lora_700Bold", color: Colors.text, marginBottom: 8 },
-  resultGold: { fontSize: 32, fontFamily: "Lora_700Bold", color: Colors.text, marginBottom: 8 },
-  resultDesc: { fontSize: 13, fontFamily: "Lora_400Regular", color: Colors.textSecondary, textAlign: "center", marginBottom: 20 },
+  resultGlowRing: {
+    position: "absolute",
+    top: -60, left: -60, right: -60,
+    height: 160,
+    backgroundColor: Colors.gold,
+    opacity: 0.06,
+    borderRadius: 80,
+  },
+  resultEmoji: { fontSize: 56, marginBottom: 12 },
+  resultTitle: { fontSize: 26, fontFamily: "Lora_700Bold", color: Colors.text, marginBottom: 10, letterSpacing: 0.5 },
+  resultGold: { fontSize: 38, fontFamily: "Lora_700Bold", color: Colors.text, marginBottom: 6 },
+  resultDesc: { fontSize: 14, fontFamily: "Lora_700Bold", color: Colors.gold, textAlign: "center", marginBottom: 4 },
+  resultSubDesc: { fontSize: 12, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary, textAlign: "center", marginBottom: 28 },
   closeBtn: {
-    backgroundColor: Colors.gold, borderRadius: 12,
-    paddingHorizontal: 32, paddingVertical: 14,
+    backgroundColor: Colors.gold, borderRadius: 14,
+    paddingHorizontal: 40, paddingVertical: 16,
+    shadowColor: Colors.gold, shadowOpacity: 0.5, shadowRadius: 12, shadowOffset: { width: 0, height: 0 },
   },
-  closeBtnText: { fontSize: 15, fontFamily: "Lora_700Bold", color: Colors.background },
+  closeBtnText: { fontSize: 16, fontFamily: "Lora_700Bold", color: Colors.background, letterSpacing: 0.3 },
 });
