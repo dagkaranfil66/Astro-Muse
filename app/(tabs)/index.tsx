@@ -223,12 +223,6 @@ function MandalaRing({ radius, dotCount, color, duration, reverse }: {
 }
 
 // ────────── Star Ring ──────────
-const STAR_PALETTE = [
-  Colors.gold, "#FF6B9D", "#5B9BD5", "#9B59B6",
-  "#00C8FF", "#4CAF7A", "#FF8C42", "#1ABFB8",
-  "#F7C948", "#E74C8B", "#8B5CF6", "#FF4757",
-];
-
 function StarRing({ radius, count, color, duration, reverse }: {
   radius: number; count: number; color: string; duration: number; reverse?: boolean;
 }) {
@@ -248,15 +242,14 @@ function StarRing({ radius, count, color, duration, reverse }: {
         const x = Math.cos(angle) * radius;
         const y = Math.sin(angle) * radius;
         const big = i % 3 === 0;
-        const starColor = STAR_PALETTE[i % STAR_PALETTE.length];
         return (
           <Text key={i} style={{
             position: "absolute",
-            fontSize: big ? 10 : 6,
-            color: starColor,
-            opacity: big ? 0.55 : 0.32,
-            left: size / 2 + x - (big ? 5 : 3),
-            top:  size / 2 + y - (big ? 5 : 3),
+            fontSize: big ? 11 : 7,
+            color,
+            opacity: big ? 0.95 : 0.45,
+            left: size / 2 + x - (big ? 5.5 : 3.5),
+            top:  size / 2 + y - (big ? 5.5 : 3.5),
           }}>✦</Text>
         );
       })}
@@ -265,59 +258,35 @@ function StarRing({ radius, count, color, duration, reverse }: {
 }
 
 // ────────── Twinkle Stars ──────────
-function TwinkleStar({ left, top, sz, delay, dur, color }: {
-  left: number; top: number; sz: number; delay: number; dur: number; color: string;
-}) {
+function TwinkleStar({ left, top, sz, delay, dur }: { left: number; top: number; sz: number; delay: number; dur: number }) {
   const op = useSharedValue(0.05);
-  const sc = useSharedValue(0.9);
   React.useEffect(() => {
     op.value = withDelay(delay, withRepeat(
-      withSequence(withTiming(0.55, { duration: dur }), withTiming(0.06, { duration: dur })),
-      -1, false
-    ));
-    sc.value = withDelay(delay, withRepeat(
-      withSequence(withTiming(1.15, { duration: dur }), withTiming(0.9, { duration: dur })),
+      withSequence(withTiming(1, { duration: dur, easing: Easing.out(Easing.sin) }), withTiming(0.05, { duration: dur, easing: Easing.in(Easing.sin) })),
       -1, false
     ));
   }, []);
-  const style = useAnimatedStyle(() => ({
-    opacity: op.value,
-    transform: [{ scale: sc.value }],
-  }));
+  const style = useAnimatedStyle(() => ({ opacity: op.value }));
   return (
-    <Animated.Text style={[{ position: "absolute", fontSize: sz, color, left, top }, style]}>✦</Animated.Text>
+    <Animated.Text style={[{ position: "absolute", fontSize: sz, color: Colors.gold, left, top }, style]}>✦</Animated.Text>
   );
 }
 
 function TwinkleStars({ centerX, centerY }: { centerX: number; centerY: number }) {
-  const stars = React.useMemo(() => {
-    const result = [];
-    // Inner ring — 11 stars at r≈65-68 (just outside logo, -40% radius)
-    for (let i = 0; i < 11; i++) {
-      const angle = (i / 11) * 2 * Math.PI;
-      const r = 65 + (i % 3) * 3;
-      const sz = i % 3 === 0 ? 7 : 5;
-      result.push({
+  const stars = React.useMemo(() =>
+    Array.from({ length: 12 }, (_, i) => {
+      const angle = (i / 12) * 2 * Math.PI + i * 0.52;
+      const r = 77 + (i % 4) * 5;
+      const sz = i % 4 === 0 ? 8 : i % 3 === 0 ? 7 : 5;
+      return {
         left: centerX + Math.cos(angle) * r - sz / 2,
         top:  centerY + Math.sin(angle) * r - sz / 2,
-        sz, delay: i * 360, dur: 1600 + (i % 4) * 300,
-        color: STAR_PALETTE[i % STAR_PALETTE.length],
-      });
-    }
-    // Outer ring — 12 stars at r≈82-88 (-40% radius)
-    for (let i = 0; i < 12; i++) {
-      const angle = (i / 12) * 2 * Math.PI + 0.26;
-      const r = 82 + (i % 3) * 4;
-      const sz = i % 4 === 0 ? 8 : 5;
-      result.push({
-        left: centerX + Math.cos(angle) * r - sz / 2,
-        top:  centerY + Math.sin(angle) * r - sz / 2,
-        sz, delay: i * 280 + 100, dur: 1800 + (i % 5) * 350,
-        color: STAR_PALETTE[(i + 5) % STAR_PALETTE.length],
-      });
-    }
-    return result;
-  }, []);
+        sz,
+        delay: i * 380,
+        dur: 900 + (i % 5) * 280,
+      };
+    }), []
+  );
   return <>{stars.map((s, i) => <TwinkleStar key={i} {...s} />)}</>;
 }
 
@@ -351,37 +320,34 @@ function AnimatedLogo() {
     transform: [{ scale: breathe.value }],
   }));
   const glowStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: 1.0 + phase.value * 0.15 }],
-    opacity: 0.03 + phase.value * 0.11,
+    transform: [{ scale: 1.0 + phase.value * 0.22 }],
+    opacity: 0.05 + phase.value * 0.17,
     backgroundColor: interpolateColor(phase.value, [0, 1], ["#FF6B9D", "#5B9BD5"]),
   }));
   const glowMidStyle = useAnimatedStyle(() => ({
-    opacity: 0.03 + (1 - phase.value) * 0.07,
+    opacity: 0.04 + (1 - phase.value) * 0.10,
     backgroundColor: interpolateColor(phase.value, [0, 1], ["#FF69B4", "#9B59B6"]),
   }));
 
-  const CX = 150, CY = 150;
+  const CX = 72, CY = 72;
 
   return (
     <View style={styles.logoContainer}>
-      {/* Layer 1 — arka plan dekorasyonu, dokunmayı engellemez */}
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <Animated.View style={[styles.logoGlowOuter, glowStyle]} />
-        <Animated.View style={[styles.logoGlowMid, glowMidStyle]} />
+      <Animated.View style={[styles.logoGlowOuter, glowStyle]} />
+      <Animated.View style={[styles.logoGlowMid, glowMidStyle]} />
 
-        {/* Mandala halkaları — hafifletilmiş */}
-        <MandalaRing radius={52} dotCount={14} color="#5B9BD5" duration={14000} />
-        <MandalaRing radius={42} dotCount={10} color="#FF6B9D" duration={11000} reverse />
+      {/* Renkli mandala halkaları */}
+      <MandalaRing radius={58} dotCount={20} color="#5B9BD5" duration={12000} />
+      <MandalaRing radius={47} dotCount={14} color="#FF6B9D" duration={9000} reverse />
+      <MandalaRing radius={70} dotCount={8}  color="#9B59B6" duration={18000} />
 
-        {/* Rengarenk dönen yıldız halkaları — 2 halka */}
-        <StarRing radius={68}  count={12} color={Colors.gold} duration={40000} reverse />
-        <StarRing radius={90}  count={16} color="#FF6B9D"    duration={55000} />
+      {/* ✦ Altın yıldız halkası — yavaş, ters yönde döner */}
+      <StarRing radius={73} count={14} color={Colors.gold} duration={28000} reverse />
 
-        {/* Titreşen renkli yıldızlar */}
-        <TwinkleStars centerX={CX} centerY={CY} />
-      </View>
+      {/* Etrafta titreşen yıldızlar */}
+      <TwinkleStars centerX={CX} centerY={CY} />
 
-      {/* Layer 2 — logo üstte, temiz ve net */}
+      {/* Logo — float + nefes alma */}
       <Animated.View style={floatStyle}>
         <Animated.View style={breatheStyle}>
           <Image
@@ -1091,8 +1057,8 @@ const styles = StyleSheet.create({
   shootingStar: { height: 2, borderRadius: 1 },
 
   logoContainer: {
-    width: 300,
-    height: 300,
+    width: 144,
+    height: 144,
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "center",
