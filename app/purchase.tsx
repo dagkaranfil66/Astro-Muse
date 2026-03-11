@@ -267,7 +267,7 @@ export default function PurchaseScreen() {
   const insets = useSafeAreaInsets();
   const { addGold, goldBalance, userProfile, canSpin } = useApp();
   const { lang } = useLang();
-  const { packages, isLoading: rcLoading, purchase, restore, isRestoring, refetchOfferings, offeringsError } = useSubscription();
+  const { packages, offeringsLoading, offeringsError, purchase, restore, isRestoring, refetchOfferings } = useSubscription();
 
   const [buying, setBuying] = useState(false);
   const [boughtId, setBoughtId] = useState<string | null>(null);
@@ -291,12 +291,10 @@ export default function PurchaseScreen() {
     .sort((a, b) => ORDER.indexOf(a.identifier) - ORDER.indexOf(b.identifier));
   const rcPkgMap = Object.fromEntries(sortedRcPkgs.map(p => [p.identifier, p]));
 
-  // Always show all 4 packages.
-  // If RC has a package → use real RC purchase (real StoreKit price).
-  // If RC doesn't have a package → use mock purchase (add gold directly).
-  // This covers: Expo Go (test store), TestFlight (no App Store Connect products yet), production.
+  // Always show all 4 packages after offerings settle.
+  // Real RC package → real StoreKit purchase with price shown.
+  // Missing package → UnavailablePackageCard (grey / disabled).
   const packagesToShow = ORDER;
-  const anyPackages = !rcLoading;
 
   const handleRcBuy = async (rcPkg: PurchasesPackage) => {
     if (!isLoggedIn || buying || boughtId) return;
@@ -414,25 +412,12 @@ export default function PurchaseScreen() {
               {lang === "tr" ? "Büyük paket, daha fazla tasarruf!" : "Bigger package, more savings!"}
             </Text>
 
-            {rcLoading ? (
+            {offeringsLoading ? (
               <View style={styles.loadingWrap}>
                 <ActivityIndicator color={Colors.gold} />
                 <Text style={styles.loadingText}>{lang === "tr" ? "Paketler yükleniyor..." : "Loading packages..."}</Text>
               </View>
-            ) : anyPackages ? (
-              packagesToShow.map((pkgId, i) => {
-                const rcPkg = rcPkgMap[pkgId];
-                return (
-                  <Animated.View key={pkgId} entering={FadeInDown.delay(200 + i * 60).springify()}>
-                    {rcPkg ? (
-                      <GoldPackageCard rcPkg={rcPkg} onBuy={handleRcBuy} buying={buying} boughtId={boughtId} lang={lang} />
-                    ) : (
-                      <UnavailablePackageCard pkgId={pkgId} lang={lang} />
-                    )}
-                  </Animated.View>
-                );
-              })
-            ) : (
+            ) : offeringsError ? (
               <Animated.View entering={FadeIn.duration(400)} style={styles.rcErrorWrap}>
                 <Ionicons name="cloud-offline-outline" size={32} color={Colors.textDim} />
                 <Text style={styles.rcErrorTitle}>
@@ -451,6 +436,19 @@ export default function PurchaseScreen() {
                   <Text style={styles.retryBtnText}>{lang === "tr" ? "Tekrar Dene" : "Try Again"}</Text>
                 </Pressable>
               </Animated.View>
+            ) : (
+              packagesToShow.map((pkgId, i) => {
+                const rcPkg = rcPkgMap[pkgId];
+                return (
+                  <Animated.View key={pkgId} entering={FadeInDown.delay(200 + i * 60).springify()}>
+                    {rcPkg ? (
+                      <GoldPackageCard rcPkg={rcPkg} onBuy={handleRcBuy} buying={buying} boughtId={boughtId} lang={lang} />
+                    ) : (
+                      <UnavailablePackageCard pkgId={pkgId} lang={lang} />
+                    )}
+                  </Animated.View>
+                );
+              })
             )}
 
             {!!purchaseError && (
