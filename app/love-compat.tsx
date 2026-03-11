@@ -458,9 +458,6 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
         {/* ── FORM ─────────────────────────────────────────────────── */}
         {phase === "form" && (
           <Animated.View entering={FadeIn} style={styles.section}>
-            <View style={{ alignItems: "center", marginBottom: 4 }}>
-              <LoveHeroAnim />
-            </View>
             <StepProgress current={step} />
 
             {step === 1 && (
@@ -544,6 +541,11 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
                   value={data.curiosity} onChange={v => upd("curiosity", v)} />
               </Animated.View>
             )}
+
+            {/* Love animation below questions */}
+            <View style={{ alignItems: "center", marginTop: 8, marginBottom: 4 }}>
+              <LoveHeroAnim />
+            </View>
 
             {/* Navigation buttons */}
             <View style={styles.navRow}>
