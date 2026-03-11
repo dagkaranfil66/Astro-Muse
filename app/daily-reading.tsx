@@ -303,15 +303,12 @@ export default function DailyReadingScreen() {
             {/* Add photo buttons */}
             {photos.length < maxPhotos && (
               <View style={s.photoButtons}>
-                {/* Camera — primary on native, hidden on web */}
-                {Platform.OS !== "web" && (
-                  <Pressable onPress={() => pickPhoto(true)} style={[s.photoBtnPrimary, { borderColor: meta.color, backgroundColor: meta.color + "22" }]}>
-                    <Ionicons name="camera" size={20} color={meta.color} />
-                    <Text style={[s.photoBtnPrimaryText, { color: meta.color }]}>
-                      {lang === "tr" ? "Fotoğraf Çek" : "Take Photo"}
-                    </Text>
-                  </Pressable>
-                )}
+                <Pressable onPress={() => pickPhoto(true)} style={[s.photoBtnPrimary, { borderColor: meta.color, backgroundColor: meta.color + "22" }]}>
+                  <Ionicons name="camera" size={20} color={meta.color} />
+                  <Text style={[s.photoBtnPrimaryText, { color: meta.color }]}>
+                    {lang === "tr" ? "Fotoğraf Çek" : "Take Photo"}
+                  </Text>
+                </Pressable>
                 <Pressable onPress={() => pickPhoto(false)} style={[s.photoBtn, { borderColor: meta.color + "50" }]}>
                   <Ionicons name="image-outline" size={20} color={meta.color} />
                   <Text style={[s.photoBtnText, { color: meta.color }]}>
