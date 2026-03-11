@@ -1,0 +1,129 @@
+Tengri Astroloji uygulamamda Doğum Haritası, Ruh Okuma ve Astroloji bölümlerini geliştir.
+
+Ama çok önemli ana kural:
+MEVCUT GÖRÜNÜMÜ, TEMA DİLİNİ, RENK YAPISINI, KART STİLİNİ VE GENEL MİSTİK ATMOSFERİ KORU.
+Uygulamayı sıfırdan yeniden tasarlama.
+Var olan ekran yapısını bozma.
+Yeni bir tasarım dili üretme.
+Ama mevcut görünümün üstüne daha premium, daha düzenli, daha zengin ve daha kişisel bir deneyim ekle.
+Yani redesign değil, mevcut yapıyı koruyarak güçlendirme yap.
+
+Genel hedef:
+- Kullanıcının uygulamada kalma süresini artırmak
+- Bu 3 bölümü daha premium ve daha kişisel hissettirmek
+- Sonuçları tek parça düz metin yerine daha okunaklı hale getirmek
+- İlk deneyimi bozmadan ileride premium detay katmanı kurabilmek
+- Mevcut navigation ve altın sistemini bozmamak
+- Kod temiz, modüler ve sürdürülebilir olsun
+
+1) DOĞUM HARİTASI BÖLÜMÜ
+Bu bölüm kullanıcıya en premium hissi veren alanlardan biri olsun.
+
+Kullanıcıdan şu bilgiler alınsın:
+- Doğum tarihi
+- Doğum saati
+- Doğum yeri
+
+Form alanları mevcut tasarım diline uyumlu olsun.
+Gösterişli yeni tasarım yapma, mevcut input ve kart hissini koru.
+
+Sonuç ekranı tek blok metin olmasın.
+Şu başlıklara ayrılabilsin:
+- Güneş Burcu
+- Ay Burcu
+- Yükselen Burç
+- Hayat Amacı
+- Güçlü Yönler
+- Zorlayıcı Taraflar
+
+İlk kullanımda kullanıcıya tatmin edici ve güçlü bir sonuç ver.
+İlk deneyimde çok sert kilit koyma.
+İleride daha derin analiz katmanı premium olarak açılabilir.
+
+Kullanılabilecek yumuşak metin örnekleri:
+- “Haritanda daha derin bir analiz alanı da dikkat çekiyor...”
+- “İstersen doğum haritanın detaylı yorum katmanını da açabilirsin”
+
+2) RUH OKUMA BÖLÜMÜ
+Bu bölüm daha mistik, sezgisel ve duygusal his versin.
+Ama yine mevcut görünümü bozma.
+
+Kullanıcıdan şu bilgiler alınsın:
+- Ad
+- Doğum yılı
+- Ruh hali
+
+Ruh hali seçimli olabilir:
+- Yorgun
+- Kararsız
+- Mutlu
+- Kırgın
+- Meraklı
+- Durgun
+
+Sonuç şu başlıklara ayrılabilsin:
+- Ruh Enerjisi
+- İçsel Düşünceler
+- Şu Anki Enerji
+- Yakın Dönem Mesajı
+- Spiritüel Uyarı
+
+Metinler mistik ama anlaşılır olsun.
+Robotik ve tekrar eden cümlelerden kaçınılsın.
+
+Örnek ton:
+- “Enerjinde son dönemde içe dönüş etkisi güçlenmiş olabilir.”
+- “İç sesin sana netleşmen gereken bir alanı işaret ediyor olabilir.”
+- “Ruh frekansında dikkat çeken bir yavaşlama ama aynı zamanda toparlanma enerjisi var gibi görünüyor.”
+
+İlk kullanımda daha tatmin edici sonuç ver.
+Sonraki kullanımlarda premium detay katmanı istenirse eklenebilir.
+
+3) ASTROLOJİ BÖLÜMÜ
+Bu bölüm genel astro rehberi gibi çalışsın.
+Ama sıradan düz yazı sayfası gibi olmasın.
+Mevcut kart yapısına uyumlu küçük bölümler halinde gösterilsin.
+
+İçerik başlıkları:
+- Günün Gökyüzü Enerjisi
+- Gezegen Etkileri
+- İletişim Enerjisi
+- Duygusal Akış
+- Dikkat Edilmesi Gerekenler
+
+Metinler kısa, güçlü ve günlük geri dönüş sağlayacak yapıda olsun.
+
+Örnek ton:
+- “Bugün gökyüzü enerjisinde içsel netleşme ön planda olabilir.”
+- “İletişim tarafında daha dikkatli ama sezgisel hareket etmek faydalı olabilir.”
+- “Duygusal dalgalanmalara rağmen akşam saatlerinde toparlanma enerjisi artabilir.”
+
+4) GÖSTERİM MANTIĞI
+Bu 3 bölümde de sonuçlar:
+- tek parça metin şeklinde verilmesin
+- mevcut tasarım diline uygun kartlara veya bölümlü alanlara ayrılsın
+- okunması kolay olsun
+- premium his versin
+- ama mevcut görünüm bozulmasın
+
+5) PREMIUM DENGE
+İlk deneyimde kullanıcıyı kandırılmış hissettirme.
+İlk sonuçlar anlamlı ve tatmin edici olsun.
+Sonraki kullanımlarda daha derin analiz katmanları eklenebilir.
+
+Kullanılabilecek yumuşak premium metinler:
+- “İstersen bu yorumun daha derin katmanını da açabilirsin”
+- “Burada daha özel bir analiz bölümü seni bekliyor olabilir”
+- “Daha detaylı yorum, daha net içgörüler sunabilir”
+
+6) TEKNİK KURALLAR
+- Mevcut navigation yapısını bozma
+- Mevcut tema yapısını bozma
+- Var olan component mantığına uy
+- Kod temiz ve modüler olsun
+- Uygulamayı baştan tasarlama
+- Sadece mevcut görünümü koruyarak bu 3 bölümü güçlendir
+
+Son not:
+Amaç yeni bir arayüz yapmak değil.
+Amaç, var olan Tengri Astroloji görünümünü koruyarak Doğum Haritası, Ruh Okuma ve Astroloji bölümlerini daha profesyonel, daha kişisel, daha premium ve daha kullanışlı hale getirmek.

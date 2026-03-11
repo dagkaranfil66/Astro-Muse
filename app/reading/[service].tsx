@@ -753,7 +753,23 @@ export default function ReadingScreen() {
   const [birthYear, setBirthYear] = useState("");
   const isNumeroloji = service === "numeroloji";
   const isRuya = service === "ruya";
+  const isDogum = service === "dogum";
+  const isRuh = service === "ruh";
+  const isAstroloji = service === "astroloji";
   const [ruyaTags, setRuyaTags] = useState<string[]>([]);
+
+  // Doğum Haritası state
+  const [dogumDay, setDogumDay] = useState("");
+  const [dogumMonth, setDogumMonth] = useState("");
+  const [dogumYear, setDogumYear] = useState("");
+  const [dogumTime, setDogumTime] = useState("");
+  const [dogumPlace, setDogumPlace] = useState("");
+
+  // Ruh Okuma state
+  const [ruhAd, setRuhAd] = useState("");
+  const [ruhBirthYear, setRuhBirthYear] = useState("");
+  const [ruhMood, setRuhMood] = useState("");
+
   const scrollRef = useRef<ScrollView>(null);
 
   const hasValidInput = isKahve
@@ -761,6 +777,12 @@ export default function ReadingScreen() {
     : isEl
     ? (photo !== null || userInput.trim().length > 0)
     : isTarot
+    ? true
+    : isDogum
+    ? (dogumDay !== "" || dogumYear !== "" || dogumPlace !== "")
+    : isRuh
+    ? (ruhAd !== "" || ruhMood !== "" || userInput.trim().length > 0)
+    : isAstroloji
     ? true
     : userInput.trim().length > 0;
 
@@ -877,6 +899,20 @@ export default function ReadingScreen() {
         ? [`Doğum tarihi: ${birthDay || "?"}/${birthMonth || "?"}/${birthYear || "?"}`, userInput.trim()].filter(Boolean).join(" | ")
         : isRuya && ruyaTags.length > 0
         ? [`Rüyada gördüklerim: ${ruyaTags.join(", ")}`, userInput.trim()].filter(Boolean).join(". ")
+        : isDogum
+        ? [
+            (dogumDay || dogumMonth || dogumYear) ? `Doğum tarihi: ${dogumDay || "?"}/${dogumMonth || "?"}/${dogumYear || "?"}` : "",
+            dogumTime ? `Doğum saati: ${dogumTime}` : "",
+            dogumPlace ? `Doğum yeri: ${dogumPlace}` : "",
+            userInput.trim(),
+          ].filter(Boolean).join(" | ")
+        : isRuh
+        ? [
+            ruhAd ? `Ad: ${ruhAd}` : "",
+            ruhBirthYear ? `Doğum yılı: ${ruhBirthYear}` : "",
+            ruhMood ? `Ruh hali: ${ruhMood}` : "",
+            userInput.trim(),
+          ].filter(Boolean).join(" | ")
         : userInput.trim() || "";
       const body: Record<string, any> = { service, userInput: effectiveInput };
       const photosToUse = photosOverride ?? kahvePhotos;
@@ -1055,7 +1091,7 @@ export default function ReadingScreen() {
                 <Ionicons name="sparkles" size={13} color={base.color} />
                 <Text style={[styles.readingHeaderText, { color: base.color }]}>{t.tengriMessage}</Text>
               </View>
-              {(service === "kahve" || service === "el" || service === "numeroloji" || service === "ruya") && parseKahveSections(readingText).length > 0 ? (
+              {(service === "kahve" || service === "el" || service === "numeroloji" || service === "ruya" || service === "dogum" || service === "ruh" || service === "astroloji") && parseKahveSections(readingText).length > 0 ? (
                 <View style={{ padding: 12 }}>
                   <SectionedReading text={readingText} color={base.color} isLoading={isLoading} />
                   {isLoading && <ActivityIndicator size="small" color={base.color} style={{ padding: 8 }} />}
@@ -1291,6 +1327,126 @@ export default function ReadingScreen() {
                         style={[styles.tarotChip, isActive && { backgroundColor: base.color + "25", borderColor: base.color }]}
                       >
                         <Text style={[styles.tarotChipText, isActive && { color: base.color }]}>{tag}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
+            {/* Doğum Haritası: Tarih + Saat + Yer */}
+            {isDogum && !isLoading && (
+              <View style={styles.tarotSelectorWrap}>
+                <Text style={[styles.tarotSelectorLabel, { color: base.color }]}>
+                  {lang === "tr" ? "Doğum Tarihi" : "Birth Date"}
+                </Text>
+                <View style={styles.birthDateRow}>
+                  <TextInput
+                    style={[styles.birthDateField, { borderColor: dogumDay ? base.color + "60" : Colors.cardBorder, color: Colors.text }]}
+                    placeholder={lang === "tr" ? "GG" : "DD"}
+                    placeholderTextColor={Colors.textDim}
+                    value={dogumDay}
+                    onChangeText={(v) => setDogumDay(v.replace(/\D/g, "").slice(0, 2))}
+                    keyboardType="numeric"
+                    maxLength={2}
+                  />
+                  <Text style={{ color: Colors.textDim, fontSize: 18 }}>/</Text>
+                  <TextInput
+                    style={[styles.birthDateField, { borderColor: dogumMonth ? base.color + "60" : Colors.cardBorder, color: Colors.text }]}
+                    placeholder={lang === "tr" ? "AA" : "MM"}
+                    placeholderTextColor={Colors.textDim}
+                    value={dogumMonth}
+                    onChangeText={(v) => setDogumMonth(v.replace(/\D/g, "").slice(0, 2))}
+                    keyboardType="numeric"
+                    maxLength={2}
+                  />
+                  <Text style={{ color: Colors.textDim, fontSize: 18 }}>/</Text>
+                  <TextInput
+                    style={[styles.birthDateField, styles.birthYearField, { borderColor: dogumYear ? base.color + "60" : Colors.cardBorder, color: Colors.text }]}
+                    placeholder="YYYY"
+                    placeholderTextColor={Colors.textDim}
+                    value={dogumYear}
+                    onChangeText={(v) => setDogumYear(v.replace(/\D/g, "").slice(0, 4))}
+                    keyboardType="numeric"
+                    maxLength={4}
+                  />
+                </View>
+                <Text style={[styles.tarotSelectorLabel, { color: base.color, marginTop: 10 }]}>
+                  {lang === "tr" ? "Doğum Saati (isteğe bağlı)" : "Birth Time (optional)"}
+                </Text>
+                <TextInput
+                  style={[styles.birthDateField, styles.birthYearField, { borderColor: dogumTime ? base.color + "60" : Colors.cardBorder, color: Colors.text, width: "40%" }]}
+                  placeholder="SS:DD"
+                  placeholderTextColor={Colors.textDim}
+                  value={dogumTime}
+                  onChangeText={(v) => {
+                    const cleaned = v.replace(/[^\d:]/g, "").slice(0, 5);
+                    setDogumTime(cleaned);
+                  }}
+                  keyboardType="numbers-and-punctuation"
+                  maxLength={5}
+                />
+                <Text style={[styles.tarotSelectorLabel, { color: base.color, marginTop: 10 }]}>
+                  {lang === "tr" ? "Doğum Yeri (isteğe bağlı)" : "Birth Place (optional)"}
+                </Text>
+                <TextInput
+                  style={[styles.input, { borderColor: dogumPlace ? base.color + "60" : Colors.cardBorder, color: Colors.text, minHeight: 40 }]}
+                  placeholder={lang === "tr" ? "Şehir, Ülke" : "City, Country"}
+                  placeholderTextColor={Colors.textDim}
+                  value={dogumPlace}
+                  onChangeText={setDogumPlace}
+                  maxLength={80}
+                />
+              </View>
+            )}
+
+            {/* Ruh Okuma: Ad + Doğum Yılı + Ruh Hali */}
+            {isRuh && !isLoading && (
+              <View style={styles.tarotSelectorWrap}>
+                <Text style={[styles.tarotSelectorLabel, { color: base.color }]}>
+                  {lang === "tr" ? "Adınız (isteğe bağlı)" : "Your Name (optional)"}
+                </Text>
+                <TextInput
+                  style={[styles.input, { borderColor: ruhAd ? base.color + "60" : Colors.cardBorder, color: Colors.text, minHeight: 40 }]}
+                  placeholder={lang === "tr" ? "Adınızı girin..." : "Enter your name..."}
+                  placeholderTextColor={Colors.textDim}
+                  value={ruhAd}
+                  onChangeText={setRuhAd}
+                  maxLength={60}
+                />
+                <Text style={[styles.tarotSelectorLabel, { color: base.color, marginTop: 10 }]}>
+                  {lang === "tr" ? "Doğum Yılı (isteğe bağlı)" : "Birth Year (optional)"}
+                </Text>
+                <TextInput
+                  style={[styles.birthDateField, styles.birthYearField, { borderColor: ruhBirthYear ? base.color + "60" : Colors.cardBorder, color: Colors.text, width: "35%" }]}
+                  placeholder="YYYY"
+                  placeholderTextColor={Colors.textDim}
+                  value={ruhBirthYear}
+                  onChangeText={(v) => setRuhBirthYear(v.replace(/\D/g, "").slice(0, 4))}
+                  keyboardType="numeric"
+                  maxLength={4}
+                />
+                <Text style={[styles.tarotSelectorLabel, { color: base.color, marginTop: 10 }]}>
+                  {lang === "tr" ? "Şu Anki Ruh Halin" : "Current Mood"}
+                </Text>
+                <View style={styles.tarotChipRow}>
+                  {(lang === "tr"
+                    ? ["Yorgun", "Kararsız", "Mutlu", "Kırgın", "Meraklı", "Durgun"]
+                    : ["Tired", "Undecided", "Happy", "Hurt", "Curious", "Calm"]
+                  ).map((mood, i) => {
+                    const trVals = ["Yorgun", "Kararsız", "Mutlu", "Kırgın", "Meraklı", "Durgun"];
+                    const val = trVals[i];
+                    const isActive = ruhMood === val;
+                    return (
+                      <Pressable
+                        key={mood}
+                        onPress={() => {
+                          setRuhMood(isActive ? "" : val);
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }}
+                        style={[styles.tarotChip, isActive && { backgroundColor: base.color + "25", borderColor: base.color }]}
+                      >
+                        <Text style={[styles.tarotChipText, isActive && { color: base.color }]}>{mood}</Text>
                       </Pressable>
                     );
                   })}
