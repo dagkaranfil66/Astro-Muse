@@ -1,0 +1,128 @@
+Tengri Astroloji uygulamamı geliştirirken çok önemli bir kurala uy:
+
+MEVCUT GÖRÜNÜMÜ, TEMA DİLİNİ VE GENEL TASARIM HİSSİNİ KORU.
+Uygulamayı sıfırdan yeniden tasarlama.
+Var olan ekran yapısını bozma.
+Ama mevcut tasarımı daha premium, daha düzenli, daha akıcı ve daha kullanışlı hale getir.
+Yani redesign değil, mevcut görünüm üzerinde akıllı iyileştirme yap.
+
+Ana hedefler:
+- Kullanıcının uygulamada kalma süresini artırmak
+- Kategorileri daha etkileşimli hale getirmek
+- Sonuçları daha kişisel hissettirmek
+- Merak duygusunu artırmak
+- Altın kullanımını artırmak ama ilk deneyimi bozmamak
+- Günlük geri dönüşü artırmak
+
+Genel kurallar:
+- Mevcut koyu mistik tema aynen korunsun
+- Var olan renk dili, yıldızlı atmosfer, logo düzeni ve genel görsel kimlik bozulmasın
+- Sadece daha temiz, daha dengeli, daha premium hale getir
+- Türkçe metinler doğal, kısa, mistik ve merak uyandırıcı olsun
+- Kod temiz, component bazlı ve sürdürülebilir olsun
+- Navigation ve mevcut altın sistemi bozulmasın
+
+Yeni kullanıcı stratejisi:
+- İlk kullanımda agresif kilit sistemi kurma
+- Kullanıcıya önce kaliteyi göster, sonra premium katmanları aç
+- İlk kahve falı veya ilk tarot daha cömert olsun
+- Hoş geldin hediyesi olarak 15 altın ver
+- Altın sistemini doğal şekilde öğret:
+  - günlük çark
+  - günlük giriş ödülü
+  - paylaşım ile altın kazanma
+
+Kategoriler için istekler:
+
+1) Kahve Falı
+- Fincan fotoğrafı yükleme deneyimini geliştir
+- Tabak fotoğrafı opsiyonel olsun
+- Önce kısa analiz ekranı göster
+- Sonuç tek parça olmasın, bölümlere ayrılsın:
+  - Genel Fal Enerjisi
+  - Aşk
+  - Para
+  - İş/Kariyer
+  - Yakın Gelecek
+  - Uyarı
+  - Nazar
+- İlk kullanımda daha tatmin edici sonuç ver, kullanıcıyı hemen yarıda bırakma
+- Sonraki kullanımlarda ön izleme + detaylı premium katman mantığı kullan
+
+2) Tarot
+- Mevcut tasarım hissini koruyarak daha etkileşimli yap
+- Önce konu seçimi olsun:
+  - Aşk
+  - Para
+  - Kariyer
+  - Gelecek
+  - Onun Duyguları
+  - Ruhsal Mesaj
+- Açılım tipi olsun:
+  - Tek Kart
+  - 3 Kart
+  - Aşk Açılımı
+- Kullanıcı kart seçsin
+- Hafif ve akıcı kart açılma animasyonu olsun
+- İlk tarot deneyimi daha tatmin edici olsun
+- Sonraki kullanımlarda premium detay katmanı eklenebilir
+
+3) El Falı
+- El fotoğrafı yükleme yapısı olsun
+- Sağ/sol el seçimi eklenebilir
+- Sonuç şu başlıklara ayrılsın:
+  - Yaşam Çizgisi
+  - Aşk Çizgisi
+  - Zihin Çizgisi
+  - Kader Çizgisi
+- İlk deneyim daha cömert, sonraki deneyimler premium katmanlı olabilir
+
+4) Numeroloji
+- Doğum tarihi girişi olsun
+- Sonuçta:
+  - Yaşam Yolu Sayısı
+  - Ruh Dürtüsü
+  - Karakter Enerjisi
+  - Günün Numeroloji Mesajı
+- Kısa ücretsiz sonuç + detaylı premium katman yapısı kurulabilir
+
+5) Rüya Yorumu
+- Kısa metin girişi ile çalışsın
+- İsteğe bağlı hızlı seçim etiketleri olabilir
+- Sonuç:
+  - Genel bilinçaltı yorumu
+  - Duygusal anlam
+  - Yakın dönem mesajı
+  - Uyarı
+- İlk kullanımda daha dolu deneyim ver
+
+Günlük geri dönüş sistemi:
+- Ana ekranda veya uygun alanlarda küçük günlük kartlar ekle:
+  - Bugünün Tarot Kartı
+  - Günlük Mini Kahve Mesajı
+  - Günün Numeroloji Enerjisi
+  - Günlük Burç Özeti
+  - Günün Spiritüel Mesajı
+- Günlük ödül ve çark sistemi ile uyumlu olsun
+
+Merak ve gelir dengesi:
+- Kullanıcıyı ilk kullanımda kandırılmış hissettirme
+- Premium his olsun ama sert ödeme duvarı olmasın
+- İlk deneyim tatmin edici olsun
+- Sonraki deneyimlerde derin analiz için altın kullanımı sunulsun
+- Kullanılan dil yumuşak olsun:
+  - “İstersen detaylı yorum katmanını da açabilirsin”
+  - “Burada daha özel bir analiz bölümü seni bekliyor olabilir”
+  - “Daha derin yorum için altın kullanabilirsin”
+
+Paylaşım ve viral büyüme:
+- Kategoriler için paylaşılabilir mini sonuç kartı altyapısı düşün
+- Sonuç paylaşınca altın kazanma sistemiyle uyumlu yapı kur
+- Suistimali önlemek için günlük limit mantığı eklenebilir
+
+Çok önemli son not:
+Uygulamayı baştan tasarlama.
+Mevcut görünümü koru.
+Var olan ekranları bozma.
+Sadece mevcut tasarımın üstüne daha iyi UX, daha iyi metinler, daha iyi akış ve daha premium küçük dokunuşlar ekle.
+Amaç sıfırdan yeni bir arayüz değil; mevcut başarılı görünümü güçlendirmek.
