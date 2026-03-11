@@ -32,6 +32,7 @@ import Animated, {
   withSequence,
   withDelay,
   ZoomIn,
+  Easing,
 } from "react-native-reanimated";
 import { fetch } from "expo/fetch";
 import * as Clipboard from "expo-clipboard";
@@ -129,12 +130,73 @@ function Star({ top, left, dur, init }: { top: number; left: number; dur: number
   return <Animated.View style={[styles.star, style, { top: `${top}%` as any, left: `${left}%` as any }]} />;
 }
 
+// ────────── Coffee steam animation ──────────
+function CoffeeSteamWisp({ delay, offsetX, color }: { delay: number; offsetX: number; color: string }) {
+  const ty = useSharedValue(0);
+  const op = useSharedValue(0);
+  const tx = useSharedValue(0);
+  useEffect(() => {
+    ty.value = withDelay(delay, withRepeat(
+      withSequence(withTiming(0, { duration: 0 }), withTiming(-52, { duration: 2000, easing: Easing.ease })),
+      -1, false
+    ));
+    op.value = withDelay(delay, withRepeat(
+      withSequence(
+        withTiming(0, { duration: 0 }),
+        withTiming(0.75, { duration: 300 }),
+        withTiming(0.75, { duration: 1100 }),
+        withTiming(0, { duration: 600 }),
+      ), -1, false
+    ));
+    tx.value = withDelay(delay, withRepeat(
+      withSequence(withTiming(offsetX, { duration: 0 }), withTiming(offsetX + 6, { duration: 2000, easing: Easing.ease })),
+      -1, false
+    ));
+  }, []);
+  const wispStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: tx.value }, { translateY: ty.value }],
+    opacity: op.value,
+  }));
+  return <Animated.View style={[sCup.wisp, { backgroundColor: color + "60" }, wispStyle]} />;
+}
+
+function CoffeeHeroAnim({ color }: { color: string }) {
+  const glow = useSharedValue(1);
+  useEffect(() => {
+    glow.value = withRepeat(
+      withSequence(withTiming(1.18, { duration: 2200, easing: Easing.ease }), withTiming(1, { duration: 2200, easing: Easing.ease })),
+      -1, false
+    );
+  }, []);
+  const glowStyle = useAnimatedStyle(() => ({ transform: [{ scale: glow.value }] }));
+  return (
+    <View style={sCup.container}>
+      <Animated.View style={[sCup.glowOrb, { backgroundColor: color + "18", borderColor: color + "35" }, glowStyle]} />
+      <View style={sCup.steamContainer}>
+        <CoffeeSteamWisp delay={0}    offsetX={-10} color={color} />
+        <CoffeeSteamWisp delay={650}  offsetX={0}   color={color} />
+        <CoffeeSteamWisp delay={1300} offsetX={10}  color={color} />
+      </View>
+      <View style={[sCup.cupCircle, { borderColor: color + "55", backgroundColor: color + "18" }]}>
+        <Ionicons name="cafe" size={42} color={color} />
+      </View>
+    </View>
+  );
+}
+const sCup = StyleSheet.create({
+  container: { width: 120, height: 140, alignItems: "center", justifyContent: "flex-end", marginBottom: 8 },
+  glowOrb: { position: "absolute", bottom: 0, width: 120, height: 120, borderRadius: 60, borderWidth: 1 },
+  steamContainer: { position: "absolute", top: 0, flexDirection: "row", gap: 14, alignItems: "flex-end", height: 54 },
+  wisp: { width: 5, height: 22, borderRadius: 3, bottom: 0 },
+  cupCircle: { width: 90, height: 90, borderRadius: 45, borderWidth: 1, alignItems: "center", justifyContent: "center", zIndex: 2 },
+});
+
 // ────────── Service-specific Intro Animations ──────────
 function KahveIntro({ color }: { color: string }) {
   return (
-    <View style={styles.serviceIntro}>
-      <ServiceHeroBanner serviceId="kahve" color={color} />
-      <Text style={styles.introServiceTitle}>Kahve Falı</Text>
+    <View style={[styles.serviceIntro, { alignItems: "center" }]}>
+      <CoffeeHeroAnim color={color} />
+      <Text style={[styles.introServiceTitle, { marginTop: 4 }]}>Kahve Falı</Text>
       <Text style={styles.introDesc}>Fincanınızın fotoğrafını yükleyin{"\n"}veya gördüğünüz sembolleri yazın.</Text>
     </View>
   );
@@ -328,9 +390,28 @@ function KahvePhotoSection({
           </Text>
         </Animated.View>
       ) : (
-        <Text style={styles.kahveSlotHint}>
-          {lang === "tr" ? "3 farklı açıdan fotoğraf çekin veya yükleyin" : "Take or upload from 3 different angles"}
-        </Text>
+        <>
+          <Text style={styles.kahveSlotHint}>
+            {lang === "tr" ? "3 farklı açıdan fotoğraf çekin veya yükleyin" : "Take or upload from 3 different angles"}
+          </Text>
+          {/* Prominent action buttons */}
+          <View style={styles.kahveMainBtns}>
+            {Platform.OS !== "web" && (
+              <Pressable onPress={() => onAdd("camera")} style={[styles.kahveMainCameraBtn, { borderColor: color, backgroundColor: color + "20" }]}>
+                <Ionicons name="camera" size={22} color={color} />
+                <Text style={[styles.kahveMainCameraBtnText, { color }]}>
+                  {lang === "tr" ? "Fotoğraf Çek" : "Take Photo"}
+                </Text>
+              </Pressable>
+            )}
+            <Pressable onPress={() => onAdd("gallery")} style={[styles.kahveMainGalleryBtn, { borderColor: color + "60" }]}>
+              <Ionicons name="images-outline" size={18} color={color} />
+              <Text style={[styles.kahveMainGalleryBtnText, { color }]}>
+                {lang === "tr" ? "Galeriden Yükle" : "Upload"}
+              </Text>
+            </Pressable>
+          </View>
+        </>
       )}
 
       <View style={styles.kahveSlotsRow}>
@@ -1376,6 +1457,19 @@ const styles = StyleSheet.create({
     borderRadius: 6, borderWidth: 1, paddingVertical: 5, paddingHorizontal: 6,
   },
   kahveSlotBtnText: { fontSize: 10, fontFamily: "Lora_700Bold" },
+  // Prominent action buttons above slots
+  kahveMainBtns: { flexDirection: "row", gap: 10, marginBottom: 14, marginTop: 4 },
+  kahveMainCameraBtn: {
+    flex: 2, flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 8, paddingVertical: 13, borderRadius: 12, borderWidth: 1.5,
+  },
+  kahveMainCameraBtnText: { fontSize: 14, fontFamily: "Lora_700Bold" },
+  kahveMainGalleryBtn: {
+    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 6, paddingVertical: 13, borderRadius: 12, borderWidth: 1,
+    backgroundColor: "#FFFFFF08",
+  },
+  kahveMainGalleryBtnText: { fontSize: 13, fontFamily: "Lora_700Bold" },
   // Kahve input status (bottom bar)
   kahveInputStatus: { marginBottom: 2 },
   kahveStatusBadge: {
