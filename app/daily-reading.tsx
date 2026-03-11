@@ -25,8 +25,6 @@ import Animated, {
   withRepeat,
   withTiming,
   withSequence,
-  withDelay,
-  Easing,
 } from "react-native-reanimated";
 import { fetch } from "expo/fetch";
 import { Colors } from "@/constants/colors";
@@ -64,91 +62,42 @@ function getTodayService() {
   return DAILY_SERVICE;
 }
 
-// ─── Generic pulse orb (non-coffee services) ───────────────────────────────
-function PulseOrb({ color }: { color: string }) {
-  const scale = useSharedValue(1);
+// ─── Ken Burns hero banner (same as Kahve Falı category screen) ──────────────
+const SERVICE_HERO_IMAGES: Record<string, any> = {
+  kahve:      require("@/assets/images/services/kahve.png"),
+  el:         require("@/assets/images/services/el.png"),
+  tarot:      require("@/assets/images/services/tarot.png"),
+  ruya:       require("@/assets/images/services/ruya.png"),
+  burclar:    require("@/assets/images/services/burclar.png"),
+  numeroloji: require("@/assets/images/services/numeroloji.png"),
+  astroloji:  require("@/assets/images/services/astroloji.png"),
+  samanizm:   require("@/assets/images/services/samanizm.png"),
+};
+
+function ServiceHeroBanner({ serviceId, color }: { serviceId: string; color: string }) {
+  const scale = useSharedValue(1.06);
   useEffect(() => {
     scale.value = withRepeat(
-      withSequence(withTiming(1.15, { duration: 1800 }), withTiming(1, { duration: 1800 })),
-      -1, false
+      withSequence(withTiming(1, { duration: 4000 }), withTiming(1.06, { duration: 4000 })),
+      -1, true
     );
   }, []);
-  const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-  return <Animated.View style={[sOrb.orb, { backgroundColor: color + "20", borderColor: color + "40" }, style]} />;
-}
-const sOrb = StyleSheet.create({
-  orb: { width: 130, height: 130, borderRadius: 65, borderWidth: 1, position: "absolute" },
-});
-
-// ─── Steam wisp ──────────────────────────────────────────────────────────────
-function SteamWisp({ delay, offsetX, color }: { delay: number; offsetX: number; color: string }) {
-  const ty = useSharedValue(0);
-  const op = useSharedValue(0);
-  const tx = useSharedValue(0);
-  useEffect(() => {
-    ty.value = withDelay(delay, withRepeat(
-      withSequence(withTiming(0, { duration: 0 }), withTiming(-52, { duration: 2000, easing: Easing.ease })),
-      -1, false
-    ));
-    op.value = withDelay(delay, withRepeat(
-      withSequence(
-        withTiming(0, { duration: 0 }),
-        withTiming(0.75, { duration: 300 }),
-        withTiming(0.75, { duration: 1100 }),
-        withTiming(0, { duration: 600 }),
-      ), -1, false
-    ));
-    // slight lateral drift
-    tx.value = withDelay(delay, withRepeat(
-      withSequence(withTiming(offsetX, { duration: 0 }), withTiming(offsetX + 6, { duration: 2000, easing: Easing.ease })),
-      -1, false
-    ));
-  }, []);
-  const wispStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: tx.value }, { translateY: ty.value }],
-    opacity: op.value,
-  }));
+  const imgStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const img = SERVICE_HERO_IMAGES[serviceId];
   return (
-    <Animated.View style={[sCoffee.wisp, { backgroundColor: color + "60" }, wispStyle]} />
-  );
-}
-
-// ─── Coffee Hero Animation ────────────────────────────────────────────────────
-function CoffeeHeroAnimation({ color }: { color: string }) {
-  const glow = useSharedValue(1);
-  useEffect(() => {
-    glow.value = withRepeat(
-      withSequence(withTiming(1.18, { duration: 2200 }), withTiming(1, { duration: 2200 })),
-      -1, false
-    );
-  }, []);
-  const glowStyle = useAnimatedStyle(() => ({ transform: [{ scale: glow.value }] }));
-
-  return (
-    <View style={sCoffee.container}>
-      {/* Background glow orb */}
-      <Animated.View style={[sCoffee.glowOrb, { backgroundColor: color + "18", borderColor: color + "35" }, glowStyle]} />
-
-      {/* Steam wisps — positioned above cup */}
-      <View style={sCoffee.steamContainer}>
-        <SteamWisp delay={0}    offsetX={-10} color={color} />
-        <SteamWisp delay={650}  offsetX={0}   color={color} />
-        <SteamWisp delay={1300} offsetX={10}  color={color} />
-      </View>
-
-      {/* Coffee cup icon circle */}
-      <View style={[sCoffee.cupCircle, { borderColor: color + "55", backgroundColor: color + "18" }]}>
-        <Ionicons name="cafe" size={42} color={color} />
-      </View>
+    <View style={sHero.wrap}>
+      {img && <Animated.Image source={img} style={[sHero.img, imgStyle]} resizeMode="cover" />}
+      <LinearGradient
+        colors={["transparent", color + "55", Colors.background]}
+        style={StyleSheet.absoluteFill}
+        locations={[0, 0.6, 1]}
+      />
     </View>
   );
 }
-const sCoffee = StyleSheet.create({
-  container: { width: 120, height: 140, alignItems: "center", justifyContent: "flex-end", marginBottom: 4 },
-  glowOrb: { position: "absolute", bottom: 0, width: 120, height: 120, borderRadius: 60, borderWidth: 1 },
-  steamContainer: { position: "absolute", top: 0, flexDirection: "row", gap: 14, alignItems: "flex-end", height: 54 },
-  wisp: { width: 5, height: 22, borderRadius: 3, bottom: 0 },
-  cupCircle: { width: 90, height: 90, borderRadius: 45, borderWidth: 1, alignItems: "center", justifyContent: "center", zIndex: 2 },
+const sHero = StyleSheet.create({
+  wrap: { width: "100%", height: 200, borderRadius: 18, overflow: "hidden", marginBottom: 12 },
+  img: { width: "100%", height: "100%", position: "absolute" },
 });
 
 export default function DailyReadingScreen() {
@@ -305,14 +254,8 @@ export default function DailyReadingScreen() {
         </Pressable>
 
         <Animated.View entering={FadeInDown.delay(100).springify()} style={s.hero}>
-          {/* Animated hero — coffee for kahve, generic icon for others */}
-          {todayService === "kahve" ? (
-            <CoffeeHeroAnimation color={meta.color} />
-          ) : (
-            <View style={[s.iconCircle, { borderColor: meta.color + "50", backgroundColor: meta.color + "15" }]}>
-              <Ionicons name={meta.icon} size={36} color={meta.color} />
-            </View>
-          )}
+          {/* Ken Burns hero banner — same animation as category screen */}
+          <ServiceHeroBanner serviceId={todayService} color={meta.color} />
 
           <Text style={s.heroLabel}>
             {lang === "tr" ? "✦ GÜNLÜK FAL ✦" : "✦ DAILY READING ✦"}
