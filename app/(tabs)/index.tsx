@@ -779,6 +779,58 @@ function CategorySlider({ selected, onSelect, lang }: {
   );
 }
 
+// ────────── Spin Countdown Button ──────────
+function SpinCountdownBtn() {
+  const { canSpin, lastSpinDate } = useApp();
+  const { lang } = useLang();
+  const [countdown, setCountdown] = useState("");
+  const glowPulse = useSharedValue(1);
+
+  React.useEffect(() => {
+    if (canSpin) {
+      setCountdown("");
+      glowPulse.value = withRepeat(
+        withSequence(
+          withTiming(1.18, { duration: 900, easing: Easing.inOut(Easing.sin) }),
+          withTiming(1.0,  { duration: 900, easing: Easing.inOut(Easing.sin) }),
+        ), -1, false
+      );
+      return;
+    }
+    const update = () => {
+      const target = lastSpinDate ? new Date(lastSpinDate).getTime() + 24 * 60 * 60 * 1000 : Date.now();
+      const remaining = Math.max(0, target - Date.now());
+      const h = Math.floor(remaining / 3600000);
+      const m = Math.floor((remaining % 3600000) / 60000);
+      const s = Math.floor((remaining % 60000) / 1000);
+      setCountdown(`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`);
+    };
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, [canSpin, lastSpinDate]);
+
+  const glowStyle = useAnimatedStyle(() => ({ transform: [{ scale: glowPulse.value }] }));
+
+  if (canSpin) {
+    return (
+      <Pressable onPress={() => router.push("/spin")} style={styles.spinPillReady}>
+        <Animated.View style={[styles.spinPillReadyInner, glowStyle]}>
+          <Text style={styles.spinPillReadyStar}>✦</Text>
+          <Text style={styles.spinPillReadyText}>{lang === "tr" ? "ÇEVİR" : "SPIN"}</Text>
+        </Animated.View>
+      </Pressable>
+    );
+  }
+
+  return (
+    <Pressable onPress={() => router.push("/spin")} style={styles.spinPillCountdown}>
+      <Text style={styles.spinPillCountdownIcon}>⏱</Text>
+      <Text style={styles.spinPillCountdownText}>{countdown || "00:00:00"}</Text>
+    </Pressable>
+  );
+}
+
 // ────────── Main Screen ──────────
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -827,10 +879,7 @@ export default function HomeScreen() {
             {userProfile ? userProfile.name.split(" ")[0] : (lang === "tr" ? "Giriş" : "Login")}
           </Text>
         </Pressable>
-        <Pressable onPress={() => router.push("/spin")} style={[styles.spinBtn, canSpin && styles.spinBtnActive]}>
-          <MysticalWheelIcon size={22} active={canSpin} />
-          {canSpin && <View style={styles.spinBadge} />}
-        </Pressable>
+        <SpinCountdownBtn />
         <Pressable onPress={() => {}} style={styles.aiBadge}>
           <Ionicons name="sparkles" size={11} color="#00C8FF" />
           <Text style={styles.aiBadgeText}>OpenAI</Text>
@@ -941,19 +990,39 @@ const styles = StyleSheet.create({
     borderColor: Colors.gold + "30",
   },
   authBtnText: { fontSize: 11, color: Colors.gold, fontFamily: "Lora_700Bold", letterSpacing: 0.3, maxWidth: 70 },
-  spinBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    alignItems: "center", justifyContent: "center",
+  spinPillReady: {
+    borderRadius: 20,
+    backgroundColor: Colors.gold + "22",
+    borderWidth: 1.5,
+    borderColor: Colors.gold + "90",
+    shadowColor: Colors.gold,
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 },
+    overflow: "hidden",
+  },
+  spinPillReadyInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+    gap: 5,
+  },
+  spinPillReadyStar: { fontSize: 13, color: Colors.gold },
+  spinPillReadyText: { fontSize: 11, fontFamily: "Lora_700Bold", color: Colors.gold, letterSpacing: 1 },
+  spinPillCountdown: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 20,
     backgroundColor: Colors.surface,
-    borderWidth: 1, borderColor: Colors.cardBorder,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
   },
-  spinBtnActive: { borderColor: "#8B5CF6", backgroundColor: "#8B5CF615" },
-  spinBadge: {
-    position: "absolute", top: 4, right: 4,
-    width: 8, height: 8, borderRadius: 4,
-    backgroundColor: "#FF6B9D",
-    borderWidth: 1, borderColor: Colors.background,
-  },
+  spinPillCountdownIcon: { fontSize: 12 },
+  spinPillCountdownText: { fontSize: 12, fontFamily: "Lora_700Bold", color: Colors.textSecondary, letterSpacing: 0.5 },
   aiBadge: {
     flexDirection: "row",
     alignItems: "center",
