@@ -77,7 +77,7 @@ export default function PrivacyScreen() {
 
         <Section title="8. Haklarınız">
           Kişisel verilerinize erişim, düzeltme veya silme talebinde bulunmak için{" "}
-          <Text style={styles.emailLink}>destek@tengristar.com</Text>{" "}
+          <Text style={styles.emailLink}>tengri@tengristar.com</Text>{" "}
           adresine e-posta gönderebilirsiniz.
         </Section>
 
@@ -87,7 +87,7 @@ export default function PrivacyScreen() {
 
         <Section title="10. İletişim">
           Sorularınız için:{"\n"}
-          E-posta: destek@tengristar.com{"\n"}
+          E-posta: tengri@tengristar.com{"\n"}
           Web: tengristar.com
         </Section>
       </ScrollView>

@@ -61,7 +61,7 @@ const PRIVACY_SECTIONS = [
     body: "Hesabınızı ve tüm verilerinizi kalıcı olarak silmek için:",
     items: [
       "Uygulama içi: Profil → Hesabımı Sil",
-      "E-posta ile: destek@tengristar.com",
+      "E-posta ile: tengri@tengristar.com",
     ],
     footer: "Silme talebiniz en geç 30 gün içinde işleme alınır.",
   },
@@ -72,7 +72,7 @@ const PRIVACY_SECTIONS = [
   {
     title: "İletişim",
     body: "Gizlilik ile ilgili sorularınız için:",
-    contact: "destek@tengristar.com",
+    contact: "tengri@tengristar.com",
   },
 ];
 
@@ -91,7 +91,7 @@ const TERMS_SECTIONS = [
       "Hesap bilgilerinizin gizliliğini korumakla yükümlüsünüz",
       "Hesabınızla gerçekleştirilen tüm işlemlerden siz sorumlusunuz",
       "Başkasına ait bilgilerle hesap açılamaz",
-      "Şüpheli bir durumda derhal destek@tengristar.com'a bildirin",
+      "Şüpheli bir durumda derhal tengri@tengristar.com'a bildirin",
     ],
   },
   {
@@ -132,7 +132,7 @@ const TERMS_SECTIONS = [
   {
     title: "İletişim",
     body: "Sorularınız için:",
-    contact: "destek@tengristar.com",
+    contact: "tengri@tengristar.com",
   },
 ];
 

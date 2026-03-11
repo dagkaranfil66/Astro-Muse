@@ -100,7 +100,7 @@ const GUIDE_SECTIONS = [
     icon: "💬",
     title: "Destek ve İletişim",
     body: "Her türlü sorunuz için bize ulaşabilirsiniz:",
-    contact: "destek@tengristar.com",
+    contact: "tengri@tengristar.com",
   },
 ];
 

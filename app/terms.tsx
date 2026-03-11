@@ -90,7 +90,7 @@ export default function TermsScreen() {
 
         <Section title="11. İletişim">
           Sorularınız için:{"\n"}
-          E-posta: destek@tengristar.com{"\n"}
+          E-posta: tengri@tengristar.com{"\n"}
           Web: tengristar.com
         </Section>
       </ScrollView>
