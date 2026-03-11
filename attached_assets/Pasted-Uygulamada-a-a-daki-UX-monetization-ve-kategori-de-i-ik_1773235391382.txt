@@ -1,0 +1,327 @@
+Uygulamada aşağıdaki UX, monetization ve kategori değişikliklerini yap. Mevcut çalışan RevenueCat satın alma sistemini bozma.
+
+1️⃣ Kategori değişikliği
+
+Uygulamadaki kategori:
+
+Aşkını Bul
+
+şu şekilde değiştirilsin:
+
+Aşk Uyumu
+
+Her yerde güncelle:
+
+kategori listesi
+
+navigation
+
+servis fiyatları
+
+ikon / etiket
+
+metinler
+
+2️⃣ Aşk Uyumu kategorisini kahve falının altına taşı
+
+Kategori sıralaması düzenlensin.
+
+Yeni sıralama:
+
+Kahve Falı
+
+Aşk Uyumu
+
+Tarot
+
+Günlük Burç
+
+Rüya Yorumu
+
+El Falı
+
+Numeroloji
+
+Astroloji
+
+Ruh Okuma
+
+Şamanizm Rehberliği
+
+Doğum Haritası
+
+Amaç:
+Aşk uyumu çok kullanılan ve gelir getiren özellik olduğu için üst sıralarda olmalı.
+
+3️⃣ Aşk Uyumu özelliğini geliştir
+
+Yeni bir akış oluştur.
+
+Adım 1
+
+Kullanıcı kendi burcunu seçer.
+
+Adım 2
+
+Karşı tarafın burcunu seçer.
+
+Alternatif olarak doğum tarihi de girilebilir.
+
+Adım 3
+
+Bir loading ekranı göster:
+
+Enerji analizi hazırlanıyor…
+
+veya
+
+Ruh enerjileriniz inceleniyor…
+
+Animasyon eklenebilir.
+
+Adım 4
+
+Sonuç hemen gösterilmez.
+
+Ekranda şu mesaj çıkar:
+
+💞 Ruh Eşi Enerji Analizi hazır.
+Sonucu görmek için 5 altın gerekiyor.
+
+Buton:
+
+Uyumu Gör
+
+Bu curiosity gap (merak tekniği) kullanır.
+
+4️⃣ Aşk Uyumu sonuç ekranı
+
+Sonuç sadece tek paragraf olmasın.
+
+3 bölüm halinde göster:
+
+💞 Aşk Enerjisi
+
+duygusal uyum
+
+🔥 Tutku Uyumu
+
+romantik çekim
+
+🧠 İlişki Dinamiği
+
+anlaşma / çatışma potansiyeli
+
+Altında ek öneri göster:
+
+İlişkinizin geleceği hakkında tarot açılımını görmek ister misin?
+
+Buton:
+
+Tarot Açılımı (3 altın)
+
+Bu ikinci satın alma fırsatı yaratır.
+
+5️⃣ Paylaşılabilir sonuç kartı
+
+Aşk uyumu sonucu paylaşılabilir bir kart şeklinde göster.
+
+Örnek:
+
+Akrep ♏ + Aslan ♌
+Uyumluluk: %78
+
+Altında:
+
+Sonucunu paylaş
+
+Paylaşım seçenekleri:
+
+Instagram
+
+WhatsApp
+
+diğer platformlar
+
+Paylaşım kartında uygulama adı görünsün.
+
+6️⃣ Monetization planı
+
+Aşk uyumu sistemi coin kullanacak.
+
+Önerilen fiyatlar:
+
+Aşk Uyumu → 5 altın
+Detaylı ilişki analizi → 7 altın
+Tarot ilişki açılımı → 3 altın
+7️⃣ Uygulama Açılış Psikolojisi
+
+Kullanıcı deneyiminde psikolojik teknikler kullan.
+
+Curiosity Gap (Merak Tekniği)
+
+Kullanıcıya sonucu hemen gösterme.
+
+Örnek:
+
+Falın hazır 🔮
+Ama sembollerin anlamını görmek için 3 altın gerekiyor
+
+Bu satın alma oranını artırır.
+
+“Bugüne Özel” Algısı
+
+Bazı fal özelliklerinde sınırlı süre hissi ver.
+
+Örnek:
+
+🌙 Bugün için özel tarot açılımı
+23:59'a kadar aktif
+
+Bu satın alma oranını artırır.
+
+Enerji / Ritüel Hikayesi
+
+Fal sonuçları sıradan metin gibi görünmemeli.
+
+Örnek:
+
+Kartlar senin enerjine göre karıştırıldı.
+Şimdi kader kartın açılıyor…
+
+Bu deneyimi daha etkileyici yapar.
+
+Sosyal Kanıt
+
+Ana ekranda şu tarz bir bilgi gösterilebilir:
+
+🔮 Bugün 12.483 kişi falına baktı
+
+Bu güven oluşturur.
+
+8️⃣ Ücretsiz kahve falını çok daha belirgin yap
+
+Şu an okunmuyor.
+
+Değiştir:
+
+Ana ekranda büyük banner olsun.
+
+Metin:
+
+☕ İlk Kahve Falın Ücretsiz
+
+Alt metin:
+
+Hemen ücretsiz dene
+
+UI özellikleri:
+
+büyük font
+
+yüksek kontrast
+
+altın rengi vurgular
+
+dikkat çekici CTA
+
+Bu kullanıcıyı ilk deneyime sokmak için çok önemli.
+
+9️⃣ Push notification sistemi
+
+Push sistemi şu kurallarla çalışmalı.
+
+Bildirim saatleri:
+
+09:00
+21:30
+23:30
+
+Kurallar:
+
+günde maksimum 1 push
+
+kullanıcı o gün uygulamaya girdiyse push gönderme
+
+giriş yapmadıysa uygun saat gelince gönder
+
+Örnek pushlar:
+
+Sabah:
+
+Bugünkü kahve falın seni bekliyor ☕
+
+Akşam:
+
+Falına bakmayı unutma 🔮
+
+Gece:
+
+Çark seni bekliyor 🎡
+🔟 Günlük çark
+
+Çark ekranında geri sayım daha belirgin olsun.
+
+Göster:
+
+Yeniden çevirmek için kalan süre
+
+Countdown büyük fontla gösterilsin.
+
+11️⃣ Email kayıt kontrolü
+
+Eğer kullanıcı kayıtlı değilse bazı aksiyonlarda kayıt iste.
+
+Mesaj:
+
+Devam etmek için kayıt ol
+
+Butonlar:
+
+Email ile kayıt
+
+Google ile devam et
+
+12️⃣ Gizlilik ve kullanım şartları
+
+Şu an link yerine uygulama içinde sayfa açsın.
+
+Sayfalar:
+
+Gizlilik Politikası
+
+Kullanım Şartları
+
+Scroll edilebilir ekran.
+
+13️⃣ Kod düzeni
+
+Çalışma şekli:
+
+mevcut RevenueCat entegrasyonunu bozma
+
+yeni UI componentler oluştur
+
+gerekli dosyaları güncelle
+
+değişiklik yapılan dosyaları raporla
+
+Öncelik sırası
+
+1️⃣ Ücretsiz kahve falı görünürlüğü
+2️⃣ Aşk Uyumu özelliği
+3️⃣ Altın paketleri ekranı
+4️⃣ Push sistemi
+5️⃣ Günlük çark
+6️⃣ Email kayıt sistemi
+7️⃣ Paylaşım ve viral özellikler
+
+Bu değişiklikler uygulamanın:
+
+kullanıcı deneyimini
+
+satın alma oranını
+
+organik büyümesini
+
+artırmak için yapılacaktır.

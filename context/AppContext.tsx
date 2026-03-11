@@ -60,14 +60,15 @@ const GLOBAL_KEYS = {
 function userKeys(email: string) {
   const safe = email.toLowerCase().replace(/[^a-z0-9]/g, '_');
   return {
-    gold:       `tengri_u_gold_${safe}`,
-    readings:   `tengri_u_readings_${safe}`,
+    gold:         `tengri_u_gold_${safe}`,
+    readings:     `tengri_u_readings_${safe}`,
     profilePhoto: `tengri_u_photo_${safe}`,
-    lastSpin:   `tengri_u_spin_${safe}`,
-    trialCount: `tengri_u_trials_${safe}`,
-    isPurchased:`tengri_u_purchased_${safe}`,
-    zodiac:     `tengri_u_zodiac_${safe}`,
-    dailyFree:  `tengri_u_daily_${safe}`,
+    lastSpin:     `tengri_u_spin_${safe}`,
+    trialCount:   `tengri_u_trials_${safe}`,
+    isPurchased:  `tengri_u_purchased_${safe}`,
+    zodiac:       `tengri_u_zodiac_${safe}`,
+    dailyFree:    `tengri_u_daily_${safe}`,
+    welcomeBonus: `tengri_u_welcome_${safe}`,
   };
 }
 
@@ -100,7 +101,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Load user-specific data for a given email
   async function loadUserData(email: string) {
     const k = userKeys(email);
-    const [goldStr, readStr, photoStr, spinStr, tcStr, ipStr, zodStr, dfStr] = await Promise.all([
+    const [goldStr, readStr, photoStr, spinStr, tcStr, ipStr, zodStr, dfStr, wbStr] = await Promise.all([
       AsyncStorage.getItem(k.gold),
       AsyncStorage.getItem(k.readings),
       AsyncStorage.getItem(k.profilePhoto),
@@ -109,8 +110,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
       AsyncStorage.getItem(k.isPurchased),
       AsyncStorage.getItem(k.zodiac),
       AsyncStorage.getItem(k.dailyFree),
+      AsyncStorage.getItem(k.welcomeBonus),
     ]);
-    setGoldBalance(goldStr !== null ? parseInt(goldStr, 10) : FREE_START_GOLD);
+
+    const isNewUser = goldStr === null;
+    let startGold = goldStr !== null ? parseInt(goldStr, 10) : FREE_START_GOLD;
+
+    // One-time welcome bonus: +10 gold for brand new accounts
+    if (isNewUser && wbStr === null) {
+      startGold = startGold + 10;
+      await AsyncStorage.setItem(k.welcomeBonus, 'given');
+      await AsyncStorage.setItem(k.gold, String(startGold));
+      console.log('[Tengri] Welcome bonus granted: +10 gold');
+    }
+
+    setGoldBalance(startGold);
     setReadings(readStr ? JSON.parse(readStr) : []);
     setProfilePhotoState(photoStr ?? null);
     setLastSpinDate(spinStr ?? null);

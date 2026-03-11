@@ -1,0 +1,267 @@
+Merhaba, Tengri Astroloji uygulamasında aşağıdaki geliştirmeleri tek seferde uygula. Proje React Native / Expo yapısında. Mevcut RevenueCat entegrasyonu çalışıyor, offerings geliyor, package sayısı 4. Bu yüzden mevcut çalışan yapıyı bozmadan aşağıdaki düzenlemeleri yap.
+
+1) Altın satın alma ekranını düzelt
+
+Altın paketleri ekranında artık statik “Yakında” yazısı kullanılmasın.
+
+Yapılacaklar:
+
+RevenueCat offerings yüklendiğinde paket kartlarında gerçek fiyat gösterilsin.
+
+Buton etiketi package.storeProduct.priceString olsun.
+
+Paketler yüklenmeden önce loading state göster.
+
+Offerings hata verirse kullanıcıya açık hata mesajı ve “Tekrar Dene” butonu göster.
+
+Paketler sadece gerçekten yüklendiyse gösterilsin.
+
+Satın alma butonu ilgili RevenueCat package ile purchase(selectedPackage) çalıştırsın.
+
+Package eşleşmeleri:
+
+tengri_starter = 20 altın
+
+tengri_premium = 50 altın
+
+tengri_standard = 120 altın
+
+tengri_vip = 300 altın
+
+2) Altın paket metinlerini ve avantaj oranlarını düzelt
+
+Paket açıklamaları kullanıcı için daha net ve satış odaklı olsun. Büyük paket daha avantajlı görünmeli.
+
+Mevcut kartları şu mantıkla güncelle:
+
+20 altın → küçük başlangıç paketi
+
+50 altın → en popüler paket
+
+120 altın → avantajlı büyük paket
+
+300 altın → en yüksek tasarruf
+
+UI tarafında:
+
+50 altın paketine “Popüler”
+
+300 altın paketine “En Avantajlı” etiketi ekle
+
+Ayrıca “X okuma için yeterli” metinleri daha mantıklı ve tutarlı hale getirilsin. Şu an oransız görünen metinler düzeltilsin.
+
+3) Ücretsiz ilk kahve falını çok daha belirgin yap
+
+Bu çok önemli. Şu an ücretsiz kahve falı metni okunmuyor ve fark edilmiyor.
+
+Bunu düzelt:
+
+Ana ekranda veya ilgili giriş alanında “İlk kahve falın ücretsiz” mesajını çok daha büyük, net ve dikkat çekici yap.
+
+Kontrastı artır, okunabilir font kullan.
+
+Kart, badge veya banner şeklinde göster.
+
+Kullanıcının ilk kullanımda bunu hemen fark etmesi lazım.
+
+Gerekirse altın rengi vurgu, rozet veya parlayan CTA kullan.
+
+Metin kısa ve net olsun:
+
+“İlk Kahve Falın Ücretsiz”
+
+“Hemen Ücretsiz Dene”
+
+Bu alan mobilde ilk bakışta görünür olsun.
+
+4) İlk kullanıcı ödülü
+
+Yeni kullanıcıya sadece ilk girişte:
+
+10 altın welcome bonus ver
+
+Kurallar:
+
+Tek seferlik olsun
+
+Tekrar girişte tekrar verilmesin
+
+Local state + user record mantığı güvenli şekilde kontrol edilsin
+
+5) Günlük çark sistemini geliştir
+
+Günlük çark ekranında geri sayım daha belirgin olsun.
+
+Yapılacaklar:
+
+Kullanıcı çarkı çevirdiyse yeniden çevirebileceği süre net görünsün
+
+24 saat cooldown geri sayımı büyük ve okunaklı gösterilsin
+
+“Çark seni bekliyor” gibi kısa CTA kullanılabilir
+
+Çark ödülleri altın kazandırmaya devam etsin
+
+6) E-posta kayıt kontrolü ekle
+
+Eğer kullanıcı email ile kayıtlı değilse, bazı aksiyonlarda kayıt yönlendirmesi yapılsın.
+
+Davranış:
+
+Fal baktırmaya çalıştığında veya kritik aksiyonda kullanıcı kayıtlı değilse modal/sayfa aç
+
+Metin:
+
+“Devam etmek için kayıt ol”
+
+Butonlar:
+
+Email ile kayıt ol
+
+Google ile devam et
+
+Amaç:
+
+kayıt dönüşümünü artırmak
+
+misafir kullanıcıyı kayıtlı kullanıcıya çevirmek
+
+7) Push notification sistemi ekle / düzenle
+
+Expo push notification altyapısını ekle veya mevcutsa tamamla.
+
+Bildirim senaryoları:
+
+Günlük falın hazır
+
+Çark seni bekliyor
+
+Yeni yorum seni bekliyor
+
+Bugün yıldızlardan mesajın var
+
+Kurallar:
+
+Bildirim izni düzgün şekilde istenmeli
+
+Token alma akışı düzgün kurulmalı
+
+Bildirim tercihleri ileride yönetilebilir yapıda olsun
+
+Fazla agresif olmasın
+
+8) Gizlilik politikası ve kullanım şartlarını uygulama içinde aç
+
+Şu an dış linke yönlendirme yerine uygulama içinde okunmalı.
+
+Yapılacaklar:
+
+Gizlilik Politikası için ayrı uygulama içi ekran
+
+Kullanım Şartları için ayrı uygulama içi ekran
+
+Scroll edilebilir ve düzgün tipografili içerik
+
+Ayarlar veya profil alanından erişilebilir olsun
+
+9) Viral büyüme özelliklerini ekle
+
+Gelir ve organik büyüme için aşağıdaki sistemleri ekle.
+
+9a) Fal sonucunu paylaş → altın kazan
+
+Fal sonucu ekranında:
+
+“Sonucunu paylaş, +altın kazan” alanı ekle
+
+Instagram Story, WhatsApp vb. paylaşım seçenekleri düşün
+
+Paylaşım sonrası ödül mantığını altyapı olarak hazırla
+
+9b) Davet sistemi
+
+“Arkadaşını davet et, ikiniz de altın kazanın”
+
+Referral/invite altyapısı için temel yapı hazırla
+
+Şimdilik UI + veri modeli + ileride backend bağlanabilecek yapı yeterli
+
+10) Kod kalitesi ve güvenlik
+
+Mevcut çalışan RevenueCat yapısını bozma.
+
+Kontrol et:
+
+initializeRevenueCat() her şeyden önce güvenli şekilde bir kez çalışsın
+
+Boş API key durumunda sessiz geçmesin, açık log versin
+
+Offerings response logları kalsın
+
+Satın alma başarı / hata logları düzenli olsun
+
+Satın alma sırasında loading durumu düzgün işlensin
+
+Restore purchases akışı bozulmasın
+
+11) UI/UX iyileştirme
+
+Genel amaç:
+
+Daha modern
+
+Daha okunaklı
+
+Daha satış odaklı
+
+Daha net CTA’lar
+
+Özellikle:
+
+ücretsiz kahve falı alanı
+
+altın paketleri alanı
+
+günlük çark geri sayımı
+
+kayıt yönlendirme ekranı
+
+karanlık tema içinde daha kontrastlı ve dikkat çekici hale getirilsin.
+
+12) Çalışma şekli
+
+Lütfen şu şekilde ilerle:
+
+İlgili dosyaları bul
+
+Gerekli değişiklikleri uygula
+
+Hangi dosyalarda ne değiştirdiğini özetle
+
+Eksik kalan yer varsa belirt
+
+Gerekirse küçük reusable componentler oluştur
+
+Çalışan kod üret, placeholder bırakma
+
+Replit’e ek kısa not
+
+Öncelik sırası:
+
+Ücretsiz kahve falı görünürlüğü
+
+Altın paketleri ve satın alma ekranı
+
+Günlük çark geri sayımı
+
+Email kayıt yönlendirmesi
+
+Push notification
+
+Uygulama içi gizlilik / kullanım şartları
+
+Viral büyüme özellikleri
+
+Bunu da ayrıca en alta ekleyebilirsin:
+
+“Özellikle ücretsiz ilk kahve falı alanı şu an okunmuyor. Bunu çok belirgin, büyük, kontrastlı ve dönüşüm odaklı şekilde yeniden tasarla.”

@@ -60,3 +60,7 @@ Turkish mystical guidance app with AI-powered readings (tengristar.com).
 ## Running
 - Backend: `npm run server:dev` (port 5000)
 - Frontend: `npm run expo:dev` (port 8081)
+
+## Workflow Notes
+- Start Frontend is configured as `outputType: "console"` (NOT webview) — Metro takes ~10s to bind port 8081 and the Replit HTTP health-check times out on webview type. Console type has no health check and Metro runs fine.
+- To restart frontend after code changes: use `configureWorkflow({ name: "Start Frontend", command: "npm run expo:dev", outputType: "console", autoStart: true })` — do NOT use restart_workflow which will fail the health check and kill Metro.

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -135,13 +135,29 @@ function WheelSvg() {
 export default function SpinScreen() {
   const insets = useSafeAreaInsets();
   const { lang } = useLang();
-  const { canSpin, performSpin, goldBalance } = useApp();
+  const { canSpin, performSpin, goldBalance, lastSpinDate } = useApp();
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState<typeof PRIZES[0] | null>(null);
   const [done, setDone] = useState(false);
+  const [countdown, setCountdown] = useState("");
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
+
+  useEffect(() => {
+    if (canSpin) { setCountdown(""); return; }
+    const update = () => {
+      const target = lastSpinDate ? new Date(lastSpinDate).getTime() + 24 * 60 * 60 * 1000 : Date.now();
+      const remaining = Math.max(0, target - Date.now());
+      const h = Math.floor(remaining / 3600000);
+      const m = Math.floor((remaining % 3600000) / 60000);
+      const s = Math.floor((remaining % 60000) / 1000);
+      setCountdown(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`);
+    };
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, [canSpin, lastSpinDate]);
 
   const rotation = useSharedValue(0);
   const pointerBounce = useSharedValue(1);
@@ -216,11 +232,21 @@ export default function SpinScreen() {
           <Text style={styles.infoTitle}>
             {lang === "tr" ? "Günlük Altın Ödülü" : "Daily Gold Reward"}
           </Text>
-          <Text style={styles.infoDesc}>
-            {canSpin
-              ? (lang === "tr" ? "Çarkı çevir ve altın kazan!" : "Spin the wheel and win gold!")
-              : (lang === "tr" ? "Bir sonraki çevirme hakkın 24 saatte gelecek" : "Next spin available in 24 hours")}
-          </Text>
+          {canSpin ? (
+            <Text style={styles.infoDesc}>
+              {lang === "tr" ? "🎡 Çark seni bekliyor — çevir ve altın kazan!" : "🎡 The wheel awaits — spin and win gold!"}
+            </Text>
+          ) : (
+            <View style={styles.countdownWrap}>
+              <Text style={styles.infoDesc}>
+                {lang === "tr" ? "Tekrar çevirmek için:" : "Next spin in:"}
+              </Text>
+              <Text style={styles.countdownText}>{countdown || "00:00:00"}</Text>
+              <Text style={styles.countdownSub}>
+                {lang === "tr" ? "saat : dakika : saniye" : "hours : minutes : seconds"}
+              </Text>
+            </View>
+          )}
         </Animated.View>
 
         <Animated.View entering={FadeIn.delay(200)} style={styles.wheelContainer}>
@@ -309,11 +335,26 @@ const styles = StyleSheet.create({
   infoBox: {
     backgroundColor: Colors.surface,
     borderRadius: 14, borderWidth: 1, borderColor: Colors.cardBorder,
-    paddingHorizontal: 20, paddingVertical: 14,
+    paddingHorizontal: 20, paddingVertical: 16,
     alignItems: "center", width: "100%", marginBottom: 28,
   },
-  infoTitle: { fontSize: 15, fontFamily: "Lora_700Bold", color: Colors.text, marginBottom: 4 },
+  infoTitle: { fontSize: 15, fontFamily: "Lora_700Bold", color: Colors.text, marginBottom: 6 },
   infoDesc: { fontSize: 12, fontFamily: "Lora_400Regular", color: Colors.textSecondary, textAlign: "center" },
+  countdownWrap: { alignItems: "center", marginTop: 4 },
+  countdownText: {
+    fontSize: 38,
+    fontFamily: "Lora_700Bold",
+    color: Colors.gold,
+    letterSpacing: 4,
+    marginVertical: 6,
+  },
+  countdownSub: {
+    fontSize: 10,
+    fontFamily: "Lora_400Regular",
+    color: Colors.textDim,
+    letterSpacing: 3,
+    textTransform: "uppercase",
+  },
 
   wheelContainer: { alignItems: "center", marginBottom: 32 },
 

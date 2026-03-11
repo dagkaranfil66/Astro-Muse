@@ -40,7 +40,7 @@ const translations = {
       dogum: { label: 'Doğum Haritası', desc: 'Doğum anının yıldız haritasını okuyarak kaderinizi keşfedin' },
       ruya: { label: 'Rüya Yorumu', desc: 'Rüyalarınızın gizli mesajlarını şamanist bilgelikle çözün' },
       burclar: { label: 'Burçlar', desc: 'Burcunuza özel haftalık mistik yorumlar ve rehberlik' },
-      ask: { label: 'Aşkını Bul', desc: 'Burç uyumu ile ruhsal bağınızı ve aşk enerjinizi keşfedin' },
+      ask: { label: 'Aşk Uyumu', desc: 'Burç uyumu ile ruhsal bağınızı ve aşk enerjinizi keşfedin' },
     },
     reading_meta: {
       astroloji: { placeholder: 'Doğum tarihinizi yazın (örn: 15 Mart 1990)', inputLabel: 'Doğum Tarihi & Adınız', hint: 'Yıldızlar kaderinizi bekliyor…' },
@@ -94,7 +94,7 @@ const translations = {
       dogum: { label: 'Birth Chart', desc: 'Discover your destiny by reading the star map of your birth moment' },
       ruya: { label: 'Dream Interpretation', desc: 'Decode the hidden messages of your dreams with shamanic wisdom' },
       burclar: { label: 'Zodiac Signs', desc: 'Weekly mystic insights and guidance for your zodiac sign' },
-      ask: { label: 'Find Your Love', desc: 'Discover your spiritual bond and love energy through zodiac compatibility' },
+      ask: { label: 'Love Compatibility', desc: 'Discover your spiritual bond and love energy through zodiac compatibility' },
     },
     reading_meta: {
       astroloji: { placeholder: 'Enter your birth date (e.g. March 15, 1990)', inputLabel: 'Birth Date & Name', hint: 'Stars are waiting for your destiny…' },

@@ -402,8 +402,8 @@ const SERVICE_IMAGES: Record<string, any> = {
 };
 
 const ALL_SERVICES = [
-  "kahve", "tarot", "astroloji", "burclar", "el",
-  "dogum", "ask", "numeroloji", "ruya", "ruh", "samanizm",
+  "kahve", "ask", "tarot", "burclar", "ruya",
+  "el", "numeroloji", "astroloji", "ruh", "samanizm", "dogum",
 ];
 const POPULAR_SERVICE = "kahve";
 
@@ -545,41 +545,74 @@ function ServiceCard({ serviceId, index, label, desc, onPress }: {
   );
 }
 
-const DAILY_KAHVE = { icon: "☕", color: "#C8843A", labelTR: "Kahve Falı", labelEN: "Coffee Reading" };
-
-// ────────── Daily Free Card ──────────
+// ────────── Daily Free Card (big hero banner) ──────────
 function DailyFreeCard() {
   const { canDailyFree } = useApp();
   const { lang } = useLang();
+  const pulse = useSharedValue(1);
+
+  React.useEffect(() => {
+    if (!canDailyFree) return;
+    pulse.value = withRepeat(
+      withSequence(
+        withTiming(1.025, { duration: 1800, easing: Easing.inOut(Easing.sin) }),
+        withTiming(1.0,   { duration: 1800, easing: Easing.inOut(Easing.sin) }),
+      ), -1, false
+    );
+  }, [canDailyFree]);
+
+  const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }));
+
+  if (!canDailyFree) {
+    return (
+      <Animated.View entering={FadeInDown.delay(220).springify()} style={styles.freeCardUsed}>
+        <Text style={styles.freeCardUsedEmoji}>☕</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.freeCardUsedTitle}>
+            {lang === "tr" ? "Günlük falın kullanıldı" : "Daily reading used"}
+          </Text>
+          <Text style={styles.freeCardUsedSub}>
+            {lang === "tr" ? "Yarın tekrar ücretsiz okuma hakkın gelecek" : "Your free reading resets tomorrow"}
+          </Text>
+        </View>
+        <View style={styles.freeCardUsedBadge}>
+          <Text style={styles.freeCardUsedBadgeText}>{lang === "tr" ? "KULLANILDI" : "USED"}</Text>
+        </View>
+      </Animated.View>
+    );
+  }
 
   return (
-    <Animated.View entering={FadeInDown.delay(230).springify()}>
-      <Pressable onPress={() => router.push("/daily-reading" as any)} style={styles.dailyCard}>
+    <Animated.View entering={FadeInDown.delay(180).springify()} style={pulseStyle}>
+      <Pressable onPress={() => router.push("/daily-reading" as any)}>
         <LinearGradient
-          colors={[DAILY_KAHVE.color + "25", DAILY_KAHVE.color + "08"]}
-          style={styles.dailyCardInner}
+          colors={["#2A1200", "#3D1A00", "#1A0A00"]}
+          style={styles.freeBanner}
           start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
+          end={{ x: 1, y: 1 }}
         >
-          <View style={styles.dailyLeft}>
-            <Text style={styles.dailyEmoji}>{DAILY_KAHVE.icon}</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.dailyTitle, { color: DAILY_KAHVE.color }]}>
-                {lang === "tr" ? "☕ Günlük Kahve Falın Hazır" : "☕ Daily Coffee Reading Ready"}
-              </Text>
-              <Text style={styles.dailySub}>
-                {lang === "tr"
-                  ? "Fincan fotoğrafını yükle, mistik yorumunu al"
-                  : "Upload your cup photo, get your mystical reading"}
-              </Text>
+          {/* Gold glow border */}
+          <View style={styles.freeBannerGlowBorder} />
+
+          <View style={styles.freeBannerTop}>
+            <View style={styles.freeBadge}>
+              <Text style={styles.freeBadgeText}>{lang === "tr" ? "ÜCRETSİZ" : "FREE"}</Text>
             </View>
+            <Text style={styles.freeBannerEmoji}>☕</Text>
           </View>
-          <View style={[styles.dailyBadge, {
-            borderColor: canDailyFree ? DAILY_KAHVE.color + "60" : "#FFFFFF20",
-            backgroundColor: canDailyFree ? DAILY_KAHVE.color + "20" : "#FFFFFF08",
-          }]}>
-            <Text style={[styles.dailyBadgeText, { color: canDailyFree ? DAILY_KAHVE.color : Colors.textDim }]}>
-              {canDailyFree ? (lang === "tr" ? "ÜCRETSİZ" : "FREE") : (lang === "tr" ? "KULLANILDI" : "USED")}
+
+          <Text style={styles.freeBannerTitle}>
+            {lang === "tr" ? "İlk Kahve Falın Ücretsiz" : "Your First Coffee Reading Free"}
+          </Text>
+          <Text style={styles.freeBannerSub}>
+            {lang === "tr"
+              ? "Fincan fotoğrafını yükle, mistik yorumunu ücretsiz al"
+              : "Upload your cup photo — get your mystical reading at no cost"}
+          </Text>
+
+          <View style={styles.freeBannerBtn}>
+            <Text style={styles.freeBannerBtnText}>
+              {lang === "tr" ? "Hemen Ücretsiz Dene  →" : "Try For Free Now  →"}
             </Text>
           </View>
         </LinearGradient>
@@ -647,13 +680,13 @@ const CATEGORIES = [
   { id: "tarot",     label: "Tarot",     emoji: "🔮", labelEn: "Tarot"    },
   { id: "astroloji", label: "Astroloji", emoji: "🌙", labelEn: "Astrology" },
   { id: "enerji",    label: "Enerji",    emoji: "✨",  labelEn: "Energy"   },
-  { id: "ask",       label: "Aşk",       emoji: "💖", labelEn: "Love"     },
+  { id: "ask",       label: "Aşk Uyumu", emoji: "💖", labelEn: "Love"     },
 ] as const;
 
 type CategoryId = typeof CATEGORIES[number]["id"];
 
 const CATEGORY_SERVICES: Record<CategoryId, string[]> = {
-  tumu:      ["kahve", "tarot", "astroloji", "burclar", "el", "dogum", "ask", "numeroloji", "ruya", "ruh", "samanizm"],
+  tumu:      ["kahve", "ask", "tarot", "burclar", "ruya", "el", "numeroloji", "astroloji", "ruh", "samanizm", "dogum"],
   fal:       ["kahve", "el"],
   tarot:     ["tarot", "ruh"],
   astroloji: ["astroloji", "burclar", "dogum"],
@@ -986,6 +1019,97 @@ const styles = StyleSheet.create({
   },
   popularBadgeText: { fontSize: 9, fontFamily: "Lora_700Bold", color: "#000", letterSpacing: 0.3 },
 
+  // ── Big free coffee banner ──
+  freeBanner: {
+    borderRadius: 18,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1.5,
+    borderColor: Colors.gold + "70",
+    overflow: "hidden",
+    shadowColor: Colors.gold,
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 12,
+  },
+  freeBannerGlowBorder: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: Colors.gold + "30",
+  },
+  freeBannerTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  freeBadge: {
+    backgroundColor: Colors.gold,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  freeBadgeText: {
+    fontSize: 11,
+    fontFamily: "Lora_700Bold",
+    color: "#000",
+    letterSpacing: 1.5,
+  },
+  freeBannerEmoji: { fontSize: 40 },
+  freeBannerTitle: {
+    fontSize: 22,
+    fontFamily: "Lora_700Bold",
+    color: Colors.gold,
+    letterSpacing: 0.3,
+    marginBottom: 6,
+  },
+  freeBannerSub: {
+    fontSize: 13,
+    fontFamily: "Lora_400Regular_Italic",
+    color: "#D4A84B",
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  freeBannerBtn: {
+    backgroundColor: Colors.gold,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  freeBannerBtnText: {
+    fontSize: 15,
+    fontFamily: "Lora_700Bold",
+    color: "#1A0A00",
+    letterSpacing: 0.3,
+  },
+  // ── Used state (small strip) ──
+  freeCardUsed: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    backgroundColor: Colors.surface,
+    paddingVertical: 13,
+    paddingHorizontal: 14,
+    opacity: 0.65,
+  },
+  freeCardUsedEmoji: { fontSize: 24, color: Colors.textDim },
+  freeCardUsedTitle: { fontSize: 13, fontFamily: "Lora_700Bold", color: Colors.textSecondary },
+  freeCardUsedSub: { fontSize: 11, fontFamily: "Lora_400Regular_Italic", color: Colors.textDim, marginTop: 1 },
+  freeCardUsedBadge: {
+    borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3,
+    borderColor: Colors.cardBorder,
+    backgroundColor: Colors.background,
+  },
+  freeCardUsedBadgeText: { fontSize: 10, fontFamily: "Lora_700Bold", color: Colors.textDim, letterSpacing: 0.5 },
+
+  // ── Horoscope card (unchanged) ──
   dailyCard: { marginBottom: 14, borderRadius: 14, overflow: "hidden", borderWidth: 1, borderColor: Colors.cardBorder },
   dailyCardInner: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 13, paddingHorizontal: 14 },
   dailyLeft: { flexDirection: "row", alignItems: "center", gap: 10 },

@@ -1,0 +1,119 @@
+Merhaba, Tengri Astroloji uygulamasında aşağıdaki geliştirmeleri tek seferde uygula. Proje React Native / Expo yapısında. Mevcut RevenueCat entegrasyonu çalışıyor, offerings geliyor, package sayısı 4. Bu yüzden mevcut çalışan yapıyı bozmadan aşağıdaki düzenlemeleri yap.
+
+1) Altın satın alma ekranını düzelt
+
+Altın paketleri ekranında artık statik “Yakında” yazısı kullanılmasın.
+
+Yapılacaklar:
+
+RevenueCat offerings yüklendiğinde paket kartlarında gerçek fiyat gösterilsin.
+
+Buton etiketi package.storeProduct.priceString olsun.
+
+Paketler yüklenmeden önce loading state göster.
+
+Offerings hata verirse kullanıcıya açık hata mesajı ve “Tekrar Dene” butonu göster.
+
+Paketler sadece gerçekten yüklendiyse gösterilsin.
+
+Satın alma butonu ilgili RevenueCat package ile purchase(selectedPackage) çalıştırsın.
+
+Package eşleşmeleri:
+
+tengri_starter = 20 altın
+
+tengri_premium = 50 altın
+
+tengri_standard = 120 altın
+
+tengri_vip = 300 altın
+
+2) Altın paket metinlerini ve avantaj oranlarını düzelt
+
+Paket açıklamaları kullanıcı için daha net ve satış odaklı olsun. Büyük paket daha avantajlı görünmeli.
+
+Mevcut kartları şu mantıkla güncelle:
+
+20 altın → küçük başlangıç paketi
+
+50 altın → en popüler paket
+
+120 altın → avantajlı büyük paket
+
+300 altın → en yüksek tasarruf
+
+UI tarafında:
+
+50 altın paketine “Popüler”
+
+300 altın paketine “En Avantajlı” etiketi ekle
+
+Ayrıca “X okuma için yeterli” metinleri daha mantıklı ve tutarlı hale getirilsin. Şu an oransız görünen metinler düzeltilsin.
+
+3) Ücretsiz ilk kahve falını çok daha belirgin yap
+
+Bu çok önemli. Şu an ücretsiz kahve falı metni okunmuyor ve fark edilmiyor.
+
+Bunu düzelt:
+
+Ana ekranda veya ilgili giriş alanında “İlk kahve falın ücretsiz” mesajını çok daha büyük, net ve dikkat çekici yap.
+
+Kontrastı artır, okunabilir font kullan.
+
+Kart, badge veya banner şeklinde göster.
+
+Kullanıcının ilk kullanımda bunu hemen fark etmesi lazım.
+
+Gerekirse altın rengi vurgu, rozet veya parlayan CTA kullan.
+
+Metin kısa ve net olsun:
+
+“İlk Kahve Falın Ücretsiz”
+
+“Hemen Ücretsiz Dene”
+
+Bu alan mobilde ilk bakışta görünür olsun.
+
+4) İlk kullanıcı ödülü
+
+Yeni kullanıcıya sadece ilk girişte:
+
+10 altın welcome bonus ver
+
+Kurallar:
+
+Tek seferlik olsun
+
+Tekrar girişte tekrar verilmesin
+
+Local state + user record mantığı güvenli şekilde kontrol edilsin
+
+5) Günlük çark sistemini geliştir
+
+Günlük çark ekranında geri sayım daha belirgin olsun.
+
+Yapılacaklar:
+
+Kullanıcı çarkı çevirdiyse yeniden çevirebileceği süre net görünsün
+
+24 saat cooldown geri sayımı büyük ve okunaklı gösterilsin
+
+“Çark seni bekliyor” gibi kısa CTA kullanılabilir
+
+Çark ödülleri altın kazandırmaya devam etsin
+
+6) E-posta kayıt kontrolü ekle
+
+Eğer kullanıcı email ile kayıtlı değilse, bazı aksiyonlarda kayıt yönlendirmesi yapılsın.
+
+Davranış:
+
+Fal baktırmaya çalıştığında veya kritik aksiyonda kullanıcı kayıtlı değilse modal/sayfa aç
+
+Metin:
+
+“Devam etmek için kayıt ol”
+
+Butonlar:
+
+Email ile kayıt ol
