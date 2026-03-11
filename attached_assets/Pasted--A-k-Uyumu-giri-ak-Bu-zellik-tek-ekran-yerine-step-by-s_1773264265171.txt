@@ -1,0 +1,168 @@
+ Aşk Uyumu giriş akışı
+Bu özellik tek ekran yerine step-by-step ilerlesin.
+Her adım sade, mistik ve premium hissi vermeli.
+Üstte ilerleme göstergesi olsun (örnek: 1/6, 2/6).
+Kullanıcı formu kolay tamamlasın.
+
+Sorulacak alanlar:
+
+Adım 1:
+- Senin adın
+- Partnerinin adı
+
+Adım 2:
+- Senin doğum yılın
+- Partnerinin doğum yılı
+
+Adım 3:
+- Senin burcun
+- Partnerinin burcu
+
+Adım 4:
+- İlişki durumu
+Seçenekler:
+- Yeni tanıştık
+- Flört ediyoruz
+- İlişkimiz var
+- Ayrıyız ama konuşuyoruz
+- Platonik
+- Eski sevgili
+
+Adım 5:
+- Bu ilişkiden beklentin ne?
+Seçenekler:
+- Ciddi ilişki
+- Evlilik
+- Flört
+- Barışma
+- Sadece merak ediyorum
+
+Adım 6:
+- En çok neyi merak ediyorsun?
+Seçenekler:
+- Beni gerçekten seviyor mu?
+- Beni düşünüyor mu?
+- Geri dönecek mi?
+- İlişkimizin geleceği var mı?
+- Aramızda güçlü çekim var mı?
+- Benden uzaklaşıyor mu?
+
+3) Ek merak artırıcı alanlar
+Bu alanlar opsiyonel olabilir ama görünür olsun:
+- Tanıştığınız yer / nasıl tanıştınız? (kısa text)
+- Onun sana söyleyemediği bir şey olduğunu düşünüyor musun? (evet/hayır)
+- Son zamanlarda senden uzak mı davranıyor? (evet/hayır/bazen)
+
+4) Tasarım mantığı
+- Koyu mistik tema korunmalı.
+- Input kartları modern ve okunaklı olsun.
+- Her adımda kısa yönlendirici metin kullan:
+  Örnek:
+  “Enerjileri daha doğru yorumlayabilmek için birkaç detay gerekli...”
+  “İsimler ve doğum enerjileri aşk bağını etkiler...”
+- Buton metinleri sade olsun:
+  “Devam et”
+  “Analizi Başlat”
+
+5) Sonuç ekranı mantığı
+Kullanıcı tüm adımları doldurduktan sonra sonucu hemen tam verme.
+Önce yüklenme / analiz ekranı göster:
+- “Enerjiler analiz ediliyor...”
+- “İsimler, burçlar ve ilişki dinamikleri yorumlanıyor...”
+- “Kalpler arasındaki titreşim hesaplanıyor...”
+
+Sonra yarım sonuç göster:
+Örnek yapı:
+- “[Kadın adı] ve [erkek adı] arasında güçlü bir duygusal çekim görünüyor.”
+- “Ancak bu bağın içinde kararsızlık ve saklanan duygular da olabilir.”
+- “Sistemde dikkat çeken çok kritik bir detay bulundu...”
+
+Sonrasında kilitli bölüm göster:
+- “Detaylı aşk yorumu için 3 altın kullan”
+- Altın butonu belirgin olsun.
+
+6) Detaylı sonuç içeriği
+Kilit açıldıktan sonra detaylı sonuç şu bölümlerden oluşsun:
+- Genel uyum
+- Duygusal bağ
+- Tutku / çekim
+- Güven seviyesi
+- Gelecek potansiyeli
+- Partnerin gizli duyguları
+- İlişkide dikkat edilmesi gereken konu
+
+7) Yüzdesel gösterimler
+Detaylı sonuçta şunları yüzdesel göster:
+- Aşk Uyumu: %X
+- Tutku: %X
+- Güven: %X
+- Gelecek Potansiyeli: %X
+- İletişim Gücü: %X
+
+Bunlar statik random gibi görünmesin.
+Girilen verilere göre deterministik ama yapay zekâ hissi veren skor üret.
+Örneğin:
+- aynı element grubu burçlar daha uyumlu
+- ilişki durumu “ayrıyız ama konuşuyoruz” ise güven daha düşük olabilir
+- “beni düşünüyor mu?” seçilmişse yorum metni buna göre şekillensin
+- isimler sonuç metninde mutlaka geçsin
+
+8) İçerik kişiselleştirme
+Sonuç metni mutlaka girilen bilgilere göre değişsin:
+- İsimler metinde kullanılsın
+- Burçlar anılsın
+- İlişki durumuna göre ton değişsin
+- Kullanıcının seçtiği “en çok merak ettiği şey” sonucu etkilesin
+
+Örnek:
+“[isim] ile [isim] arasında özellikle duygusal yakınlık dikkat çekiyor.”
+“[partner adı] şu anda duygularını tam ifade etmiyor olabilir.”
+“Bu bağda geri dönüş ihtimali tamamen bitmiş görünmüyor.”
+
+9) Validasyon
+- Doğum yılı mantıklı aralıkta olmalı
+- Boş alanlarda devam edilmesin
+- Kullanıcı deneyimi sinir bozucu olmasın
+- Hata mesajları kısa ve Türkçe olsun
+
+10) Gelir optimizasyonu
+- Kullanıcı sonucu tamamen ücretsiz görmesin
+- Sadece kısa bir ön izleme görsün
+- “Kritik detay bulundu” gibi merak cümleleri kullan
+- Altın harcatma bölümü estetik ve güven verici olsun
+- İlk kullanım için istersen kampanya metni alanı bırak:
+  “İlk aşk uyumu yorumuna özel fırsat”
+
+11) Kod yapısı
+- Mevcut proje yapısını bozma
+- Var olan tema, navigation, state yapısı ile uyumlu ilerle
+- Mümkünse component bazlı kur:
+  - LoveCompatibilityScreen
+  - LoveStepForm
+  - LoveAnalysisLoading
+  - LovePreviewCard
+  - LoveDetailedResult
+- Kod temiz ve sürdürülebilir olsun
+
+12) İçerik örnekleri
+Aşağıdaki tarzda sonuç cümleleri üret:
+- “[isim] ile [isim] arasında güçlü ama hassas bir bağ görünüyor.”
+- “Bu ilişkide bir taraf duygularını daha yoğun yaşarken diğer taraf geri planda kalıyor olabilir.”
+- “Aranızdaki çekim bitmemiş, fakat netleşmesi gereken duygular var.”
+- “Özellikle son dönemde iletişim enerjisinde dalgalanma dikkat çekiyor.”
+- “Gelecek ihtimali var, ama sabır ve açıklık gerekiyor.”
+
+13) Teknik not
+Eğer uygulamada altın sistemi zaten varsa bu ekranı o sisteme bağla.
+Detaylı sonucu açmak için 3 altın düş.
+Altın yetersizse kullanıcıyı uygun satın alma / altın kazanma akışına yönlendir.
+Mevcut coin/gold yapısını bozma.
+
+14) Bonus
+Sonuç ekranında paylaşılabilir mini kart üret:
+- “Aşk Uyumu: %78”
+- “[isim] ❤️ [isim]”
+- kısa 1 cümlelik özet
+Bu kart ileride Instagram / WhatsApp / Story paylaşımı için kullanılabilecek yapıda olsun.
+
+Lütfen tüm bu yapıyı projeye entegre et, Türkçe metinlerle hazırla, mevcut tasarımla uyumlu ha

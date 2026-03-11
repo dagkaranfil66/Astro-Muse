@@ -206,6 +206,7 @@ export default function DailyReadingScreen() {
       setShowGoldModal(true);
       return;
     }
+    if (todayService === "ask") { router.push("/love-compat" as any); return; }
     router.push(`/reading/${todayService}` as any);
   };
 

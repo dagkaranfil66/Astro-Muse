@@ -856,6 +856,10 @@ export default function HomeScreen() {
       router.push("/auth");
       return;
     }
+    if (serviceId === "ask") {
+      router.push("/love-compat" as any);
+      return;
+    }
     router.push(`/reading/${serviceId}`);
   };
 

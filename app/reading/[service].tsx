@@ -405,11 +405,12 @@ function BurclarIntro({ color }: { color: string }) {
 }
 
 function AskIntro({ color }: { color: string }) {
+  useEffect(() => { router.replace("/love-compat" as any); }, []);
   return (
     <View style={styles.serviceIntro}>
       <ServiceHeroBanner serviceId="ask" color={color} />
-      <Text style={styles.introServiceTitle}>Aşkını Bul</Text>
-      <Text style={styles.introDesc}>İki burcun uyumunu Tengri'nin bilgeliği ile keşfedin. Aşk, tutku ve ruhsal bağınız okunacak.</Text>
+      <Text style={styles.introServiceTitle}>Aşk Uyumu</Text>
+      <Text style={styles.introDesc}>Yönlendiriliyor...</Text>
     </View>
   );
 }
