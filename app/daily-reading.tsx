@@ -87,7 +87,7 @@ function SteamWisp({ delay, offsetX, color }: { delay: number; offsetX: number; 
   const tx = useSharedValue(0);
   useEffect(() => {
     ty.value = withDelay(delay, withRepeat(
-      withSequence(withTiming(0, { duration: 0 }), withTiming(-52, { duration: 2000, easing: Easing.out(Easing.quad) })),
+      withSequence(withTiming(0, { duration: 0 }), withTiming(-52, { duration: 2000, easing: Easing.ease })),
       -1, false
     ));
     op.value = withDelay(delay, withRepeat(
@@ -100,7 +100,7 @@ function SteamWisp({ delay, offsetX, color }: { delay: number; offsetX: number; 
     ));
     // slight lateral drift
     tx.value = withDelay(delay, withRepeat(
-      withSequence(withTiming(offsetX, { duration: 0 }), withTiming(offsetX + 6, { duration: 2000, easing: Easing.inOut(Easing.sine) })),
+      withSequence(withTiming(offsetX, { duration: 0 }), withTiming(offsetX + 6, { duration: 2000, easing: Easing.ease })),
       -1, false
     ));
   }, []);

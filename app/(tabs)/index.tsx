@@ -1079,7 +1079,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FF6B9D",
     opacity: 0.08,
   },
-  logoImage: { width: 96, height: 96 },
+  logoImage: { width: 116, height: 116, borderRadius: 58, overflow: "hidden" },
 
   hero: { alignItems: "center", paddingTop: 4, marginBottom: 10 },
   heroTitle: {
