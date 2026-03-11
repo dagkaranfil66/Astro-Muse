@@ -223,12 +223,28 @@ function GoldPackageCard({
   );
 }
 
-// ─── Unavailable Package Card (RC product not loaded yet) ─────────────────
+// ─── Unavailable Package Card (RC product not loaded — web or loading) ────────
 function UnavailablePackageCard({ pkgId, lang }: { pkgId: string; lang: string }) {
   const display = PKG_DISPLAY[pkgId];
   if (!display) return null;
+  const isWeb = Platform.OS === "web";
   return (
-    <Animated.View style={[styles.pkgCard, { opacity: 0.45 }]}>
+    <Animated.View style={[styles.pkgCard, display.popular && styles.pkgCardPopular, display.advantage && styles.pkgCardAdvantage]}>
+      {display.popular && (
+        <View style={styles.popularBadge}>
+          <Text style={styles.popularBadgeText}>⭐ POPÜLER</Text>
+        </View>
+      )}
+      {display.advantage && (
+        <View style={styles.advantageBadge}>
+          <Text style={styles.advantageBadgeText}>✦ AVANTAJLI</Text>
+        </View>
+      )}
+      {display.discount > 0 && (
+        <View style={styles.discountBadge}>
+          <Text style={styles.discountBadgeText}>%{display.discount} İNDİRİM</Text>
+        </View>
+      )}
       <LinearGradient colors={display.gradient} style={styles.pkgCardInner}>
         <View style={styles.pkgLeft}>
           <View style={styles.goldIconWrap}>
@@ -249,9 +265,10 @@ function UnavailablePackageCard({ pkgId, lang }: { pkgId: string; lang: string }
           </View>
         </View>
         <View style={styles.pkgRight}>
-          <View style={[styles.pkgBuyBtn, { backgroundColor: Colors.cardBorder }]}>
-            <Text style={[styles.pkgBuyBtnText, { color: Colors.textDim }]}>
-              {lang === "tr" ? "Yakında" : "Soon"}
+          <View style={[styles.pkgBuyBtn, styles.pkgBuyBtnMobile]}>
+            <Ionicons name="phone-portrait-outline" size={12} color={Colors.textDim} />
+            <Text style={[styles.pkgBuyBtnText, { color: Colors.textDim, fontSize: 9 }]}>
+              {isWeb ? (lang === "tr" ? "Mobil" : "Mobile") : (lang === "tr" ? "Yükleniyor" : "Loading")}
             </Text>
           </View>
         </View>
@@ -409,6 +426,17 @@ export default function PurchaseScreen() {
             <Text style={styles.sectionPricingNote}>
               {lang === "tr" ? "Büyük paket, daha fazla tasarruf!" : "Bigger package, more savings!"}
             </Text>
+
+            {Platform.OS === "web" && packages.length === 0 && !offeringsLoading && (
+              <Animated.View entering={FadeIn.duration(400)} style={styles.webNoticeBanner}>
+                <Ionicons name="phone-portrait-outline" size={16} color={Colors.gold} />
+                <Text style={styles.webNoticeText}>
+                  {lang === "tr"
+                    ? "Satın alma yalnızca mobil uygulamada çalışır. Expo Go ile telefonunuzda deneyin."
+                    : "Purchases only work in the mobile app. Try on your phone with Expo Go."}
+                </Text>
+              </Animated.View>
+            )}
 
             {offeringsLoading ? (
               <View style={styles.loadingWrap}>
@@ -653,6 +681,9 @@ const styles = StyleSheet.create({
   restoreBtn: { alignSelf: "center", paddingVertical: 10, paddingHorizontal: 20, borderRadius: 10, borderWidth: 1, borderColor: Colors.textDim + "40", minHeight: 36, alignItems: "center", justifyContent: "center" },
   restoreBtnText: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textDim, textDecorationLine: "underline" },
 
+  webNoticeBanner: { flexDirection: "row", alignItems: "flex-start", gap: 10, backgroundColor: Colors.gold + "10", borderWidth: 1, borderColor: Colors.gold + "30", borderRadius: 12, padding: 12, marginBottom: 4 },
+  webNoticeText: { flex: 1, fontSize: 12, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary, lineHeight: 18 },
+  pkgBuyBtnMobile: { flexDirection: "row", gap: 4, alignItems: "center", backgroundColor: Colors.cardBorder },
   guideBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 10, borderWidth: 1, borderColor: Colors.gold + "30", backgroundColor: Colors.gold + "08" },
   guideBtnText: { fontSize: 12, fontFamily: "Lora_700Bold", color: Colors.gold, letterSpacing: 0.5 },
   legalRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 2 },
