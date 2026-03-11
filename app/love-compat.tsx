@@ -68,6 +68,7 @@ function calcScores(d: LoveFormData): LoveScores {
 
   const relAdj: Record<string, number> = {
     "Yeni tanıştık": 2, "Flört ediyoruz": 5, "İlişkimiz var": 8,
+    "Evliyiz": 12,
     "Ayrıyız ama konuşuyoruz": -15, "Platonik": -5, "Eski sevgili": -10,
   };
   const expAdj: Record<string, number> = {
@@ -83,7 +84,7 @@ function calcScores(d: LoveFormData): LoveScores {
   ));
   const trust = Math.min(95, Math.max(30,
     base + r - (d.relStatus === "Ayrıyız ama konuşuyoruz" ? 8 : 0) +
-    (d.theyHide === "Evet" ? -8 : 4) + nameVariance - 2
+    (d.relStatus === "Evliyiz" ? 6 : 4) + nameVariance - 2
   ));
   const future = Math.min(97, Math.max(30,
     base + e + r / 2 + nameVariance - 5
@@ -103,26 +104,34 @@ function calcScores(d: LoveFormData): LoveScores {
 // ─── Teaser micro-text generator ──────────────────────────────────────────────
 function genTeaserLines(d: LoveFormData, s: LoveScores): string[] {
   const lines: string[] = [];
-  if (s.love < 65)
-    lines.push("Kalp enerjileriniz arasında dikkat çeken bir uyumsuzluk tespit edildi...");
-  else
-    lines.push(`${d.name1} ve ${d.name2} arasında güçlü ama kırılgan bir bağ tespit edildi...`);
 
-  if (s.trust < 60 || d.theyHide === "Evet")
-    lines.push("Partnerinin sakladığı bir duygu öne çıkıyor olabilir...");
-  else if (d.distancing === "Evet")
-    lines.push("Aramızdaki mesafeyi yaratan gizli bir enerji bloğu görünüyor...");
+  // Line 1 — genel uyum yorumu
+  if (s.love >= 80)
+    lines.push(`${d.name1} ile ${d.name2} arasında nadir görülen güçlü bir enerji tespit edildi...`);
+  else if (s.love >= 65)
+    lines.push(`${d.name1} ve ${d.name2} arasında güçlü ama henüz keşfedilmemiş bir bağ var...`);
+  else
+    lines.push("İki enerji arasında dikkat çeken bir gerilim ve çekim aynı anda hissediliyor...");
+
+  // Line 2 — trust / passion yorumu
+  if (s.trust < 55)
+    lines.push("Güven katmanında gizli bir kırılganlık öne çıkıyor olabilir...");
+  else if (s.passion > 78)
+    lines.push("Tutkusal çekim beklenenden çok daha derin bir noktaya işaret ediyor...");
   else
     lines.push("İki ruhun birbirini çektiği ama henüz tam anlaşamadığı net biçimde hissediliyor...");
 
+  // Line 3 — ilişki durumu / gelecek
   if (d.relStatus === "Ayrıyız ama konuşuyoruz" || d.relStatus === "Eski sevgili")
-    lines.push("Bu ilişkinin kaderinde net bir kırılma noktası görünüyor...");
+    lines.push("Bu ilişkinin kaderinde net bir kırılma ya da yeniden birleşme noktası görünüyor...");
+  else if (d.relStatus === "Evliyiz")
+    lines.push("Evlilik bağında görünmez ama belirleyici bir dönüşüm noktası yaklaşıyor...");
   else if (s.future > 75)
-    lines.push("İleride bu bağın çok farklı bir boyut kazanabileceği görünüyor...");
+    lines.push("İleride bu bağın çok farklı ve güçlü bir boyut kazanabileceği hissediliyor...");
   else
     lines.push("Bu ilişkinin kaderinde kritik bir dönüşüm noktası yaklaşıyor...");
 
-  lines.push("Devamında en kritik detay açığa çıkacak...");
+  lines.push("Devamında en kritik detay sana özel olarak açığa çıkacak...");
   return lines;
 }
 
@@ -160,20 +169,6 @@ function ChipSelect({ options, value, onChange }: {
   );
 }
 
-function ToggleSelect({ options, value, onChange }: {
-  options: string[]; value: string; onChange: (v: string) => void;
-}) {
-  return (
-    <View style={styles.toggleRow}>
-      {options.map(opt => (
-        <Pressable key={opt} onPress={() => { Haptics.selectionAsync(); onChange(opt); }}
-          style={[styles.toggleBtn, value === opt && styles.toggleBtnActive]}>
-          <Text style={[styles.toggleText, value === opt && styles.toggleTextActive]}>{opt}</Text>
-        </Pressable>
-      ))}
-    </View>
-  );
-}
 
 function ScoreBar({ label, value, color }: { label: string; value: number; color: string }) {
   const width_ = useSharedValue(0);
@@ -351,9 +346,6 @@ Ad 2: ${d.name2} | Yıl: ${d.year2} | Burç: ${d.zodiac2}
 İlişki durumu: ${d.relStatus}
 Beklenti: ${d.expectation}
 Merak: ${d.curiosity}
-${d.howMet ? `Tanışma: ${d.howMet}` : ""}
-${d.theyHide ? `Saklanan duygu: ${d.theyHide}` : ""}
-${d.distancing ? `Uzaklaşma: ${d.distancing}` : ""}
 Puanlar — Uyum: %${s.love}, Tutku: %${s.passion}, Güven: %${s.trust}, Gelecek: %${s.future}, İletişim: %${s.communication}
 
 Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
@@ -399,7 +391,7 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
 
             {step === 1 && (
               <Animated.View entering={FadeInDown.springify()} style={styles.card}>
-                <StepHint>İsimler ve doğum enerjileri aşk bağını etkiler...</StepHint>
+                <StepHint>Yorumun sana özel hazırlanması için birkaç detay gerekli...</StepHint>
                 <Text style={styles.fieldLabel}>Senin adın</Text>
                 <TextInput style={[styles.input, errors.name1 && styles.inputError]}
                   placeholder="Adını yaz..." placeholderTextColor={Colors.textDim}
@@ -416,7 +408,7 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
 
             {step === 2 && (
               <Animated.View entering={FadeInDown.springify()} style={styles.card}>
-                <StepHint>Doğum yılı numerolojik titreşimi belirler...</StepHint>
+                <StepHint>İsimler ve doğum enerjileri aşk bağını doğrudan etkiler...</StepHint>
                 <Text style={styles.fieldLabel}>Senin doğum yılın</Text>
                 <TextInput style={[styles.input, errors.year1 && styles.inputError]}
                   placeholder="Örn: 1995" placeholderTextColor={Colors.textDim}
@@ -435,7 +427,7 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
 
             {step === 3 && (
               <Animated.View entering={FadeInDown.springify()} style={styles.card}>
-                <StepHint>Burçlar ruhsal uyumun anahtarıdır...</StepHint>
+                <StepHint>Burç enerjileri ruhsal çekimin sırrını taşır...</StepHint>
                 <Text style={styles.fieldLabel}>Senin burcun</Text>
                 {errors.zodiac1 && <Text style={styles.errText}>{errors.zodiac1}</Text>}
                 <ChipSelect options={ZODIAC_LIST} value={data.zodiac1} onChange={v => upd("zodiac1", v)} />
@@ -448,18 +440,18 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
 
             {step === 4 && (
               <Animated.View entering={FadeInDown.springify()} style={styles.card}>
-                <StepHint>İlişki dinamikleri enerjinizi doğrudan şekillendirir...</StepHint>
+                <StepHint>İlişki durumu yorumun tonunu ve derinliğini belirler...</StepHint>
                 <Text style={styles.fieldLabel}>Şu anki ilişki durumunuz</Text>
                 {errors.relStatus && <Text style={styles.errText}>{errors.relStatus}</Text>}
                 <ChipSelect
-                  options={["Yeni tanıştık", "Flört ediyoruz", "İlişkimiz var", "Ayrıyız ama konuşuyoruz", "Platonik", "Eski sevgili"]}
+                  options={["Yeni tanıştık", "Flört ediyoruz", "İlişkimiz var", "Evliyiz", "Ayrıyız ama konuşuyoruz", "Platonik", "Eski sevgili"]}
                   value={data.relStatus} onChange={v => upd("relStatus", v)} />
               </Animated.View>
             )}
 
             {step === 5 && (
               <Animated.View entering={FadeInDown.springify()} style={styles.card}>
-                <StepHint>Beklentiler enerji akışını belirler...</StepHint>
+                <StepHint>Niyetin, analizin derinliğini ve yönünü belirler...</StepHint>
                 <Text style={styles.fieldLabel}>Bu ilişkiden beklentin ne?</Text>
                 {errors.expectation && <Text style={styles.errText}>{errors.expectation}</Text>}
                 <ChipSelect
@@ -470,27 +462,12 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
 
             {step === 6 && (
               <Animated.View entering={FadeInDown.springify()} style={styles.card}>
-                <StepHint>Enerjileri daha doğru yorumlayabilmek için birkaç detay...</StepHint>
+                <StepHint>Son bir adım — sana özel yorumun hazırlanıyor...</StepHint>
                 <Text style={styles.fieldLabel}>En çok neyi merak ediyorsun?</Text>
                 {errors.curiosity && <Text style={styles.errText}>{errors.curiosity}</Text>}
                 <ChipSelect
                   options={["Beni gerçekten seviyor mu?", "Beni düşünüyor mu?", "Geri dönecek mi?", "İlişkimizin geleceği var mı?", "Aramızda güçlü çekim var mı?", "Benden uzaklaşıyor mu?"]}
                   value={data.curiosity} onChange={v => upd("curiosity", v)} />
-
-                {/* Optional fields */}
-                <Text style={[styles.fieldLabel, { marginTop: 20 }]}>
-                  Nasıl tanıştınız? <Text style={styles.optionalTag}>(isteğe bağlı)</Text>
-                </Text>
-                <TextInput style={styles.input} placeholder="Kısa bir not..." placeholderTextColor={Colors.textDim}
-                  value={data.howMet} onChangeText={v => upd("howMet", v)} />
-
-                <Text style={[styles.fieldLabel, { marginTop: 16 }]}>
-                  Onun sana söyleyemediği bir şey olduğunu düşünüyor musun?
-                </Text>
-                <ToggleSelect options={["Evet", "Hayır", "Bilmiyorum"]} value={data.theyHide} onChange={v => upd("theyHide", v)} />
-
-                <Text style={[styles.fieldLabel, { marginTop: 16 }]}>Son zamanlarda senden uzak mı davranıyor?</Text>
-                <ToggleSelect options={["Evet", "Hayır", "Bazen"]} value={data.distancing} onChange={v => upd("distancing", v)} />
               </Animated.View>
             )}
 
@@ -658,7 +635,6 @@ const styles = StyleSheet.create({
   cardHeaderText: { fontSize: 10, fontFamily: "Lora_700Bold", color: Colors.gold, letterSpacing: 2 },
 
   fieldLabel: { fontSize: 13, fontFamily: "Lora_700Bold", color: Colors.text, marginBottom: 8 },
-  optionalTag: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textDim },
   input: {
     backgroundColor: Colors.surfaceElevated, borderRadius: 12, borderWidth: 1,
     borderColor: Colors.cardBorder, color: Colors.text, fontFamily: "Lora_400Regular",
@@ -672,12 +648,6 @@ const styles = StyleSheet.create({
   chipActive: { borderColor: Colors.gold, backgroundColor: Colors.gold + "20" },
   chipText: { fontSize: 12, fontFamily: "Lora_400Regular", color: Colors.textSecondary },
   chipTextActive: { color: Colors.gold, fontFamily: "Lora_700Bold" },
-
-  toggleRow: { flexDirection: "row", gap: 8, marginTop: 6 },
-  toggleBtn: { flex: 1, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: Colors.cardBorder, backgroundColor: Colors.surfaceElevated, alignItems: "center" },
-  toggleBtnActive: { borderColor: Colors.gold, backgroundColor: Colors.gold + "20" },
-  toggleText: { fontSize: 12, fontFamily: "Lora_400Regular", color: Colors.textSecondary },
-  toggleTextActive: { color: Colors.gold, fontFamily: "Lora_700Bold" },
 
   navRow: { flexDirection: "row", gap: 10, marginTop: 8 },
   backStepBtn: { flexDirection: "row", alignItems: "center", gap: 4, paddingVertical: 14, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1, borderColor: Colors.cardBorder },

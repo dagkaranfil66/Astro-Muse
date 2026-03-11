@@ -1,0 +1,78 @@
+Aşk Uyumu akışındaki soru sayısını kullanıcıyı sıkmayacak şekilde optimize et. Amaç: form çok kısa kalıp yüzeysel görünmesin, çok uzun olup kullanıcıyı kaçırmasın. İdeal deneyim oluştur.
+
+İstediğim karar:
+- Soru sayısı fazla olmasın
+- Kullanıcı form dolduruyor gibi değil, kendine özel analiz hazırlanıyor gibi hissetsin
+- Akış hızlı, sade ve merak uyandırıcı olsun
+- Toplam step sayısı 5 veya en fazla 6 olsun
+- Gereksiz soru ekleme
+- Kullanıcıyı yormadan yeterli veri topla
+
+İstediğim önerilen akış:
+
+1) Senin adın / Partnerinin adı
+2) Senin doğum yılın / Partnerinin doğum yılı
+3) Senin burcun / Partnerinin burcu
+4) Şu anki ilişki durumunuz
+5) Bu ilişkiden beklentin nedir?
+6) Opsiyonel ama çok uzatmadan: En çok neyi merak ediyorsun?
+
+Eğer kullanıcı deneyimi açısından daha iyi olacaksa:
+- “En çok neyi merak ediyorsun?” sorusunu zorunlu değil, isteğe bağlı yap
+veya
+- Bu soruyu sonuç ekranı öncesi tek seçimlik hızlı bir ekran olarak ekle
+
+Temel kural:
+- 6 adımdan fazla yapma
+- 7+ soru olmasın
+- Aynı anda ekranda çok fazla alan gösterme
+- Her adım kolay ve hızlı doldurulsun
+
+Çok önemli UX mantığı:
+Kullanıcı “çok soru var” diye hissetmemeli.
+Bu yüzden her adımda kısa bir yardımcı metin kullan.
+Örnek mikro metinler:
+- “Yorumun sana özel hazırlanması için birkaç detay gerekli...”
+- “İsimler ve doğum enerjileri uyumu etkileyebilir...”
+- “İlişkinizin durumu yorumun tonunu belirler...”
+- “Niyetin, aşk analizinin derinliğini etkiler...”
+
+Bu mikro metinler kısa, zarif ve premium dursun.
+Abartılı ya da uzun olmasın.
+
+Tasarım istekleri:
+- Step indicator net görünsün
+- Kullanıcı kaç adım kaldığını anlasın
+- İlerleme psikolojik olarak rahat hissettirsin
+- Form kartları sade ve temiz olsun
+- Her adım hızlı geçilebilsin
+
+Geçiş deneyimi:
+Son sorudan sonra direkt sonuç gösterme.
+Önce kısa bir analiz ekranı koy:
+- “Enerjiler analiz ediliyor...”
+- “İsim frekansları yorumlanıyor...”
+- “Kalp uyumu hesaplanıyor...”
+- “Duygusal titreşimler okunuyor...”
+
+Bu ekran 2-3 saniyelik premium bir loading deneyimi versin.
+
+Karar mantığı:
+Eğer mevcut akış kullanıcıyı sıkmıyorsa koru.
+Ama gereksiz veya benzer iki soru varsa birleştir.
+Amaç soru sayısını azaltmak değil, doğru seviyede tutmak.
+
+Ek mantık:
+- Kullanıcı ilk 2 step içinde zorlanmamalı
+- İlk ekranlar çok kolay ilerlemeli
+- Seçmeli sorular input sorularından daha hızlı hissettirdiği için mümkün olan yerde seçim yapısı kullan
+- Uzun metin girişlerinden kaçın
+- Opsiyonel alanları zorunlu yapma
+
+Validasyon:
+- Kullanıcı boş alanla ilerleyemesin
+- Hata mesajları kısa ve Türkçe olsun
+- Ama deneyim sert hissettirmesin
+
+Sonuç:
+Aşk Uyumu akışını kullanıcıyı sıkmadan, premium his vererek, maksimum merak ve tamamlanma oranı sağlayacak şekilde optimize et. Mevcut proje yapısını bozma. Step yapısını, metinleri ve UX akışını buna göre düzenle.
