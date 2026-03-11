@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -25,6 +25,8 @@ import Animated, {
   withRepeat,
   withTiming,
   withSequence,
+  withDelay,
+  Easing,
 } from "react-native-reanimated";
 import { fetch } from "expo/fetch";
 import { Colors } from "@/constants/colors";
@@ -62,9 +64,10 @@ function getTodayService() {
   return DAILY_SERVICE;
 }
 
+// ─── Generic pulse orb (non-coffee services) ───────────────────────────────
 function PulseOrb({ color }: { color: string }) {
   const scale = useSharedValue(1);
-  React.useEffect(() => {
+  useEffect(() => {
     scale.value = withRepeat(
       withSequence(withTiming(1.15, { duration: 1800 }), withTiming(1, { duration: 1800 })),
       -1, false
@@ -75,6 +78,77 @@ function PulseOrb({ color }: { color: string }) {
 }
 const sOrb = StyleSheet.create({
   orb: { width: 130, height: 130, borderRadius: 65, borderWidth: 1, position: "absolute" },
+});
+
+// ─── Steam wisp ──────────────────────────────────────────────────────────────
+function SteamWisp({ delay, offsetX, color }: { delay: number; offsetX: number; color: string }) {
+  const ty = useSharedValue(0);
+  const op = useSharedValue(0);
+  const tx = useSharedValue(0);
+  useEffect(() => {
+    ty.value = withDelay(delay, withRepeat(
+      withSequence(withTiming(0, { duration: 0 }), withTiming(-52, { duration: 2000, easing: Easing.out(Easing.quad) })),
+      -1, false
+    ));
+    op.value = withDelay(delay, withRepeat(
+      withSequence(
+        withTiming(0, { duration: 0 }),
+        withTiming(0.75, { duration: 300 }),
+        withTiming(0.75, { duration: 1100 }),
+        withTiming(0, { duration: 600 }),
+      ), -1, false
+    ));
+    // slight lateral drift
+    tx.value = withDelay(delay, withRepeat(
+      withSequence(withTiming(offsetX, { duration: 0 }), withTiming(offsetX + 6, { duration: 2000, easing: Easing.inOut(Easing.sine) })),
+      -1, false
+    ));
+  }, []);
+  const wispStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: tx.value }, { translateY: ty.value }],
+    opacity: op.value,
+  }));
+  return (
+    <Animated.View style={[sCoffee.wisp, { backgroundColor: color + "60" }, wispStyle]} />
+  );
+}
+
+// ─── Coffee Hero Animation ────────────────────────────────────────────────────
+function CoffeeHeroAnimation({ color }: { color: string }) {
+  const glow = useSharedValue(1);
+  useEffect(() => {
+    glow.value = withRepeat(
+      withSequence(withTiming(1.18, { duration: 2200 }), withTiming(1, { duration: 2200 })),
+      -1, false
+    );
+  }, []);
+  const glowStyle = useAnimatedStyle(() => ({ transform: [{ scale: glow.value }] }));
+
+  return (
+    <View style={sCoffee.container}>
+      {/* Background glow orb */}
+      <Animated.View style={[sCoffee.glowOrb, { backgroundColor: color + "18", borderColor: color + "35" }, glowStyle]} />
+
+      {/* Steam wisps — positioned above cup */}
+      <View style={sCoffee.steamContainer}>
+        <SteamWisp delay={0}    offsetX={-10} color={color} />
+        <SteamWisp delay={650}  offsetX={0}   color={color} />
+        <SteamWisp delay={1300} offsetX={10}  color={color} />
+      </View>
+
+      {/* Coffee cup icon circle */}
+      <View style={[sCoffee.cupCircle, { borderColor: color + "55", backgroundColor: color + "18" }]}>
+        <Ionicons name="cafe" size={42} color={color} />
+      </View>
+    </View>
+  );
+}
+const sCoffee = StyleSheet.create({
+  container: { width: 120, height: 140, alignItems: "center", justifyContent: "flex-end", marginBottom: 4 },
+  glowOrb: { position: "absolute", bottom: 0, width: 120, height: 120, borderRadius: 60, borderWidth: 1 },
+  steamContainer: { position: "absolute", top: 0, flexDirection: "row", gap: 14, alignItems: "flex-end", height: 54 },
+  wisp: { width: 5, height: 22, borderRadius: 3, bottom: 0 },
+  cupCircle: { width: 90, height: 90, borderRadius: 45, borderWidth: 1, alignItems: "center", justifyContent: "center", zIndex: 2 },
 });
 
 export default function DailyReadingScreen() {
@@ -231,17 +305,31 @@ export default function DailyReadingScreen() {
         </Pressable>
 
         <Animated.View entering={FadeInDown.delay(100).springify()} style={s.hero}>
-          <View style={[s.iconCircle, { borderColor: meta.color + "50", backgroundColor: meta.color + "15" }]}>
-            <Ionicons name={meta.icon} size={36} color={meta.color} />
-          </View>
+          {/* Animated hero — coffee for kahve, generic icon for others */}
+          {todayService === "kahve" ? (
+            <CoffeeHeroAnimation color={meta.color} />
+          ) : (
+            <View style={[s.iconCircle, { borderColor: meta.color + "50", backgroundColor: meta.color + "15" }]}>
+              <Ionicons name={meta.icon} size={36} color={meta.color} />
+            </View>
+          )}
+
           <Text style={s.heroLabel}>
             {lang === "tr" ? "✦ GÜNLÜK FAL ✦" : "✦ DAILY READING ✦"}
           </Text>
           <Text style={[s.heroService, { color: meta.color }]}>
             {lang === "tr" ? meta.labelTR : meta.labelEN}
           </Text>
-          <View style={s.freeBadge}>
-            <Text style={s.freeBadgeText}>{lang === "tr" ? "ÜCRETSİZ ÖN OKUMA" : "FREE PREVIEW"}</Text>
+
+          {/* Badges row */}
+          <View style={s.badgeRow}>
+            <View style={s.freeBadge}>
+              <Text style={s.freeBadgeText}>{lang === "tr" ? "ÜCRETSİZ ÖN OKUMA" : "FREE PREVIEW"}</Text>
+            </View>
+            <View style={s.aiBadge}>
+              <Ionicons name="sparkles" size={9} color="#A78BFA" />
+              <Text style={s.aiBadgeText}>{lang === "tr" ? "AI DESTEKLİ" : "AI POWERED"}</Text>
+            </View>
           </View>
         </Animated.View>
 
@@ -276,20 +364,21 @@ export default function DailyReadingScreen() {
             {/* Add photo buttons */}
             {photos.length < maxPhotos && (
               <View style={s.photoButtons}>
+                {/* Camera — primary on native, hidden on web */}
+                {Platform.OS !== "web" && (
+                  <Pressable onPress={() => pickPhoto(true)} style={[s.photoBtnPrimary, { borderColor: meta.color, backgroundColor: meta.color + "22" }]}>
+                    <Ionicons name="camera" size={20} color={meta.color} />
+                    <Text style={[s.photoBtnPrimaryText, { color: meta.color }]}>
+                      {lang === "tr" ? "Fotoğraf Çek" : "Take Photo"}
+                    </Text>
+                  </Pressable>
+                )}
                 <Pressable onPress={() => pickPhoto(false)} style={[s.photoBtn, { borderColor: meta.color + "50" }]}>
                   <Ionicons name="image-outline" size={20} color={meta.color} />
                   <Text style={[s.photoBtnText, { color: meta.color }]}>
                     {lang === "tr" ? "Galeri" : "Gallery"}
                   </Text>
                 </Pressable>
-                {Platform.OS !== "web" && (
-                  <Pressable onPress={() => pickPhoto(true)} style={[s.photoBtn, { borderColor: meta.color + "50" }]}>
-                    <Ionicons name="camera-outline" size={20} color={meta.color} />
-                    <Text style={[s.photoBtnText, { color: meta.color }]}>
-                      {lang === "tr" ? "Kamera" : "Camera"}
-                    </Text>
-                  </Pressable>
-                )}
               </View>
             )}
           </Animated.View>
@@ -442,18 +531,25 @@ const s = StyleSheet.create({
   scroll: { paddingHorizontal: 20, minHeight: "100%" },
   backBtn: { marginBottom: 12 },
 
-  hero: { alignItems: "center", paddingVertical: 24 },
+  hero: { alignItems: "center", paddingVertical: 20 },
   iconCircle: {
     width: 88, height: 88, borderRadius: 44,
     borderWidth: 1, alignItems: "center", justifyContent: "center", marginBottom: 16,
   },
-  heroLabel: { fontSize: 10, fontFamily: "Lora_700Bold", color: Colors.textDim, letterSpacing: 2, marginBottom: 6 },
+  heroLabel: { fontSize: 10, fontFamily: "Lora_700Bold", color: Colors.textDim, letterSpacing: 2, marginBottom: 6, marginTop: 8 },
   heroService: { fontSize: 28, fontFamily: "Lora_700Bold", marginBottom: 10 },
+  badgeRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   freeBadge: {
     backgroundColor: "#C8A02020", borderWidth: 1, borderColor: "#C8A02055",
     borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4,
   },
   freeBadgeText: { fontSize: 10, fontFamily: "Lora_700Bold", color: Colors.gold, letterSpacing: 1 },
+  aiBadge: {
+    flexDirection: "row", alignItems: "center", gap: 4,
+    backgroundColor: "#A78BFA15", borderWidth: 1, borderColor: "#A78BFA40",
+    borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4,
+  },
+  aiBadgeText: { fontSize: 9, fontFamily: "Lora_700Bold", color: "#A78BFA", letterSpacing: 1 },
 
   photoSection: { marginBottom: 14 },
   photoHint: { fontSize: 15, fontFamily: "Lora_700Bold", marginBottom: 4, textAlign: "center" },
@@ -463,6 +559,11 @@ const s = StyleSheet.create({
   thumb: { width: 80, height: 80, borderRadius: 10 },
   thumbRemove: { position: "absolute", top: -6, right: -6 },
   photoButtons: { flexDirection: "row", gap: 10 },
+  photoBtnPrimary: {
+    flex: 2, flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 8, paddingVertical: 13, borderRadius: 12, borderWidth: 1.5,
+  },
+  photoBtnPrimaryText: { fontSize: 14, fontFamily: "Lora_700Bold" },
   photoBtn: {
     flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center",
     gap: 8, paddingVertical: 12, borderRadius: 12, borderWidth: 1,
