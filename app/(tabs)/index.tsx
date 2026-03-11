@@ -223,6 +223,12 @@ function MandalaRing({ radius, dotCount, color, duration, reverse }: {
 }
 
 // ────────── Star Ring ──────────
+const STAR_PALETTE = [
+  Colors.gold, "#FF6B9D", "#5B9BD5", "#9B59B6",
+  "#00C8FF", "#4CAF7A", "#FF8C42", "#1ABFB8",
+  "#F7C948", "#E74C8B", "#8B5CF6", "#FF4757",
+];
+
 function StarRing({ radius, count, color, duration, reverse }: {
   radius: number; count: number; color: string; duration: number; reverse?: boolean;
 }) {
@@ -242,14 +248,15 @@ function StarRing({ radius, count, color, duration, reverse }: {
         const x = Math.cos(angle) * radius;
         const y = Math.sin(angle) * radius;
         const big = i % 3 === 0;
+        const starColor = STAR_PALETTE[i % STAR_PALETTE.length];
         return (
           <Text key={i} style={{
             position: "absolute",
-            fontSize: big ? 11 : 7,
-            color,
-            opacity: big ? 0.95 : 0.45,
-            left: size / 2 + x - (big ? 5.5 : 3.5),
-            top:  size / 2 + y - (big ? 5.5 : 3.5),
+            fontSize: big ? 12 : 7,
+            color: starColor,
+            opacity: big ? 1 : 0.6,
+            left: size / 2 + x - (big ? 6 : 3.5),
+            top:  size / 2 + y - (big ? 6 : 3.5),
           }}>✦</Text>
         );
       })}
@@ -258,35 +265,71 @@ function StarRing({ radius, count, color, duration, reverse }: {
 }
 
 // ────────── Twinkle Stars ──────────
-function TwinkleStar({ left, top, sz, delay, dur }: { left: number; top: number; sz: number; delay: number; dur: number }) {
+function TwinkleStar({ left, top, sz, delay, dur, color }: {
+  left: number; top: number; sz: number; delay: number; dur: number; color: string;
+}) {
   const op = useSharedValue(0.05);
+  const sc = useSharedValue(0.8);
   React.useEffect(() => {
     op.value = withDelay(delay, withRepeat(
-      withSequence(withTiming(1, { duration: dur, easing: Easing.out(Easing.sin) }), withTiming(0.05, { duration: dur, easing: Easing.in(Easing.sin) })),
+      withSequence(withTiming(1, { duration: dur }), withTiming(0.05, { duration: dur })),
+      -1, false
+    ));
+    sc.value = withDelay(delay, withRepeat(
+      withSequence(withTiming(1.3, { duration: dur }), withTiming(0.8, { duration: dur })),
       -1, false
     ));
   }, []);
-  const style = useAnimatedStyle(() => ({ opacity: op.value }));
+  const style = useAnimatedStyle(() => ({
+    opacity: op.value,
+    transform: [{ scale: sc.value }],
+  }));
   return (
-    <Animated.Text style={[{ position: "absolute", fontSize: sz, color: Colors.gold, left, top }, style]}>✦</Animated.Text>
+    <Animated.Text style={[{ position: "absolute", fontSize: sz, color, left, top }, style]}>✦</Animated.Text>
   );
 }
 
 function TwinkleStars({ centerX, centerY }: { centerX: number; centerY: number }) {
-  const stars = React.useMemo(() =>
-    Array.from({ length: 12 }, (_, i) => {
-      const angle = (i / 12) * 2 * Math.PI + i * 0.52;
-      const r = 77 + (i % 4) * 5;
-      const sz = i % 4 === 0 ? 8 : i % 3 === 0 ? 7 : 5;
-      return {
+  const stars = React.useMemo(() => {
+    const result = [];
+    // Inner ring — 16 stars at r≈82
+    for (let i = 0; i < 16; i++) {
+      const angle = (i / 16) * 2 * Math.PI;
+      const r = 82 + (i % 3) * 4;
+      const sz = i % 4 === 0 ? 9 : i % 3 === 0 ? 7 : 5;
+      result.push({
         left: centerX + Math.cos(angle) * r - sz / 2,
         top:  centerY + Math.sin(angle) * r - sz / 2,
-        sz,
-        delay: i * 380,
-        dur: 900 + (i % 5) * 280,
-      };
-    }), []
-  );
+        sz, delay: i * 240, dur: 800 + (i % 5) * 200,
+        color: STAR_PALETTE[i % STAR_PALETTE.length],
+      });
+    }
+    // Outer ring — 20 stars at r≈106
+    for (let i = 0; i < 20; i++) {
+      const angle = (i / 20) * 2 * Math.PI + 0.16;
+      const r = 104 + (i % 4) * 5;
+      const sz = i % 5 === 0 ? 10 : i % 3 === 0 ? 7 : 5;
+      result.push({
+        left: centerX + Math.cos(angle) * r - sz / 2,
+        top:  centerY + Math.sin(angle) * r - sz / 2,
+        sz, delay: i * 180 + 60, dur: 700 + (i % 6) * 220,
+        color: STAR_PALETTE[(i + 4) % STAR_PALETTE.length],
+      });
+    }
+    // Scatter — 10 random accent stars at r≈125-140
+    for (let i = 0; i < 10; i++) {
+      const angle = (i / 10) * 2 * Math.PI + 0.9;
+      const r = 124 + (i % 3) * 8;
+      const sz = i % 3 === 0 ? 8 : 5;
+      result.push({
+        left: centerX + Math.cos(angle) * r - sz / 2,
+        top:  centerY + Math.sin(angle) * r - sz / 2,
+        sz, delay: i * 330 + 120, dur: 1100 + (i % 4) * 300,
+        color: STAR_PALETTE[(i + 7) % STAR_PALETTE.length],
+      });
+    }
+    return result;
+  }, []);
   return <>{stars.map((s, i) => <TwinkleStar key={i} {...s} />)}</>;
 }
 
@@ -329,7 +372,7 @@ function AnimatedLogo() {
     backgroundColor: interpolateColor(phase.value, [0, 1], ["#FF69B4", "#9B59B6"]),
   }));
 
-  const CX = 72, CY = 72;
+  const CX = 150, CY = 150;
 
   return (
     <View style={styles.logoContainer}>
@@ -341,10 +384,12 @@ function AnimatedLogo() {
       <MandalaRing radius={47} dotCount={14} color="#FF6B9D" duration={9000} reverse />
       <MandalaRing radius={70} dotCount={8}  color="#9B59B6" duration={18000} />
 
-      {/* ✦ Altın yıldız halkası — yavaş, ters yönde döner */}
-      <StarRing radius={73} count={14} color={Colors.gold} duration={28000} reverse />
+      {/* Rengarenk dönen yıldız halkaları — iç + dış */}
+      <StarRing radius={78}  count={18} color={Colors.gold} duration={28000} reverse />
+      <StarRing radius={108} count={24} color="#FF6B9D"    duration={38000} />
+      <StarRing radius={132} count={16} color="#5B9BD5"    duration={50000} reverse />
 
-      {/* Etrafta titreşen yıldızlar */}
+      {/* Titreşen renkli yıldızlar */}
       <TwinkleStars centerX={CX} centerY={CY} />
 
       {/* Logo — float + nefes alma */}
@@ -1057,8 +1102,8 @@ const styles = StyleSheet.create({
   shootingStar: { height: 2, borderRadius: 1 },
 
   logoContainer: {
-    width: 144,
-    height: 144,
+    width: 300,
+    height: 300,
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "center",
