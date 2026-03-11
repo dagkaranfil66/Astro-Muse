@@ -38,6 +38,7 @@ import * as Clipboard from "expo-clipboard";
 import { Colors } from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
+import { scheduleReadingReadyNotification } from "@/lib/notifications";
 import { getApiUrl } from "@/lib/query-client";
 import InsufficientGoldModal from "@/components/InsufficientGoldModal";
 import CameraKahveModal from "@/components/CameraKahveModal";
@@ -694,6 +695,7 @@ export default function ReadingScreen() {
               setIsDone(true);
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               await addReading({ service, serviceLabel, content: fullText, userInput });
+              scheduleReadingReadyNotification(lang, service).catch(() => {});
             }
           } catch {}
         }

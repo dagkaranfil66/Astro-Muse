@@ -28,6 +28,7 @@ import Animated, {
 import { Colors } from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
+import { scheduleSpinReadyNotification } from "@/lib/notifications";
 
 const { width } = Dimensions.get("window");
 const WHEEL_SIZE = Math.min(width - 40, 320);
@@ -205,6 +206,7 @@ export default function SpinScreen() {
     await performSpin(prize.gold);
     setResult(prize);
     setDone(true);
+    scheduleSpinReadyNotification(lang).catch(() => {});
     setSpinning(false);
     resultScale.value = withSpring(1, { damping: 10, stiffness: 120 });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
