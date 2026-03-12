@@ -26,6 +26,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Colors } from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
+import { useLang } from "@/context/LanguageContext";
 
 const { width, height } = Dimensions.get("window");
 
@@ -309,58 +310,79 @@ function PulsingIcon({ icon, color }: { icon: string; color: string }) {
 }
 
 // ─── Slides definition ────────────────────────────────────────────────────────
-const SLIDES = [
-  {
-    id: "disclaimer",
-    type: "disclaimer" as const,
-    title: null,
-    accent: "#C25A6A",
-  },
-  {
-    id: "welcome",
-    type: "logo" as const,
-    title: "Tengri'ye\nHoş Geldin",
-    subtitle: "Kadim mistik bilgelik ve yapay zekâ ile\nkaderinin işaretlerini keşfet.",
-    detail: "✨ Yıldızlar, semboller ve kadim bilgiler seni bekliyor.",
-    accent: Colors.gold,
-    cta: "Keşfetmeye Başla",
-  },
-  {
-    id: "services",
-    type: "icon" as const,
-    icon: "🔮",
-    title: "11 Mistik\nHizmet",
-    subtitle: "Kahve falı, tarot, astroloji ve kadim mistik bilgiler ile hayatının işaretlerini keşfet.",
-    detail: "☕ Kahve  •  🔮 Tarot  •  ✋ El  •  🌙 Astroloji\n🔢 Numeroloji  •  🧿 Ruh Okuma  •  🌌 Rüya\n⭐ Burçlar  •  ✨ Doğum  •  ❤️ Aşk  •  🪶 Şamanizm",
-    accent: "#9B6FBB",
-    cta: "Hizmetleri Keşfet",
-  },
-  {
-    id: "gold",
-    type: "icon" as const,
-    icon: "✦",
-    title: "Ücretsiz\nBaşla",
-    subtitle: "Her gün şans çarkını çevir, altın kazan.",
-    detail: "✨ Günlük ücretsiz mistik okuma seni bekliyor.\n\nYeni üyeler 15 altın ile başlar.",
-    accent: Colors.gold,
-    cta: "Devam Et",
-  },
-  {
-    id: "final",
-    type: "icon" as const,
-    icon: "☽",
-    title: "Mistik Yolculuğa\nBaşla",
-    subtitle: "Bir hesap oluştur ve mistik yolculuğunu başlat.\nOkumalarını kaydet ve kaderinin işaretlerini takip et.",
-    detail: "",
-    accent: Colors.gold,
-  },
-];
+function getSlides(lang: "tr" | "en") {
+  const tr = lang === "tr";
+  return [
+    {
+      id: "disclaimer",
+      type: "disclaimer" as const,
+      title: null,
+      accent: "#C25A6A",
+    },
+    {
+      id: "welcome",
+      type: "logo" as const,
+      title: tr ? "Tengri'ye\nHoş Geldin" : "Welcome to\nTengri",
+      subtitle: tr
+        ? "Kadim mistik bilgelik ve yapay zekâ ile\nkaderinin işaretlerini keşfet."
+        : "Discover the signs of your destiny with\nancient mystical wisdom and AI.",
+      detail: tr
+        ? "✨ Yıldızlar, semboller ve kadim bilgiler seni bekliyor."
+        : "✨ Stars, symbols, and ancient knowledge await you.",
+      accent: Colors.gold,
+      cta: tr ? "Keşfetmeye Başla" : "Start Exploring",
+    },
+    {
+      id: "services",
+      type: "icon" as const,
+      icon: "🔮",
+      title: tr ? "11 Mistik\nHizmet" : "11 Mystical\nServices",
+      subtitle: tr
+        ? "Kahve falı, tarot, astroloji ve kadim mistik bilgiler ile hayatının işaretlerini keşfet."
+        : "Explore coffee reading, tarot, astrology, and ancient mystical wisdom.",
+      detail: tr
+        ? "☕ Kahve  •  🔮 Tarot  •  ✋ El  •  🌙 Astroloji\n🔢 Numeroloji  •  🧿 Ruh Okuma  •  🌌 Rüya\n⭐ Burçlar  •  ✨ Doğum  •  ❤️ Aşk  •  🪶 Şamanizm"
+        : "☕ Coffee  •  🔮 Tarot  •  ✋ Palm  •  🌙 Astrology\n🔢 Numerology  •  🧿 Soul  •  🌌 Dream\n⭐ Horoscope  •  ✨ Birth  •  ❤️ Love  •  🪶 Shamanism",
+      accent: "#9B6FBB",
+      cta: tr ? "Hizmetleri Keşfet" : "Explore Services",
+    },
+    {
+      id: "gold",
+      type: "icon" as const,
+      icon: "✦",
+      title: tr ? "Ücretsiz\nBaşla" : "Start\nFor Free",
+      subtitle: tr
+        ? "Her gün şans çarkını çevir, altın kazan."
+        : "Spin the luck wheel daily and earn gold.",
+      detail: tr
+        ? "✨ Günlük ücretsiz mistik okuma seni bekliyor.\n\nYeni üyeler 15 altın ile başlar."
+        : "✨ A free daily mystical reading awaits you.\n\nNew members start with 15 gold.",
+      accent: Colors.gold,
+      cta: tr ? "Devam Et" : "Continue",
+    },
+    {
+      id: "final",
+      type: "icon" as const,
+      icon: "☽",
+      title: tr ? "Mistik Yolculuğa\nBaşla" : "Begin Your\nMystical Journey",
+      subtitle: tr
+        ? "Bir hesap oluştur ve mistik yolculuğunu başlat.\nOkumalarını kaydet ve kaderinin işaretlerini takip et."
+        : "Create an account and start your mystical journey.\nSave your readings and track the signs of your destiny.",
+      detail: "",
+      accent: Colors.gold,
+    },
+  ];
+}
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const { markOnboardingDone } = useApp();
+  const { lang } = useLang();
   const [activeIndex, setActiveIndex] = useState(0);
+
+  const SLIDES = getSlides(lang);
+  const tr = lang === "tr";
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -404,14 +426,18 @@ export default function OnboardingScreen() {
             </View>
             <View style={styles.disclaimerBox}>
               <Text style={[styles.disclaimerTitle, { fontFamily: "Lora_700Bold" }]}>
-                Önemli Bilgilendirme
+                {tr ? "Önemli Bilgilendirme" : "Important Notice"}
               </Text>
               <View style={styles.disclaimerDivider} />
               <Text style={[styles.disclaimerText, { fontFamily: "Lora_400Regular_Italic" }]}>
-                Bu uygulamada sunulan yorumlar yalnızca eğlence amaçlıdır. Geleceği öngörme veya kişisel kararları yönlendirme amacı taşımaz.
+                {tr
+                  ? "Bu uygulamada sunulan yorumlar yalnızca eğlence amaçlıdır. Geleceği öngörme veya kişisel kararları yönlendirme amacı taşımaz."
+                  : "All readings and interpretations in this app are for entertainment purposes only. They are not intended to predict the future or guide personal decisions."}
               </Text>
               <Text style={[styles.disclaimerTextSmall, { fontFamily: "Lora_400Regular" }]}>
-                Uygulamayı kullanarak aşağıdaki koşulları kabul etmiş sayılırsınız:
+                {tr
+                  ? "Uygulamayı kullanarak aşağıdaki koşulları kabul etmiş sayılırsınız:"
+                  : "By using this app you agree to the following:"}
               </Text>
               <View style={styles.disclaimerLinksRow}>
                 <TouchableOpacity
@@ -420,7 +446,7 @@ export default function OnboardingScreen() {
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <Text style={[styles.disclaimerLink, { fontFamily: "Lora_700Bold" }]}>
-                    Gizlilik Politikası
+                    {tr ? "Gizlilik Politikası" : "Privacy Policy"}
                   </Text>
                 </TouchableOpacity>
                 <Text style={[styles.disclaimerLinkSep, { fontFamily: "Lora_400Regular" }]}>·</Text>
@@ -430,7 +456,7 @@ export default function OnboardingScreen() {
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <Text style={[styles.disclaimerLink, { fontFamily: "Lora_700Bold" }]}>
-                    Kullanım Koşulları
+                    {tr ? "Kullanım Koşulları" : "Terms of Use"}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -500,22 +526,32 @@ export default function OnboardingScreen() {
           {isDisclaimer ? (
             <TouchableOpacity style={styles.primaryBtn} onPress={goNext} activeOpacity={0.85}>
               <LinearGradient colors={["#C8A020", "#9B6820"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.primaryBtnInner}>
-                <Text style={[styles.primaryBtnText, { fontFamily: "Lora_700Bold" }]}>Anladım, Devam Et →</Text>
+                <Text style={[styles.primaryBtnText, { fontFamily: "Lora_700Bold" }]}>
+                  {tr ? "Anladım, Devam Et →" : "I Understand, Continue →"}
+                </Text>
               </LinearGradient>
             </TouchableOpacity>
           ) : isLast ? (
             <>
               <TouchableOpacity style={styles.primaryBtn} onPress={handleAuth} activeOpacity={0.85}>
                 <LinearGradient colors={["#D4A822", "#A87220"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.primaryBtnInner}>
-                  <Text style={[styles.primaryBtnText, { fontFamily: "Lora_700Bold" }]}>Ücretsiz Hesap Oluştur</Text>
-                  <Text style={[styles.primaryBtnBadge, { fontFamily: "Lora_400Regular" }]}>✦ 10 Altın Hediye ile Başla</Text>
+                  <Text style={[styles.primaryBtnText, { fontFamily: "Lora_700Bold" }]}>
+                    {tr ? "Ücretsiz Hesap Oluştur" : "Create Free Account"}
+                  </Text>
+                  <Text style={[styles.primaryBtnBadge, { fontFamily: "Lora_400Regular" }]}>
+                    {tr ? "✦ 10 Altın Hediye ile Başla" : "✦ Start with 10 Gold Gift"}
+                  </Text>
                 </LinearGradient>
               </TouchableOpacity>
               <TouchableOpacity style={styles.secondaryBtn} onPress={handleAuth} activeOpacity={0.8}>
-                <Text style={[styles.secondaryBtnText, { fontFamily: "Lora_400Regular" }]}>Giriş Yap</Text>
+                <Text style={[styles.secondaryBtnText, { fontFamily: "Lora_400Regular" }]}>
+                  {tr ? "Giriş Yap" : "Sign In"}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleSkip} activeOpacity={0.7} style={styles.skipLink}>
-                <Text style={[styles.skipText, { fontFamily: "Lora_400Regular" }]}>Geç</Text>
+                <Text style={[styles.skipText, { fontFamily: "Lora_400Regular" }]}>
+                  {tr ? "Geç" : "Skip"}
+                </Text>
               </TouchableOpacity>
             </>
           ) : (
@@ -523,12 +559,14 @@ export default function OnboardingScreen() {
               <TouchableOpacity style={styles.primaryBtn} onPress={goNext} activeOpacity={0.85}>
                 <LinearGradient colors={["#C8A020", "#9B6820"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.primaryBtnInner}>
                   <Text style={[styles.primaryBtnText, { fontFamily: "Lora_700Bold" }]}>
-                    {(SLIDES[activeIndex] as any).cta ?? "Devam Et"} →
+                    {(SLIDES[activeIndex] as any).cta ?? (tr ? "Devam Et" : "Continue")} →
                   </Text>
                 </LinearGradient>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleSkip} activeOpacity={0.7} style={styles.skipLink}>
-                <Text style={[styles.skipText, { fontFamily: "Lora_400Regular" }]}>Geç</Text>
+                <Text style={[styles.skipText, { fontFamily: "Lora_400Regular" }]}>
+                  {tr ? "Geç" : "Skip"}
+                </Text>
               </TouchableOpacity>
             </>
           )}

@@ -11,9 +11,11 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
+import { useLang } from "@/context/LanguageContext";
 
 export default function TermsScreen() {
   const insets = useSafeAreaInsets();
+  const { lang } = useLang();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
 
@@ -24,7 +26,9 @@ export default function TermsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
           <Ionicons name="chevron-back" size={24} color={Colors.gold} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { fontFamily: "Lora_700Bold" }]}>Kullanım Koşulları</Text>
+        <Text style={[styles.headerTitle, { fontFamily: "Lora_700Bold" }]}>
+          {lang === "tr" ? "Kullanım Koşulları" : "Terms of Use"}
+        </Text>
         <View style={styles.headerRight} />
       </View>
 
