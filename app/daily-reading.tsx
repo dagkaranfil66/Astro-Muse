@@ -107,6 +107,13 @@ export default function DailyReadingScreen() {
   const { canDailyFree, markDailyFreeUsed, goldBalance, userProfile } = useApp();
   const { lang } = useLang();
 
+  // ── Auth guard: redirect to login if not signed in ──────────────────────
+  React.useEffect(() => {
+    if (!userProfile) {
+      router.replace("/auth");
+    }
+  }, [userProfile]);
+
   const todayService = getTodayService();
   const meta = SERVICE_META[todayService] ?? SERVICE_META.tarot;
   const goldCost = SERVICE_GOLD_COST[todayService] ?? 3;
