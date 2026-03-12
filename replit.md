@@ -38,6 +38,7 @@ Turkish mystical guidance app with AI-powered readings (tengristar.com).
 - **AsyncStorage** (device-local, scoped per email): gold balance, reading history, profile photo URI, last spin date, daily free date, trial count, purchase state, zodiac sign, welcome bonus flag, onboarding flag
 - **NOT used**: Supabase (never configured), cloud image storage (photos sent as base64 in API body)
 - `server/seedRevenueCat.ts` + `server/revenueCatClient.ts` — one-time RevenueCat setup scripts only, not called at runtime
+- **Share reward auth**: `/api/share/claim-reward` accepts `{ email, readingId }` in body (no session/JWT — email-based lookup matching all other auth endpoints)
 
 ## Architecture
 - `app/(tabs)/index.tsx` — Home screen, service cards, gold bar, spin wheel button

@@ -499,14 +499,14 @@ function SharePanel({ text, serviceLabel, readingId, service }: { text: string; 
   const claimReward = async () => {
     if (!readingId) return;
     if (rewardStatus === "claiming" || rewardStatus === "awarded" || rewardStatus === "daily_limit") return;
+    if (!userProfile?.email) { setRewardStatus("no_auth"); return; }
     setRewardStatus("claiming");
     try {
       const url = new URL("/api/share/claim-reward", getApiUrl());
       const res = await fetch(url.toString(), {
         method: "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ readingId }),
+        body: JSON.stringify({ readingId, email: userProfile.email }),
       });
       const data = await res.json() as {
         success: boolean;

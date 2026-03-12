@@ -247,15 +247,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { name, email, password } = req.body;
       if (!name || !email || !password) return res.status(400).json({ error: "Tüm alanlar gerekli" });
+      const trimmedName = name.trim().slice(0, 100);
+      if (trimmedName.length < 2) return res.status(400).json({ error: "İsim en az 2 karakter olmalı" });
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email.trim())) return res.status(400).json({ error: "Geçerli bir e-posta adresi girin" });
+      if (password.length < 6) return res.status(400).json({ error: "Şifre en az 6 karakter olmalı" });
+      if (password.length > 128) return res.status(400).json({ error: "Şifre çok uzun" });
       const key = email.toLowerCase().trim();
       const existing = await db.select().from(users).where(eq(users.email, key)).limit(1);
       if (existing.length > 0) return res.status(409).json({ error: "Bu e-posta zaten kayıtlı" });
       const passwordHash = await bcrypt.hash(password, 10);
       const verifyToken = crypto.randomBytes(32).toString("hex");
       const [user] = await db.insert(users).values({
-        name: name.trim(), email: key, passwordHash, verified: false, verifyToken,
+        name: trimmedName, email: key, passwordHash, verified: false, verifyToken,
       }).returning();
-      sendVerificationEmail(key, name.trim(), verifyToken, getServerBaseUrl(req)).catch(() => {});
+      sendVerificationEmail(key, trimmedName, verifyToken, getServerBaseUrl(req)).catch(() => {});
       return res.json({ success: true, user: { id: user.id, name: user.name, email: key } });
     } catch (err) {
       console.error("Register error:", err);
@@ -576,10 +582,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ─── Share Reward ─────────────────────────────────────────────────────────
   app.post("/api/share/claim-reward", async (req: Request, res: Response) => {
     try {
-      const userId = (req.session as any)?.userId;
-      if (!userId) return res.status(401).json({ error: "Giriş gerekli" });
-
-      const { readingId } = req.body as { readingId?: string };
+      const { readingId, email } = req.body as { readingId?: string; email?: string };
+      if (!email) return res.status(401).json({ error: "Giriş gerekli" });
       if (!readingId) return res.status(400).json({ error: "readingId gerekli" });
 
       const REWARD_PER_SHARE = 2;
@@ -587,7 +591,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const MAX_DAILY_GOLD   = 6;
       const COOLDOWN_MS      = 60 * 1000;
 
-      const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      const key = email.toLowerCase().trim();
+      const [user] = await db.select().from(users).where(eq(users.email, key)).limit(1);
       if (!user) return res.status(404).json({ error: "Kullanıcı bulunamadı" });
 
       const todayTR = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Istanbul" }); // YYYY-MM-DD
@@ -648,7 +653,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lastShareDate:      todayTR,
           sharedReadingIds:   JSON.stringify(updatedIds),
         })
-        .where(eq(users.id, userId));
+        .where(eq(users.id, user.id));
 
       return res.json({
         success: true,
