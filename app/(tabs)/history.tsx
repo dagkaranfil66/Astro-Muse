@@ -50,15 +50,23 @@ const SERVICE_COLORS: Record<string, string> = {
   ask: "#E91E7A",
 };
 
-function formatDate(iso: string) {
+function formatDate(iso: string, lang: string) {
   const d = new Date(iso);
-  return d.toLocaleDateString("tr-TR", {
+  return d.toLocaleDateString(lang === "tr" ? "tr-TR" : "en-US", {
     day: "numeric",
     month: "long",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/^#{1,3}\s*/gm, "")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .trim();
 }
 
 function ReadingDetailModal({
@@ -71,6 +79,7 @@ function ReadingDetailModal({
   onClose: () => void;
 }) {
   const insets = useSafeAreaInsets();
+  const { lang } = useLang();
   if (!reading) return null;
 
   const color = SERVICE_COLORS[reading.service] || Colors.gold;
@@ -89,7 +98,7 @@ function ReadingDetailModal({
           </View>
           <View style={{ flex: 1 }}>
             <Text style={modal.serviceLabel}>{reading.serviceLabel}</Text>
-            <Text style={modal.dateLabel}>{formatDate(reading.date)}</Text>
+            <Text style={modal.dateLabel}>{formatDate(reading.date, lang)}</Text>
           </View>
           <Pressable onPress={onClose} hitSlop={16} style={modal.closeBtn}>
             <Ionicons name="close" size={22} color={Colors.textSecondary} />
@@ -98,7 +107,7 @@ function ReadingDetailModal({
 
         {reading.goldSpent !== undefined && (
           <View style={modal.goldRow}>
-            <Text style={modal.goldText}>✦ {reading.goldSpent} altın harcandı</Text>
+            <Text style={modal.goldText}>✦ {reading.goldSpent} {lang === "tr" ? "altın harcandı" : "gold spent"}</Text>
           </View>
         )}
 
@@ -109,7 +118,7 @@ function ReadingDetailModal({
         >
           {reading.userInput ? (
             <View style={modal.userInputBox}>
-              <Text style={modal.userInputLabel}>Sorunuz</Text>
+              <Text style={modal.userInputLabel}>{lang === "tr" ? "Sorunuz" : "Your Question"}</Text>
               <Text style={modal.userInputText}>{reading.userInput}</Text>
             </View>
           ) : null}
@@ -132,6 +141,7 @@ function ReadingCard({
   index: number;
   onPress: () => void;
 }) {
+  const { lang } = useLang();
   const color = SERVICE_COLORS[reading.service] || Colors.gold;
   const icon = SERVICE_ICONS[reading.service] || "star-outline";
   const scale = useSharedValue(1);
@@ -152,14 +162,14 @@ function ReadingCard({
             </View>
             <View style={styles.cardMeta}>
               <Text style={styles.cardService}>{reading.serviceLabel}</Text>
-              <Text style={styles.cardDate}>{formatDate(reading.date)}</Text>
+              <Text style={styles.cardDate}>{formatDate(reading.date, lang)}</Text>
             </View>
             <View style={styles.cardArrow}>
               <Ionicons name="chevron-forward" size={18} color={Colors.textDim} />
             </View>
           </View>
           <Text style={styles.cardText} numberOfLines={4}>
-            {reading.content}
+            {stripMarkdown(reading.content)}
           </Text>
           {reading.goldSpent !== undefined && (
             <View style={styles.goldPill}>

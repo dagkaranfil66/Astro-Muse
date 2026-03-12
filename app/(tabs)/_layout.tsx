@@ -5,27 +5,30 @@ import { BlurView } from "expo-blur";
 import { Platform, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
+import { useLang } from "@/context/LanguageContext";
 
 function NativeTabLayout() {
+  const { lang } = useLang();
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
         <Icon sf={{ default: "moon.stars", selected: "moon.stars.fill" }} />
-        <Label>Keşfet</Label>
+        <Label>{lang === "tr" ? "Keşfet" : "Explore"}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <Icon sf={{ default: "person.circle", selected: "person.circle.fill" }} />
-        <Label>Profil</Label>
+        <Label>{lang === "tr" ? "Profil" : "Profile"}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="history">
         <Icon sf={{ default: "scroll", selected: "scroll.fill" }} />
-        <Label>Geçmiş</Label>
+        <Label>{lang === "tr" ? "Geçmiş" : "History"}</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
 
 function ClassicTabLayout() {
+  const { lang } = useLang();
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
 
@@ -54,7 +57,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Keşfet",
+          title: lang === "tr" ? "Keşfet" : "Explore",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="moon" size={size} color={color} />
           ),
@@ -63,7 +66,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profil",
+          title: lang === "tr" ? "Profil" : "Profile",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-circle-outline" size={size} color={color} />
           ),
@@ -72,7 +75,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="history"
         options={{
-          title: "Geçmiş",
+          title: lang === "tr" ? "Geçmiş" : "History",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="time-outline" size={size} color={color} />
           ),
