@@ -19,6 +19,7 @@ import {
   OAuthProvider,
   GoogleAuthProvider,
   signInWithCredential,
+  signInWithPopup,
   onAuthStateChanged,
   User as FirebaseUser,
 } from 'firebase/auth';
@@ -37,6 +38,23 @@ const db   = getFirestore(app);
 const auth = getAuth(app);
 
 export { db, auth };
+
+// ── Firebase Auth: Google sign-in via popup (web only) ───────────────────
+export async function firebaseGoogleSignInPopup(): Promise<{ email: string; name: string } | null> {
+  try {
+    const provider = new GoogleAuthProvider();
+    provider.addScope("profile");
+    provider.addScope("email");
+    const result = await signInWithPopup(auth, provider);
+    return {
+      email: result.user.email ?? `google_${Date.now()}@tengri.social`,
+      name:  result.user.displayName ?? "",
+    };
+  } catch (e) {
+    console.warn("[Firebase] Google popup sign-in error:", e);
+    return null;
+  }
+}
 
 // ── Firebase Auth: Sign in with Google ───────────────────────────────────
 export async function firebaseGoogleSignIn(

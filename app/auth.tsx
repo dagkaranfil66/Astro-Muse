@@ -35,7 +35,7 @@ import { Colors } from "@/constants/colors";
 import { useLang } from "@/context/LanguageContext";
 import { useApp } from "@/context/AppContext";
 import { getApiUrl } from "@/lib/query-client";
-import { firebaseAppleSignIn, firebaseGoogleSignIn } from "@/lib/firebase";
+import { firebaseAppleSignIn, firebaseGoogleSignIn, firebaseGoogleSignInPopup } from "@/lib/firebase";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -237,8 +237,19 @@ export default function AuthScreen() {
     setError("");
 
     try {
-      // Firebase's standard HTTPS OAuth handler.
-      // This URI is already whitelisted in Google Cloud Console by Firebase.
+      // ── Web: use Firebase popup (avoids sessionStorage/redirect issues) ──
+      if (Platform.OS === "web") {
+        const info = await firebaseGoogleSignInPopup();
+        if (!info) {
+          setGoogleLoading(false);
+          return;
+        }
+        const googleName = info.name || (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
+        await finishLogin(googleName, info.email, "google");
+        return;
+      }
+
+      // ── Native: custom OAuth → Firebase credential ─────────────────────
       const FIREBASE_REDIRECT = "https://tengri-astroloji.firebaseapp.com/__/auth/handler";
 
       const state = Math.random().toString(36).substring(2, 18);
