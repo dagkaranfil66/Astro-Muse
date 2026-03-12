@@ -18,7 +18,6 @@ import * as Haptics from "expo-haptics";
 import * as WebBrowser from "expo-web-browser";
 import * as AppleAuthentication from "expo-apple-authentication";
 import * as Crypto from "expo-crypto";
-import { makeRedirectUri } from "expo-auth-session";
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -195,7 +194,7 @@ export default function AuthScreen() {
     router.replace("/(tabs)");
   };
 
-  // ── Google Sign-In (hook-free, WebBrowser-based) ──────────────────────
+  // ── Google Sign-In (Firebase HTTPS handler — no custom URI scheme) ────
   const handleGoogleSignIn = async () => {
     const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
     if (!webClientId) {
@@ -211,50 +210,70 @@ export default function AuthScreen() {
     setError("");
 
     try {
-      const redirectUri = makeRedirectUri({
-        scheme: "com.tengriastrolojifalburlarmistikyolculuk",
-        path: "oauthredirect",
-      });
+      // Firebase's standard HTTPS OAuth handler.
+      // This URI is already whitelisted in Google Cloud Console by Firebase.
+      const FIREBASE_REDIRECT = "https://tengri-astroloji.firebaseapp.com/__/auth/handler";
 
-      const state  = Math.random().toString(36).substring(2, 18);
+      const state = Math.random().toString(36).substring(2, 18);
+      const nonce = Math.random().toString(36).substring(2, 18); // required for id_token
+
+      // response_type=token id_token → returns both access_token and id_token in URL fragment.
+      // nonce is mandatory when requesting id_token (OpenID Connect implicit flow).
       const params = new URLSearchParams({
         client_id:     webClientId,
-        redirect_uri:  redirectUri,
-        response_type: "token",
+        redirect_uri:  FIREBASE_REDIRECT,
+        response_type: "token id_token",
         scope:         "openid profile email",
         state,
+        nonce,
       });
 
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-      const result  = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
+
+      // openAuthSessionAsync intercepts the redirect to FIREBASE_REDIRECT and returns
+      // immediately with result.url containing the full URL (including hash fragment).
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, FIREBASE_REDIRECT);
 
       if (result.type !== "success") {
         setGoogleLoading(false);
         return;
       }
 
-      // Parse access_token from URL fragment
-      const fragment    = result.url.split("#")[1] ?? "";
-      const parsed      = Object.fromEntries(new URLSearchParams(fragment));
-      const accessToken = parsed.access_token;
+      // Tokens arrive in the URL hash fragment (#access_token=...&id_token=...)
+      // Fall back to query string in case of a code flow response.
+      const hashPart    = result.url.includes("#") ? result.url.split("#")[1] : "";
+      const queryPart   = result.url.includes("?")
+        ? result.url.split("?")[1].split("#")[0]
+        : "";
+      const fromHash    = Object.fromEntries(new URLSearchParams(hashPart));
+      const fromQuery   = Object.fromEntries(new URLSearchParams(queryPart));
 
-      if (!accessToken) {
-        throw new Error("No access token returned");
+      const accessToken = fromHash.access_token ?? fromQuery.access_token ?? null;
+      const idToken     = fromHash.id_token     ?? fromQuery.id_token     ?? null;
+
+      if (!accessToken && !idToken) {
+        throw new Error("No tokens returned by Google");
       }
 
-      // Fetch user profile from Google
+      // Sign in to Firebase Auth using the Google credential
+      await firebaseGoogleSignIn(idToken, accessToken);
+
+      // Fetch Google profile (name + email)
       const userRes  = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: { Authorization: `Bearer ${accessToken ?? ""}` },
       });
       const userInfo = (await userRes.json()) as {
-        name?: string; email?: string; given_name?: string; sub?: string;
+        name?: string; email?: string; given_name?: string;
       };
 
       const googleEmail = userInfo.email ?? `google_${Date.now()}@tengri.social`;
-      const googleName  = userInfo.name ?? userInfo.given_name ?? (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
+      const googleName  = userInfo.name
+        ?? userInfo.given_name
+        ?? (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
 
       await finishLogin(googleName, googleEmail, "google");
-    } catch {
+    } catch (e) {
+      console.warn("[Google Sign-In]", e);
       setError(lang === "tr" ? "Google ile giriş başarısız." : "Google sign-in failed.");
     } finally {
       setGoogleLoading(false);

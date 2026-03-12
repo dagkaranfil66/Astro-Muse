@@ -40,12 +40,16 @@ export { db, auth };
 
 // ── Firebase Auth: Sign in with Google ───────────────────────────────────
 export async function firebaseGoogleSignIn(
-  idToken: string,
-  accessToken?: string,
+  idToken: string | null,
+  accessToken?: string | null,
 ): Promise<FirebaseUser | null> {
   try {
-    const credential = GoogleAuthProvider.credential(idToken, accessToken);
-    const result     = await signInWithCredential(auth, credential);
+    // GoogleAuthProvider accepts idToken, accessToken, or both
+    const credential = GoogleAuthProvider.credential(
+      idToken    || null,
+      accessToken || undefined,
+    );
+    const result = await signInWithCredential(auth, credential);
     return result.user;
   } catch (e) {
     console.warn('[Firebase] Google sign-in error:', e);
