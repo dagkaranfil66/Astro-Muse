@@ -14,7 +14,6 @@ import {
   serverTimestamp,
   Timestamp,
 } from 'firebase/firestore';
-import { Platform } from 'react-native';
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -22,7 +21,7 @@ const firebaseConfig = {
   projectId: 'tengri-astroloji',
   storageBucket: 'tengri-astroloji.firebasestorage.app',
   messagingSenderId: '317895705040',
-  appId: '1:317895705040:web:e0b3c8f1a2d4567890abcd',
+  appId: '1:317895705040:web:ffd878c9a9a64fe10b5339',
 };
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
