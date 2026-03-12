@@ -113,8 +113,7 @@
           "cameraPermission": "Fal yorumu için fotoğraf çekmenize olanak tanır.",
           "microphonePermission": false
         }
-      ],
-      "react-native-keyboard-controller"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
