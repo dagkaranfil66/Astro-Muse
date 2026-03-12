@@ -1,8 +1,16 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect, useRef } from "react";
-import { Platform, View, Image, StyleSheet, AppState, AppStateStatus } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Platform, View, Text, Image, StyleSheet,
+  AppState, AppStateStatus, Dimensions,
+} from "react-native";
+import Animated, {
+  useSharedValue, useAnimatedStyle,
+  withTiming, withSpring, withRepeat, withSequence, withDelay,
+  runOnJS, Easing,
+} from "react-native-reanimated";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -25,14 +33,12 @@ import {
 SplashScreen.preventAutoHideAsync();
 initializeRevenueCat();
 
-// expo-notifications was removed from Expo Go on Android in SDK 53.
-// Use dynamic require() so Android Expo Go doesn't crash.
 let Notifications: typeof NotificationsType | null = null;
 if (Platform.OS !== "web") {
   try {
     Notifications = require("expo-notifications");
   } catch {
-    // Expo Go on Android — notifications not available
+    // Expo Go on Android
   }
 }
 
@@ -47,17 +53,272 @@ if (Notifications) {
         shouldShowList: true,
       }),
     });
-  } catch {
-    // ignore if unavailable
-  }
+  } catch {}
 }
+
+// ── Animated Splash ────────────────────────────────────────────────────────
+
+const { width: SW, height: SH } = Dimensions.get("window");
+
+const STARS = [
+  { x: 0.12, y: 0.08, sz: 2.5, d: 80  },
+  { x: 0.82, y: 0.06, sz: 1.8, d: 200 },
+  { x: 0.45, y: 0.04, sz: 1.4, d: 340 },
+  { x: 0.93, y: 0.22, sz: 2.0, d: 120 },
+  { x: 0.05, y: 0.28, sz: 1.6, d: 460 },
+  { x: 0.68, y: 0.18, sz: 1.2, d: 280 },
+  { x: 0.28, y: 0.14, sz: 2.2, d: 560 },
+  { x: 0.55, y: 0.32, sz: 1.0, d: 400 },
+  { x: 0.88, y: 0.45, sz: 1.8, d: 180 },
+  { x: 0.03, y: 0.55, sz: 2.0, d: 640 },
+  { x: 0.75, y: 0.60, sz: 1.4, d: 320 },
+  { x: 0.20, y: 0.72, sz: 2.4, d: 100 },
+  { x: 0.92, y: 0.70, sz: 1.6, d: 500 },
+  { x: 0.38, y: 0.80, sz: 1.2, d: 240 },
+  { x: 0.60, y: 0.86, sz: 2.0, d: 380 },
+  { x: 0.10, y: 0.90, sz: 1.8, d: 60  },
+  { x: 0.50, y: 0.93, sz: 1.0, d: 430 },
+  { x: 0.80, y: 0.88, sz: 2.2, d: 300 },
+  { x: 0.35, y: 0.50, sz: 1.4, d: 700 },
+  { x: 0.72, y: 0.38, sz: 1.0, d: 520 },
+];
+
+function SplashStar({ x, y, sz, d }: { x: number; y: number; sz: number; d: number }) {
+  const opacity = useSharedValue(0);
+  useEffect(() => {
+    opacity.value = withDelay(d, withTiming(1, { duration: 600 }));
+  }, []);
+  const style = useAnimatedStyle(() => ({ opacity: opacity.value }));
+  return (
+    <Animated.View
+      style={[{
+        position: "absolute",
+        left: x * SW,
+        top: y * SH,
+        width: sz,
+        height: sz,
+        borderRadius: sz / 2,
+        backgroundColor: "#E8D5A0",
+      }, style]}
+    />
+  );
+}
+
+// Shooting star — one quick streak
+function ShootingStar({ delay }: { delay: number }) {
+  const x = useSharedValue(-60);
+  const opacity = useSharedValue(0);
+  useEffect(() => {
+    setTimeout(() => {
+      opacity.value = withSequence(
+        withTiming(1,  { duration: 100 }),
+        withTiming(0,  { duration: 400 }),
+      );
+      x.value = withTiming(SW + 60, { duration: 500, easing: Easing.linear });
+    }, delay);
+  }, []);
+  const style = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateX: x.value }],
+  }));
+  return (
+    <Animated.View
+      style={[{
+        position: "absolute",
+        top: SH * 0.22,
+        left: SW * 0.1,
+        width: 60,
+        height: 1,
+        backgroundColor: "rgba(232,213,160,0.9)",
+        borderRadius: 1,
+      }, style]}
+    />
+  );
+}
+
+function AnimatedSplashScreen({ onDone }: { onDone: () => void }) {
+  const exitOpacity   = useSharedValue(1);
+  const logoOpacity   = useSharedValue(0);
+  const logoScale     = useSharedValue(0.6);
+  const glowOpacity   = useSharedValue(0);
+  const ringRotate    = useSharedValue(0);
+  const titleY        = useSharedValue(28);
+  const titleOpacity  = useSharedValue(0);
+  const subOpacity    = useSharedValue(0);
+  const dividerWidth  = useSharedValue(0);
+
+  useEffect(() => {
+    // Logo appears
+    logoOpacity.value = withTiming(1, { duration: 550, easing: Easing.out(Easing.cubic) });
+    logoScale.value   = withSpring(1, { damping: 13, stiffness: 80 });
+
+    // Rotating ring
+    ringRotate.value  = withRepeat(withTiming(360, { duration: 6000, easing: Easing.linear }), -1, false);
+
+    // Glow pulse
+    glowOpacity.value = withDelay(450, withRepeat(
+      withSequence(
+        withTiming(0.85, { duration: 1000 }),
+        withTiming(0.35, { duration: 1000 }),
+      ), -1, true,
+    ));
+
+    // Title slides up
+    titleY.value       = withDelay(620, withSpring(0, { damping: 16 }));
+    titleOpacity.value = withDelay(620, withTiming(1, { duration: 420 }));
+
+    // Divider expands
+    dividerWidth.value = withDelay(820, withTiming(64, { duration: 500, easing: Easing.out(Easing.cubic) }));
+
+    // Subtitle
+    subOpacity.value   = withDelay(950, withTiming(1, { duration: 420 }));
+
+    // Exit
+    exitOpacity.value  = withDelay(2000, withTiming(0, { duration: 550 }, (done) => {
+      if (done) runOnJS(onDone)();
+    }));
+  }, []);
+
+  const containerStyle = useAnimatedStyle(() => ({ opacity: exitOpacity.value }));
+  const logoStyle      = useAnimatedStyle(() => ({
+    opacity: logoOpacity.value,
+    transform: [{ scale: logoScale.value }],
+  }));
+  const glowStyle      = useAnimatedStyle(() => ({ opacity: glowOpacity.value }));
+  const ringStyle      = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${ringRotate.value}deg` }],
+  }));
+  const titleStyle     = useAnimatedStyle(() => ({
+    opacity: titleOpacity.value,
+    transform: [{ translateY: titleY.value }],
+  }));
+  const divStyle       = useAnimatedStyle(() => ({ width: dividerWidth.value }));
+  const subStyle       = useAnimatedStyle(() => ({ opacity: subOpacity.value }));
+
+  return (
+    <Animated.View style={[sp.container, containerStyle]}>
+      <LinearGradient
+        colors={["#060214", "#08051A", "#050F1E"]}
+        style={StyleSheet.absoluteFill}
+      />
+
+      {/* Stars */}
+      {STARS.map((s, i) => <SplashStar key={i} {...s} />)}
+      <ShootingStar delay={700} />
+      <ShootingStar delay={1300} />
+
+      {/* Logo area */}
+      <View style={sp.logoArea}>
+        {/* Outer glow */}
+        <Animated.View style={[sp.glowOuter, glowStyle]} />
+        <Animated.View style={[sp.glowMid,   glowStyle]} />
+        <Animated.View style={[sp.glowInner, glowStyle]} />
+
+        {/* Rotating golden ring */}
+        <Animated.View style={[sp.ring, ringStyle]} />
+
+        {/* Logo */}
+        <Animated.View style={logoStyle}>
+          <Image
+            source={require("@/assets/images/tengri-logo.png")}
+            style={sp.logo}
+            resizeMode="contain"
+            fadeDuration={0}
+          />
+        </Animated.View>
+      </View>
+
+      {/* Text block */}
+      <Animated.View style={[sp.textBlock, titleStyle]}>
+        <Text style={sp.title}>TENGRI</Text>
+        <Animated.View style={[sp.divider, divStyle]} />
+        <Animated.Text style={[sp.subtitle, subStyle]}>
+          ✦  Mistik Rehberlik  ✦
+        </Animated.Text>
+      </Animated.View>
+    </Animated.View>
+  );
+}
+
+const sp = StyleSheet.create({
+  container: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#060214",
+  },
+  logoArea: {
+    width: 180,
+    height: 180,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 28,
+  },
+  glowOuter: {
+    position: "absolute",
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: "rgba(212,175,55,0.14)",
+  },
+  glowMid: {
+    position: "absolute",
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: "rgba(212,175,55,0.22)",
+  },
+  glowInner: {
+    position: "absolute",
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "rgba(212,175,55,0.18)",
+  },
+  ring: {
+    position: "absolute",
+    width: 162,
+    height: 162,
+    borderRadius: 81,
+    borderWidth: 1.5,
+    borderColor: "rgba(212,175,55,0.55)",
+    borderStyle: "dashed",
+  },
+  logo: {
+    width: 120,
+    height: 120,
+  },
+  textBlock: {
+    alignItems: "center",
+    gap: 0,
+  },
+  title: {
+    fontSize: 34,
+    fontFamily: "CinzelDecorative_700Bold",
+    color: "#D4AF37",
+    letterSpacing: 10,
+    marginBottom: 12,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "rgba(212,175,55,0.55)",
+    marginBottom: 12,
+  },
+  subtitle: {
+    fontSize: 13,
+    fontFamily: "Lora_400Regular_Italic",
+    color: "rgba(212,175,55,0.75)",
+    letterSpacing: 2.5,
+  },
+});
+
+// ── App navigation ─────────────────────────────────────────────────────────
 
 function RootLayoutNav() {
   const { isLoaded, hasSeenOnboarding, zodiacSign } = useApp();
   const { lang } = useLang();
   const appState = useRef<AppStateStatus>(AppState.currentState);
 
-  // Setup all daily notifications once on mount
   useEffect(() => {
     (async () => {
       const granted = await requestNotificationPermission();
@@ -67,7 +328,6 @@ function RootLayoutNav() {
     })();
   }, [lang, zodiacSign]);
 
-  // Re-engagement: schedule when backgrounded, cancel when foregrounded
   useEffect(() => {
     const sub = AppState.addEventListener("change", async (next: AppStateStatus) => {
       const prev = appState.current;
@@ -88,7 +348,6 @@ function RootLayoutNav() {
     }
   }, [isLoaded, hasSeenOnboarding]);
 
-  // Deep-link routing on notification tap
   useEffect(() => {
     if (!Notifications || Platform.OS === "web") return;
     let sub: ReturnType<typeof Notifications.addNotificationResponseReceivedListener> | null = null;
@@ -107,23 +366,21 @@ function RootLayoutNav() {
           router.back();
         }
       });
-    } catch {
-      // ignore
-    }
+    } catch {}
     return () => { sub?.remove(); };
   }, []);
 
   return (
     <Stack screenOptions={{ headerBackTitle: "Geri", headerShown: false }}>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
+      <Stack.Screen name="(tabs)"          options={{ headerShown: false }} />
+      <Stack.Screen name="onboarding"      options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="reading/[service]" options={{ headerShown: false, presentation: "card" }} />
-      <Stack.Screen name="purchase" options={{ headerShown: false, presentation: "modal" }} />
-      <Stack.Screen name="auth" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="purchase"        options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="auth"            options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="daily-horoscope" options={{ headerShown: false, presentation: "modal" }} />
-      <Stack.Screen name="spin" options={{ headerShown: false, presentation: "modal" }} />
-      <Stack.Screen name="legal" options={{ headerShown: false, presentation: "modal" }} />
-      <Stack.Screen name="guide" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="spin"            options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="legal"           options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="guide"           options={{ headerShown: false, presentation: "modal" }} />
     </Stack>
   );
 }
@@ -137,19 +394,22 @@ export default function RootLayout() {
     Lora_700Bold,
   });
 
+  const [splashDone, setSplashDone] = useState(false);
+
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);
 
+  // Phase 1: fonts still loading — static fallback
   if (!fontsLoaded && !fontError) {
     return (
-      <View style={splashStyles.container}>
-        <LinearGradient colors={["#08051A", "#070D1A", "#0D0820"]} style={StyleSheet.absoluteFill} />
+      <View style={fallbackStyles.container}>
+        <LinearGradient colors={["#060214", "#08051A", "#050F1E"]} style={StyleSheet.absoluteFill} />
         <Image
           source={require("@/assets/images/tengri-logo.png")}
-          style={splashStyles.logo}
+          style={fallbackStyles.logo}
           resizeMode="contain"
           fadeDuration={0}
         />
@@ -157,6 +417,12 @@ export default function RootLayout() {
     );
   }
 
+  // Phase 2: fonts loaded, animated splash running
+  if (!splashDone) {
+    return <AnimatedSplashScreen onDone={() => setSplashDone(true)} />;
+  }
+
+  // Phase 3: app
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
@@ -176,7 +442,7 @@ export default function RootLayout() {
   );
 }
 
-const splashStyles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#08051A", alignItems: "center", justifyContent: "center" },
-  logo: { width: 160, height: 160 },
+const fallbackStyles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#060214", alignItems: "center", justifyContent: "center" },
+  logo:      { width: 120, height: 120 },
 });
