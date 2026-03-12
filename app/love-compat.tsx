@@ -179,8 +179,8 @@ function StepProgress({ current }: { current: number }) {
   );
 }
 
-function StepHint({ text }: { text: string }) {
-  return <Text style={styles.stepHint}>{text}</Text>;
+function StepHint({ text, children }: { text?: string; children?: React.ReactNode }) {
+  return <Text style={styles.stepHint}>{text ?? children}</Text>;
 }
 
 function ChipSelect({ options, value, onChange }: {
@@ -327,7 +327,7 @@ export default function LoveCompatScreen() {
 
   // ── Detailed result (AI, costs gold)
   const unlockDetail = async () => {
-    if (!spendGold(GOLD_COST)) { setShowGoldModal(true); return; }
+    if (!spendGold("ask")) { setShowGoldModal(true); return; }
     setPhase("streaming");
     setFullText("");
     scrollRef.current?.scrollTo({ y: 0, animated: true });

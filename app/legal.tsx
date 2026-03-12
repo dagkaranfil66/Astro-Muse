@@ -140,7 +140,7 @@ function Section({
   section,
   index,
 }: {
-  section: (typeof PRIVACY_SECTIONS)[0];
+  section: (typeof PRIVACY_SECTIONS)[0] | (typeof TERMS_SECTIONS)[0];
   index: number;
 }) {
   return (
@@ -158,7 +158,7 @@ function Section({
           <Text style={styles.bulletText}>{item}</Text>
         </View>
       ))}
-      {section.footer ? (
+      {('footer' in section) && section.footer ? (
         <Text style={[styles.cardBody, { marginTop: 8 }]}>
           {section.footer}
         </Text>

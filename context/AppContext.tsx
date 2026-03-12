@@ -1,6 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useMemo, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FREE_START_GOLD, SERVICE_GOLD_COST } from '@/constants/serviceConfig';
+import {
+  fsGetUser, fsCreateUser, fsUpdateUser, fsAddReading, fsGetReadings,
+  FSUserData, FSReading,
+} from '@/lib/firebase';
 
 export interface Reading {
   id: string;
@@ -58,7 +62,7 @@ const GLOBAL_KEYS = {
   onboarding: 'tengri_onboarding_done',
 };
 
-// User-scoped keys — one namespace per email address
+// User-scoped AsyncStorage keys — fast local cache
 function userKeys(email: string) {
   const safe = email.toLowerCase().replace(/[^a-z0-9]/g, '_');
   return {
@@ -93,17 +97,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
   const [showWelcomeBonus, setShowWelcomeBonus]   = useState(false);
 
-  // Track current user's email so write helpers can scope their keys
   const emailRef = useRef<string | null>(null);
 
-  // ── Helpers ────────────────────────────────────────────────────────────
   function uKeys() {
     return emailRef.current ? userKeys(emailRef.current) : null;
   }
 
-  // Load user-specific data for a given email
+  // ── Load user data (AsyncStorage first, then sync from Firestore) ────────
   async function loadUserData(email: string) {
     const k = userKeys(email);
+
+    // 1. Load from local cache immediately (fast)
     const [goldStr, readStr, photoStr, spinStr, tcStr, ipStr, zodStr, dfStr, wbStr] = await Promise.all([
       AsyncStorage.getItem(k.gold),
       AsyncStorage.getItem(k.readings),
@@ -116,29 +120,76 @@ export function AppProvider({ children }: { children: ReactNode }) {
       AsyncStorage.getItem(k.welcomeBonus),
     ]);
 
-    const isNewUser = goldStr === null;
+    const isNewLocal = goldStr === null;
     let startGold = goldStr !== null ? parseInt(goldStr, 10) : FREE_START_GOLD;
 
-    // One-time welcome bonus: +15 gold for brand new accounts
-    if (isNewUser && wbStr === null) {
-      startGold = startGold + 15;
-      await AsyncStorage.setItem(k.welcomeBonus, 'given');
-      await AsyncStorage.setItem(k.gold, String(startGold));
-      console.log('[Tengri] Welcome bonus granted: +15 gold');
-      setShowWelcomeBonus(true);
+    // 2. Try Firestore — merge if cloud data is newer/different
+    const fsData = await fsGetUser(email);
+
+    if (fsData) {
+      // Existing Firestore user — prefer cloud values
+      startGold = fsData.goldBalance;
+      await Promise.all([
+        AsyncStorage.setItem(k.gold, String(fsData.goldBalance)),
+        AsyncStorage.setItem(k.lastSpin, fsData.lastSpinDate ?? ''),
+        AsyncStorage.setItem(k.trialCount, String(fsData.trialCount)),
+        AsyncStorage.setItem(k.isPurchased, fsData.isPurchased ? 'true' : 'false'),
+        AsyncStorage.setItem(k.zodiac, fsData.zodiacSign ?? ''),
+        AsyncStorage.setItem(k.dailyFree, fsData.lastDailyFreeDate ?? ''),
+        AsyncStorage.setItem(k.welcomeBonus, fsData.welcomeBonusGiven ? 'given' : ''),
+      ]);
+      setLastSpinDate(fsData.lastSpinDate ?? null);
+      setTrialCount(fsData.trialCount);
+      setIsPurchased(fsData.isPurchased);
+      setZodiacState(fsData.zodiacSign ?? null);
+      setLastDailyFreeDateState(fsData.lastDailyFreeDate ?? null);
+
+      // Load readings from Firestore subcollection
+      const fsReadings = await fsGetReadings(email);
+      if (fsReadings.length > 0) {
+        setReadings(fsReadings);
+        await AsyncStorage.setItem(k.readings, JSON.stringify(fsReadings));
+      } else {
+        setReadings(readStr ? JSON.parse(readStr) : []);
+      }
+    } else {
+      // New Firestore user — use local cache or defaults
+      if (isNewLocal && wbStr === null) {
+        startGold = startGold + 15;
+        await AsyncStorage.setItem(k.welcomeBonus, 'given');
+        await AsyncStorage.setItem(k.gold, String(startGold));
+        console.log('[Tengri] Welcome bonus granted: +15 gold');
+        setShowWelcomeBonus(true);
+      }
+
+      setLastSpinDate(spinStr ?? null);
+      setTrialCount(tcStr ? parseInt(tcStr, 10) : 0);
+      setIsPurchased(ipStr === 'true');
+      setZodiacState(zodStr ?? null);
+      setLastDailyFreeDateState(dfStr ?? null);
+      setReadings(readStr ? JSON.parse(readStr) : []);
+
+      // Create Firestore document for this user
+      const newDoc: FSUserData = {
+        email,
+        name: '',
+        joinDate: new Date().toISOString(),
+        goldBalance: startGold,
+        zodiacSign: zodStr ?? null,
+        isPurchased: ipStr === 'true',
+        lastSpinDate: spinStr ?? null,
+        lastDailyFreeDate: dfStr ?? null,
+        trialCount: tcStr ? parseInt(tcStr, 10) : 0,
+        welcomeBonusGiven: true,
+      };
+      await fsCreateUser(newDoc);
     }
 
     setGoldBalance(startGold);
-    setReadings(readStr ? JSON.parse(readStr) : []);
     setProfilePhotoState(photoStr ?? null);
-    setLastSpinDate(spinStr ?? null);
-    setTrialCount(tcStr ? parseInt(tcStr, 10) : 0);
-    setIsPurchased(ipStr === 'true');
-    setZodiacState(zodStr ?? null);
-    setLastDailyFreeDateState(dfStr ?? null);
   }
 
-  // ── Initial load ───────────────────────────────────────────────────────
+  // ── Initial load ──────────────────────────────────────────────────────────
   useEffect(() => {
     (async () => {
       try {
@@ -161,18 +212,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })();
   }, []);
 
-  // ── Service cost ───────────────────────────────────────────────────────
+  // ── Service cost ───────────────────────────────────────────────────────────
   const getServiceCost = (service: string) => SERVICE_GOLD_COST[service] ?? 2;
   const canAfford = (service: string) => goldBalance >= getServiceCost(service);
 
-  // ── Gold ───────────────────────────────────────────────────────────────
+  // ── Gold ──────────────────────────────────────────────────────────────────
   const spendGold = (service: string): boolean => {
     const cost = getServiceCost(service);
     if (goldBalance < cost) return false;
     const next = goldBalance - cost;
     setGoldBalance(next);
     const k = uKeys();
-    if (k) AsyncStorage.setItem(k.gold, String(next));
+    if (k) {
+      AsyncStorage.setItem(k.gold, String(next));
+      if (emailRef.current) fsUpdateUser(emailRef.current, { goldBalance: next });
+    }
     return true;
   };
 
@@ -180,10 +234,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const next = goldBalance + amount;
     setGoldBalance(next);
     const k = uKeys();
-    if (k) AsyncStorage.setItem(k.gold, String(next));
+    if (k) {
+      AsyncStorage.setItem(k.gold, String(next));
+      if (emailRef.current) fsUpdateUser(emailRef.current, { goldBalance: next });
+    }
   };
 
-  // ── Readings ───────────────────────────────────────────────────────────
+  // ── Readings ──────────────────────────────────────────────────────────────
   const addReading = async (reading: Omit<Reading, 'id' | 'date'>): Promise<string> => {
     const newReading: Reading = {
       ...reading,
@@ -194,13 +251,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const updated = [newReading, ...readings];
     setReadings(updated);
     const k = uKeys();
-    if (k) await AsyncStorage.setItem(k.readings, JSON.stringify(updated));
+    if (k) {
+      await AsyncStorage.setItem(k.readings, JSON.stringify(updated));
+    }
+    if (emailRef.current) {
+      await fsAddReading(emailRef.current, newReading as FSReading);
+    }
     return newReading.id;
   };
 
-  // ── Profile ────────────────────────────────────────────────────────────
+  // ── Profile ───────────────────────────────────────────────────────────────
   const setUserProfile = async (profile: UserProfile) => {
-    // Reset state before loading new user's data
     setGoldBalance(FREE_START_GOLD);
     setReadings([]);
     setProfilePhotoState(null);
@@ -214,8 +275,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setProfileState(profile);
     await AsyncStorage.setItem(GLOBAL_KEYS.profile, JSON.stringify(profile));
 
-    // Load this user's stored data (or stay at defaults if new user)
     await loadUserData(profile.email);
+
+    // Sync name to Firestore
+    await fsUpdateUser(profile.email, { name: profile.name, email: profile.email });
   };
 
   const clearUserProfile = async () => {
@@ -232,7 +295,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await AsyncStorage.removeItem(GLOBAL_KEYS.profile);
   };
 
-  // ── Photo ──────────────────────────────────────────────────────────────
+  // ── Photo ─────────────────────────────────────────────────────────────────
   const setProfilePhoto = async (uri: string | null) => {
     setProfilePhotoState(uri);
     const k = uKeys();
@@ -241,7 +304,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     else     await AsyncStorage.removeItem(k.profilePhoto);
   };
 
-  // ── Spin / daily free ──────────────────────────────────────────────────
+  // ── Spin / daily free ─────────────────────────────────────────────────────
   const canSpin      = isSpinAvailable(lastSpinDate);
   const canDailyFree = isSpinAvailable(lastDailyFreeDate);
 
@@ -250,6 +313,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setLastDailyFreeDateState(now);
     const k = uKeys();
     if (k) await AsyncStorage.setItem(k.dailyFree, now);
+    if (emailRef.current) fsUpdateUser(emailRef.current, { lastDailyFreeDate: now });
   };
 
   const performSpin = async (prize: number) => {
@@ -257,10 +321,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setLastSpinDate(now);
     const k = uKeys();
     if (k) await AsyncStorage.setItem(k.lastSpin, now);
+    if (emailRef.current) fsUpdateUser(emailRef.current, { lastSpinDate: now });
     addGold(prize);
   };
 
-  // ── Trials / purchase ──────────────────────────────────────────────────
+  // ── Trials / purchase ─────────────────────────────────────────────────────
   const totalSpent = readings.reduce((s, r) => s + (r.goldSpent ?? 0), 0);
 
   const consumeTrial = () => {
@@ -268,23 +333,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setTrialCount(next);
     const k = uKeys();
     if (k) AsyncStorage.setItem(k.trialCount, String(next));
+    if (emailRef.current) fsUpdateUser(emailRef.current, { trialCount: next });
   };
 
   const purchase = () => {
     setIsPurchased(true);
     const k = uKeys();
     if (k) AsyncStorage.setItem(k.isPurchased, 'true');
+    if (emailRef.current) fsUpdateUser(emailRef.current, { isPurchased: true });
     addGold(30);
   };
 
-  // ── Zodiac ─────────────────────────────────────────────────────────────
+  // ── Zodiac ────────────────────────────────────────────────────────────────
   const setZodiacSign = async (sign: string) => {
     setZodiacState(sign);
     const k = uKeys();
     if (k) await AsyncStorage.setItem(k.zodiac, sign);
+    if (emailRef.current) fsUpdateUser(emailRef.current, { zodiacSign: sign });
   };
 
-  // ── Onboarding ─────────────────────────────────────────────────────────
+  // ── Onboarding ────────────────────────────────────────────────────────────
   const markOnboardingDone = async () => {
     setHasSeenOnboarding(true);
     await AsyncStorage.setItem(GLOBAL_KEYS.onboarding, 'true');

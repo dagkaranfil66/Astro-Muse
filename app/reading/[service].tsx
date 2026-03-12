@@ -12,6 +12,7 @@ import {
   Linking,
   Image,
   Dimensions,
+  Alert,
 } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { router, useLocalSearchParams } from "expo-router";
@@ -462,7 +463,7 @@ const DEFAULT_SHARE_COPY = { headerTR: "YORUMUNU PAYLAŞ", btnTR: "Yorumumu Payl
 
 function SharePanel({ text, serviceLabel, readingId, service }: { text: string; serviceLabel: string; readingId: string | null; service: string }) {
   const { t, lang } = useLang();
-  const { addGold } = useApp();
+  const { addGold, userProfile } = useApp();
   const copy = SERVICE_SHARE_COPY[service] ?? DEFAULT_SHARE_COPY;
   const [copied, setCopied] = useState(false);
 
