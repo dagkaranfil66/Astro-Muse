@@ -190,6 +190,23 @@ export default function ProfileScreen() {
     }
   };
 
+  const uriToDataUri = async (uri: string, base64: string | null | undefined): Promise<string | null> => {
+    if (base64) return `data:image/jpeg;base64,${base64}`;
+    if (Platform.OS === "web" && uri) {
+      try {
+        const res = await fetch(uri);
+        const blob = await res.blob();
+        return await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      } catch { return uri; }
+    }
+    return uri || null;
+  };
+
   const pickFromGallery = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
@@ -210,15 +227,24 @@ export default function ProfileScreen() {
       });
       if (!result.canceled && result.assets[0]) {
         const asset = result.assets[0];
-        const dataUri = `data:image/jpeg;base64,${asset.base64}`;
-        await setProfilePhoto(dataUri);
+        const dataUri = await uriToDataUri(asset.uri, asset.base64);
+        if (dataUri) await setProfilePhoto(dataUri);
       }
+    } catch (e) {
+      console.warn("[Profile] Gallery pick error:", e);
     } finally {
       setPhotoLoading(false);
     }
   };
 
   const pickFromCamera = async () => {
+    if (Platform.OS === "web") {
+      Alert.alert(
+        lang === "tr" ? "Kamera Desteklenmiyor" : "Camera Not Supported",
+        lang === "tr" ? "Web sürümünde kamera kullanılamaz. Galeriden fotoğraf seçin." : "Camera is not available on web. Please choose from gallery."
+      );
+      return;
+    }
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) {
       Alert.alert(
@@ -237,9 +263,11 @@ export default function ProfileScreen() {
       });
       if (!result.canceled && result.assets[0]) {
         const asset = result.assets[0];
-        const dataUri = `data:image/jpeg;base64,${asset.base64}`;
-        await setProfilePhoto(dataUri);
+        const dataUri = await uriToDataUri(asset.uri, asset.base64);
+        if (dataUri) await setProfilePhoto(dataUri);
       }
+    } catch (e) {
+      console.warn("[Profile] Camera pick error:", e);
     } finally {
       setPhotoLoading(false);
     }
@@ -264,10 +292,11 @@ export default function ProfileScreen() {
         }
       );
     } else {
-      const buttons: any[] = [
-        { text: lang === "tr" ? "Kameradan Çek" : "Take Photo", onPress: pickFromCamera },
-        { text: lang === "tr" ? "Galeriden Seç" : "Choose from Gallery", onPress: pickFromGallery },
-      ];
+      const buttons: any[] = [];
+      if (Platform.OS !== "web") {
+        buttons.push({ text: lang === "tr" ? "Kameradan Çek" : "Take Photo", onPress: pickFromCamera });
+      }
+      buttons.push({ text: lang === "tr" ? "Galeriden Seç" : "Choose from Gallery", onPress: pickFromGallery });
       if (profilePhotoUri) {
         buttons.push({ text: lang === "tr" ? "Fotoğrafı Kaldır" : "Remove Photo", style: "destructive", onPress: () => setProfilePhoto(null) });
       }
