@@ -123,6 +123,38 @@ function TengriWelcomeOrb() {
   );
 }
 
+// ── Legal note with tappable links ───────────────────────────────────────
+function LegalNote({ lang }: { lang: string }) {
+  if (lang === "tr") {
+    return (
+      <Text style={styles.legalNote}>
+        {"Devam ederek "}
+        <Text style={styles.legalLink} onPress={() => router.push("/legal?doc=privacy" as any)}>
+          Gizlilik Politikası
+        </Text>
+        {" ve "}
+        <Text style={styles.legalLink} onPress={() => router.push("/legal?doc=terms" as any)}>
+          Kullanım Koşulları
+        </Text>
+        {"'nı kabul etmiş olursunuz."}
+      </Text>
+    );
+  }
+  return (
+    <Text style={styles.legalNote}>
+      {"By continuing you accept our "}
+      <Text style={styles.legalLink} onPress={() => router.push("/legal?doc=privacy" as any)}>
+        Privacy Policy
+      </Text>
+      {" and "}
+      <Text style={styles.legalLink} onPress={() => router.push("/legal?doc=terms" as any)}>
+        Terms of Use
+      </Text>
+      {"."}
+    </Text>
+  );
+}
+
 // ── Screen ────────────────────────────────────────────────────────────────
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
@@ -398,11 +430,7 @@ export default function AuthScreen() {
 
               {!!error && <Text style={styles.errorText}>{error}</Text>}
 
-              <Text style={styles.legalNote}>
-                {lang === "tr"
-                  ? "Devam ederek Gizlilik Politikası ve Kullanım Koşulları'nı kabul etmiş olursunuz."
-                  : "By continuing you accept our Privacy Policy and Terms of Use."}
-              </Text>
+              <LegalNote lang={lang} />
             </Animated.View>
           )}
 
@@ -609,6 +637,12 @@ const styles = StyleSheet.create({
     lineHeight: 15,
     paddingHorizontal: 16,
     marginTop: 4,
+  },
+  legalLink: {
+    color: Colors.gold,
+    textDecorationLine: "underline",
+    fontFamily: "Lora_700Bold",
+    fontSize: 10,
   },
 
   // ── Email form ───────────────────────────────────────────────────────

@@ -493,6 +493,32 @@ export default function ProfileScreen() {
             </>
           )}
         </Animated.View>
+
+        {/* Legal Links */}
+        <Animated.View entering={FadeInDown.delay(400).springify()} style={styles.section}>
+          <Text style={styles.sectionTitle}>{lang === "tr" ? "✦ Yasal" : "✦ Legal"}</Text>
+          <Pressable
+            onPress={() => router.push("/legal?doc=privacy" as any)}
+            style={styles.actionBtn}
+          >
+            <LinearGradient colors={["#0D0820", "#0A0D1A"]} style={styles.actionBtnInner}>
+              <Ionicons name="shield-checkmark-outline" size={18} color={Colors.textSecondary} />
+              <Text style={styles.actionBtnText}>{lang === "tr" ? "Gizlilik Politikası" : "Privacy Policy"}</Text>
+              <Ionicons name="chevron-forward" size={16} color={Colors.textDim} />
+            </LinearGradient>
+          </Pressable>
+          <Pressable
+            onPress={() => router.push("/legal?doc=terms" as any)}
+            style={styles.actionBtn}
+          >
+            <LinearGradient colors={["#0D0820", "#0A0D1A"]} style={styles.actionBtnInner}>
+              <Ionicons name="document-text-outline" size={18} color={Colors.textSecondary} />
+              <Text style={styles.actionBtnText}>{lang === "tr" ? "Kullanım Koşulları" : "Terms of Use"}</Text>
+              <Ionicons name="chevron-forward" size={16} color={Colors.textDim} />
+            </LinearGradient>
+          </Pressable>
+        </Animated.View>
+
       </ScrollView>
     </View>
   );
