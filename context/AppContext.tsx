@@ -173,10 +173,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } else {
       // New Firestore user — use local cache or defaults
       if (isNewLocal && wbStr === null) {
-        startGold = startGold + 15;
         await AsyncStorage.setItem(k.welcomeBonus, 'given');
         await AsyncStorage.setItem(k.gold, String(startGold));
-        console.log('[Tengri] Welcome bonus granted: +15 gold');
         setShowWelcomeBonus(true);
       }
 
