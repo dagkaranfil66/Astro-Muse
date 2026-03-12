@@ -2,6 +2,30 @@
 
 Turkish mystical guidance app with AI-powered readings (tengristar.com).
 
+## Growth & Monetization Layer (service/hook/component architecture)
+- `services/storageService.ts` — Typed AsyncStorage wrapper + key factory (Supabase-migration-ready)
+- `services/goldService.ts` — Gold CRUD (uses same AsyncStorage keys as AppContext)
+- `services/userIdentityService.ts` — Guest UUID, first-time flags (welcome, first coffee), guest→user migration structure
+- `services/shareRewardService.ts` — Share reward API caller (+2/share, max 3/day) via `/api/share/claim-reward`
+- `services/referralService.ts` — Referral code gen/claim (+5/+5 gold, local anti-abuse)
+- `services/dailyWheelService.ts` — Daily wheel can-spin check & perform-spin (outside React)
+- `services/purchaseService.ts` — RevenueCat purchase wrapper (caller adds gold via AppContext)
+- `utils/shareMessageBuilder.ts` — TR/EN share message templates with referral code embedding
+- `utils/categoryPricing.ts` — Service pricing helpers (affordability check, package recommendation)
+- `hooks/useGold.ts` — Gold state from AppContext + affordability helpers
+- `hooks/useReferral.ts` — Referral code state + claimCode() + shareMyCode()
+- `hooks/useShareReward.ts` — Share reward flow state machine with cooldown countdown
+- `hooks/useDailyWheel.ts` — Live countdown to next spin (ticks every second)
+- `hooks/useUserIdentity.ts` — Guest/user state, first-free-coffee flag
+- `components/WelcomeGiftCard.tsx` — Animated welcome bonus card (+FREE_START_GOLD gold)
+- `components/FreeCoffeeHighlight.tsx` — One-time first-free-coffee banner (auto-hides after use)
+- `components/ShareRewardCard.tsx` — Share-to-earn card with status machine UI
+- `components/ReferralCard.tsx` — Referral code display + copy + share
+- `components/ReferralCodeInput.tsx` — Referral code entry form with validation
+- `components/DailyWheelCountdown.tsx` — Wheel countdown widget (compact + full variants)
+- `components/GoldRequiredModal.tsx` — Gold-insufficient bottom sheet with Buy/Spin CTAs
+- `components/PurchaseSuccessCard.tsx` — Animated purchase success card with gold award display
+
 ## Features
 - 11 AI-powered services: Astroloji, Kahve Falı, El Falı, Tarot, Şamanizm, Numeroloji, Ruh, Doğum, Rüya, Burçlar, Aşk
 - Gold coin economy: 10 free start coins, per-service pricing, 4 purchase packages
