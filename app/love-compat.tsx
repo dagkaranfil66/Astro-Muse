@@ -347,7 +347,7 @@ export default function LoveCompatScreen() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ service: "ask", userInput: prompt }),
+        body: JSON.stringify({ service: "ask", lang, userInput: prompt }),
       });
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();

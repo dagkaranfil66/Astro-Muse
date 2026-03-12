@@ -394,7 +394,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/reading", async (req: Request, res: Response) => {
     try {
-      const { service, userInput, imageBase64, imageType, images, userName, birthDate, focusArea } = req.body;
+      const { service, lang, userInput, imageBase64, imageType, images, userName, birthDate, focusArea } = req.body;
       if (!service) return res.status(400).json({ error: "Servis türü gerekli" });
       const validServices = ["astroloji","kahve","el","tarot","samanizm","numeroloji","ruh","dogum","ruya","burclar","ask","compat","crystal"];
       if (!validServices.includes(service)) return res.status(400).json({ error: "Geçersiz servis" });
@@ -407,7 +407,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (focusArea) systemPrompt += ` Odak alanı: ${focusArea}.`;
         systemPrompt += " Bu bilgilere göre yorumu tamamen kişiselleştir. Mümkünse kullanıcıya adıyla hitap et.]";
       }
-      const userMessage = userInput || "Benim için mistik bir okuma yap.";
+      if (lang === "en") {
+        systemPrompt += "\n\nCRITICAL INSTRUCTION: You MUST respond entirely in English. All section headers, all body text, everything must be in English. Do not use Turkish.";
+      }
+      const userMessage = userInput || (lang === "en" ? "Give me a mystical reading." : "Benim için mistik bir okuma yap.");
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
@@ -470,9 +473,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (focusArea) basePrompt += ` Odak alanı: ${focusArea}.`;
         basePrompt += " Bu bilgilere göre yorumu tamamen kişiselleştir. Mümkünse kullanıcıya adıyla hitap et.]";
       }
-      const teaserPrompt = `${basePrompt}
+      const langInstruction = lang === "en"
+        ? "\n\nCRITICAL INSTRUCTION: You MUST respond entirely in English. All section headers, all body text, everything must be in English. Do not use Turkish."
+        : "";
+      const teaserPrompt = `${basePrompt}${langInstruction}
 
-ÖNEMLİ: Bu ücretsiz bir ön okuma önizlemesidir. 4-6 cümle yaz, gizemli ve merak uyandırıcı bir ton kullan, metnin ortasında cümleyi tam bitirme — kullanıcı devamını görmek için ödeme yapmalı. Türkçe veya İngilizce yaz (kullanıcı diline göre).`;
+${lang === "en" ? "IMPORTANT: This is a free preview reading. Write 4-6 sentences, use a mysterious and intriguing tone, do not finish the sentence in the middle of the text — the user must pay to see the rest. Respond in English." : "ÖNEMLİ: Bu ücretsiz bir ön okuma önizlemesidir. 4-6 cümle yaz, gizemli ve merak uyandırıcı bir ton kullan, metnin ortasında cümleyi tam bitirme — kullanıcı devamını görmek için ödeme yapmalı. Türkçe yaz."}`;
 
       const baseUserMsg = lang === "en"
         ? "Give me today's mystical reading preview."

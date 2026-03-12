@@ -943,6 +943,7 @@ export default function ReadingScreen() {
         : userInput.trim() || "";
       const body: Record<string, any> = {
         service,
+        lang,
         userInput: effectiveInput,
         ...(mistikName ? { userName: mistikName } : {}),
         ...(mistikBirthDate ? { birthDate: mistikBirthDate } : {}),
