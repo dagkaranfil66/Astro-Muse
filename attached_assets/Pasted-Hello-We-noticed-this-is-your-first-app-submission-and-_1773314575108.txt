@@ -1,0 +1,55 @@
+Hello, 
+
+We noticed this is your first app submission and want to congratulate you on joining the Apple Developer Program. We look forward to working together on your submissions.
+
+When App Review identifies an issue with a submission, we’ll contact you with a message in App Store Connect with details about what we found and how to resolve the issue. Learn more about App Review and tips for a smooth review experience. 
+
+See below for additional information about the issues that require your attention for this submission. If you have any questions, we are here to help. Reply to this message in App Store Connect and let us know.
+
+Review Environment
+Submission ID: b7f886e9-f500-4df4-b54d-d97fb125e60f
+Review date: March 12, 2026
+Review Device: iPhone 17 Pro Max
+Version reviewed: 1.0
+
+Guideline 4.3(b) - Design - Spam
+
+Issue Description
+
+The app primarily features astrology, horoscopes, palm reading, fortune telling or zodiac reports that duplicate the content and functionality of similar apps in a saturated category.
+
+These app features may be useful, informative or entertaining, and the app may include features or characteristics that distinguish it. However, there are already enough of these apps on the App Store.
+
+Next Steps
+
+We encourage you to reconsider the app concept and submit a new app that provides a unique experience not already found on the App Store.
+
+Resources
+
+- You may consider creating a web app, which looks and behaves like a native app when the user adds it to their Home screen. See Configuring Web Applications for more information.
+- To learn more about our policies for saturated app categories, see guideline 4.3.
+Guideline 4.8 - Design - Login Services
+
+Issue Description
+
+The app uses a third-party login service, but does not appear to offer as an equivalent login option another login service with all of the following features:
+
+- The login option limits data collection to the user’s name and email address.
+- The login option allows users to keep their email address private from all parties as part of setting up their account.
+- The login option does not collect interactions with the app for advertising purposes without consent. 
+
+Next Steps
+
+Revise the app to offer as an equivalent login option another login service that meets all of the above requirements.
+
+If the app already includes another login service that meets all of the above requirements, reply to App Review in App Store Connect, identify which login service meets all of the requirements, and explain why it meets all of the requirements.
+
+Note that Sign in with Apple is a login service that meets all the requirements specified in guideline 4.8.
+
+Resources
+
+Learn about the benefits of Sign in with Apple.
+Support
+- Reply to this message in your preferred language if you need assistance. If you need additional support, use the Contact Us module.
+- Consult with fellow developers and Apple engineers on the Apple Developer Forums.
+- Provide feedback on this message and your review experience by completing a short survey.

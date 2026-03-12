@@ -14,6 +14,13 @@ import {
   serverTimestamp,
   Timestamp,
 } from 'firebase/firestore';
+import {
+  getAuth,
+  OAuthProvider,
+  signInWithCredential,
+  onAuthStateChanged,
+  User as FirebaseUser,
+} from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -24,10 +31,32 @@ const firebaseConfig = {
   appId: '1:317895705040:web:ffd878c9a9a64fe10b5339',
 };
 
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-const db  = getFirestore(app);
+const app  = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+const db   = getFirestore(app);
+const auth = getAuth(app);
 
-export { db };
+export { db, auth };
+
+// ── Firebase Auth: Sign in with Apple ────────────────────────────────────
+export async function firebaseAppleSignIn(
+  identityToken: string,
+  rawNonce: string,
+): Promise<FirebaseUser | null> {
+  try {
+    const provider   = new OAuthProvider('apple.com');
+    const credential = provider.credential({ idToken: identityToken, rawNonce });
+    const result     = await signInWithCredential(auth, credential);
+    return result.user;
+  } catch (e) {
+    console.warn('[Firebase] Apple sign-in error:', e);
+    return null;
+  }
+}
+
+// ── Firebase Auth state listener ───────────────────────────────────────────
+export function onFirebaseAuthState(cb: (user: FirebaseUser | null) => void) {
+  return onAuthStateChanged(auth, cb);
+}
 
 // ── Firestore document shape ──────────────────────────────────────────────
 export interface FSUserData {
@@ -41,6 +70,8 @@ export interface FSUserData {
   lastDailyFreeDate: string | null;
   trialCount: number;
   welcomeBonusGiven: boolean;
+  loginProvider?: 'email' | 'apple';
+  appleUserId?: string;
   updatedAt?: Timestamp;
 }
 

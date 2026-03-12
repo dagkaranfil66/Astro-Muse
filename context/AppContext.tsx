@@ -20,6 +20,8 @@ export interface UserProfile {
   name: string;
   email: string;
   joinDate: string;
+  loginProvider?: 'email' | 'apple';
+  appleUserId?: string;
 }
 
 interface AppContextValue {

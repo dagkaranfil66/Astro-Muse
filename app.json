@@ -16,7 +16,8 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.tengriastrolojifalburlarmistikyolculuk.app",
-      "buildNumber": "2",
+      "buildNumber": "3",
+      "usesAppleSignIn": true,
       "infoPlist": {
         "CFBundleDisplayName": "Tengri",
         "NSCameraUsageDescription": "Fal yorumu için fotoğraf çekmenize olanak tanır.",
@@ -113,7 +114,8 @@
           "cameraPermission": "Fal yorumu için fotoğraf çekmenize olanak tanır.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-apple-authentication"
     ],
     "experiments": {
       "typedRoutes": true,
