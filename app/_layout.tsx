@@ -340,12 +340,12 @@ function AnimatedSplashScreen({ onDone }: { onDone: () => void }) {
           <BurstParticle key={i} {...b} fireAt={160} />
         ))}
 
-        {/* Logo */}
-        <Animated.View style={logoStyle}>
+        {/* Logo — circular clip */}
+        <Animated.View style={[sp.logoClip, logoStyle]}>
           <Image
             source={require("@/assets/images/tengri-logo.png")}
             style={sp.logo}
-            resizeMode="contain"
+            resizeMode="cover"
             fadeDuration={0}
           />
         </Animated.View>
@@ -415,6 +415,12 @@ const sp = StyleSheet.create({
     height: 108,
     borderRadius: 54,
     backgroundColor: "rgba(212,175,55,0.16)",
+  },
+  logoClip: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    overflow: "hidden",
   },
   logo: {
     width: 120,
