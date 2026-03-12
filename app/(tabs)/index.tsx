@@ -488,7 +488,6 @@ function TrendingBadge() {
 function ServiceCard({ serviceId, index, label, desc, onPress }: {
   serviceId: string; index: number; label: string; desc: string; onPress: () => void;
 }) {
-  const { lang } = useLang();
   const animType = ANIM_TYPES[index % ANIM_TYPES.length];
   const color = SERVICE_COLORS[serviceId];
   const icon = SERVICE_ICONS[serviceId] || "star-outline";
@@ -569,11 +568,7 @@ function ServiceCard({ serviceId, index, label, desc, onPress }: {
             <View style={styles.cardContent}>
               <Text style={styles.cardTitle}>{label}</Text>
               <Text style={styles.cardDesc} numberOfLines={2}>{desc}</Text>
-              <View style={styles.freeFirstBadge}>
-                <Text style={styles.freeFirstBadgeText}>
-                  {lang === "tr" ? "✦ İlk fal ücretsiz" : "✦ First reading free"}
-                </Text>
-              </View>
+
             </View>
             <View style={styles.cardRight}>
               <View style={[styles.goldBadge, { borderColor: color + "40", backgroundColor: color + "15" }]}>
@@ -1187,22 +1182,6 @@ const styles = StyleSheet.create({
   cardContent: { flex: 1 },
   cardTitle: { fontSize: 15, fontFamily: "Lora_700Bold", color: Colors.text, marginBottom: 3, letterSpacing: 0.1 },
   cardDesc: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textSecondary, lineHeight: 16 },
-  freeFirstBadge: {
-    alignSelf: "flex-start",
-    marginTop: 5,
-    backgroundColor: "rgba(76,175,80,0.13)",
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: "rgba(76,175,80,0.35)",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  freeFirstBadgeText: {
-    fontSize: 9.5,
-    fontFamily: "Lora_700Bold",
-    color: "#4CAF50",
-    letterSpacing: 0.3,
-  },
   cardRight: { alignItems: "flex-end", gap: 6 },
   goldBadge: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3 },
   goldBadgeText: { fontSize: 11, fontFamily: "Lora_700Bold" },
