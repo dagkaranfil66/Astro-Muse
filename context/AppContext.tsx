@@ -114,6 +114,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   // ── Load user data (AsyncStorage first, then sync from Firestore) ────────
+  // Wrap any promise with a max-wait timeout so Firestore hangs don't block login
+  function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+    return Promise.race([
+      promise,
+      new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+    ]);
+  }
+
   async function loadUserData(email: string) {
     const k = userKeys(email);
 
@@ -133,8 +141,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const isNewLocal = goldStr === null;
     let startGold = goldStr !== null ? parseInt(goldStr, 10) : FREE_START_GOLD;
 
-    // 2. Try Firestore — merge if cloud data is newer/different
-    const fsData = await fsGetUser(email);
+    // 2. Try Firestore — merge if cloud data is newer/different (5s timeout)
+    const fsData = await withTimeout(fsGetUser(email), 5000, null);
 
     if (fsData) {
       // Existing Firestore user — prefer cloud values
@@ -154,8 +162,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setZodiacState(fsData.zodiacSign ?? null);
       setLastDailyFreeDateState(fsData.lastDailyFreeDate ?? null);
 
-      // Load readings from Firestore subcollection
-      const fsReadings = await fsGetReadings(email);
+      // Load readings from Firestore subcollection (5s timeout)
+      const fsReadings = await withTimeout(fsGetReadings(email), 5000, []);
       if (fsReadings.length > 0) {
         setReadings(fsReadings);
         await AsyncStorage.setItem(k.readings, JSON.stringify(fsReadings));
@@ -179,7 +187,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setLastDailyFreeDateState(dfStr ?? null);
       setReadings(readStr ? JSON.parse(readStr) : []);
 
-      // Create Firestore document for this user
+      // Create Firestore document for this user (fire-and-forget, don't block login)
       const newDoc: FSUserData = {
         email,
         name: '',
@@ -192,7 +200,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         trialCount: tcStr ? parseInt(tcStr, 10) : 0,
         welcomeBonusGiven: true,
       };
-      await fsCreateUser(newDoc);
+      fsCreateUser(newDoc).catch(() => {});
     }
 
     setGoldBalance(startGold);
@@ -296,8 +304,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     await loadUserData(profile.email);
 
-    // Sync name to Firestore
-    await fsUpdateUser(profile.email, { name: profile.name, email: profile.email });
+    // Sync name to Firestore (fire-and-forget, don't block login navigation)
+    fsUpdateUser(profile.email, { name: profile.name, email: profile.email }).catch(() => {});
   };
 
   const clearUserProfile = async () => {
