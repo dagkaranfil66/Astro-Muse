@@ -8,6 +8,9 @@ import {
   Platform,
   Image,
   Linking,
+  TextInput,
+  KeyboardAvoidingView,
+  ScrollView,
 } from "react-native";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -361,6 +364,15 @@ function getSlides(lang: "tr" | "en") {
       cta: tr ? "Devam Et" : "Continue",
     },
     {
+      id: "profile",
+      type: "profile" as const,
+      title: tr ? "Mistik Profilini\nOluştur" : "Create Your\nMystical Profile",
+      subtitle: tr
+        ? "Yorumlarını kişiselleştirmek için bilgilerini gir. Tüm alanlar isteğe bağlıdır."
+        : "Enter your info to personalize your readings. All fields are optional.",
+      accent: "#9B6FBB",
+    },
+    {
       id: "final",
       type: "icon" as const,
       icon: "☽",
@@ -377,9 +389,16 @@ function getSlides(lang: "tr" | "en") {
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
-  const { markOnboardingDone } = useApp();
+  const { markOnboardingDone, setMistikProfile } = useApp();
   const { lang } = useLang();
   const [activeIndex, setActiveIndex] = useState(0);
+
+  // Profil form state
+  const [profName, setProfName] = useState("");
+  const [profDay, setProfDay]   = useState("");
+  const [profMonth, setProfMonth] = useState("");
+  const [profYear, setProfYear]  = useState("");
+  const [profFocus, setProfFocus] = useState<string | null>(null);
 
   const SLIDES = getSlides(lang);
   const tr = lang === "tr";
@@ -389,8 +408,17 @@ export default function OnboardingScreen() {
 
   const isLast = activeIndex === SLIDES.length - 1;
   const isDisclaimer = activeIndex === 0;
+  const isProfile = SLIDES[activeIndex]?.type === "profile";
 
-  const goNext = () => {
+  const goNext = async () => {
+    if (isProfile) {
+      const birthDate = profDay && profMonth && profYear
+        ? `${profDay.padStart(2,"0")}/${profMonth.padStart(2,"0")}/${profYear}`
+        : "";
+      if (profName || birthDate || profFocus) {
+        await setMistikProfile({ name: profName, birthDate, focusArea: profFocus ?? "" });
+      }
+    }
     if (isLast) { handleSkip(); return; }
     setActiveIndex((i) => i + 1);
   };
@@ -496,6 +524,103 @@ export default function OnboardingScreen() {
               )}
             </View>
           </>
+        )}
+
+        {/* Profile slide */}
+        {slide.type === "profile" && (
+          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ width: "100%" }}>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ alignItems: "center" }}>
+              <View style={styles.profileIconRow}>
+                <Text style={[styles.profileBigIcon, { color: slide.accent }]}>✦</Text>
+              </View>
+              <Text style={[styles.title, { fontFamily: "Lora_700Bold", textAlign: "center", marginBottom: 8 }]}>{slide.title}</Text>
+              <Text style={[styles.subtitle, { fontFamily: "Lora_400Regular", textAlign: "center", marginBottom: 28 }]}>{slide.subtitle}</Text>
+
+              {/* Name */}
+              <View style={styles.profileFieldWrap}>
+                <Text style={[styles.profileLabel, { fontFamily: "Lora_400Regular_Italic" }]}>
+                  {tr ? "Ad (isteğe bağlı)" : "Name (optional)"}
+                </Text>
+                <TextInput
+                  style={[styles.profileInput, { fontFamily: "Lora_400Regular" }]}
+                  placeholder={tr ? "Adın..." : "Your name..."}
+                  placeholderTextColor="rgba(255,255,255,0.25)"
+                  value={profName}
+                  onChangeText={setProfName}
+                  maxLength={40}
+                  autoCorrect={false}
+                />
+              </View>
+
+              {/* Birth date */}
+              <View style={styles.profileFieldWrap}>
+                <Text style={[styles.profileLabel, { fontFamily: "Lora_400Regular_Italic" }]}>
+                  {tr ? "Doğum Tarihi (isteğe bağlı)" : "Birth Date (optional)"}
+                </Text>
+                <View style={styles.profileDateRow}>
+                  <TextInput
+                    style={[styles.profileDateInput, { fontFamily: "Lora_400Regular" }]}
+                    placeholder={tr ? "GG" : "DD"}
+                    placeholderTextColor="rgba(255,255,255,0.25)"
+                    value={profDay}
+                    onChangeText={v => setProfDay(v.replace(/[^0-9]/g, "").slice(0, 2))}
+                    keyboardType="number-pad"
+                    maxLength={2}
+                  />
+                  <Text style={styles.profileDateSep}>/</Text>
+                  <TextInput
+                    style={[styles.profileDateInput, { fontFamily: "Lora_400Regular" }]}
+                    placeholder={tr ? "AA" : "MM"}
+                    placeholderTextColor="rgba(255,255,255,0.25)"
+                    value={profMonth}
+                    onChangeText={v => setProfMonth(v.replace(/[^0-9]/g, "").slice(0, 2))}
+                    keyboardType="number-pad"
+                    maxLength={2}
+                  />
+                  <Text style={styles.profileDateSep}>/</Text>
+                  <TextInput
+                    style={[styles.profileDateInputYear, { fontFamily: "Lora_400Regular" }]}
+                    placeholder="YYYY"
+                    placeholderTextColor="rgba(255,255,255,0.25)"
+                    value={profYear}
+                    onChangeText={v => setProfYear(v.replace(/[^0-9]/g, "").slice(0, 4))}
+                    keyboardType="number-pad"
+                    maxLength={4}
+                  />
+                </View>
+              </View>
+
+              {/* Focus area */}
+              <View style={styles.profileFieldWrap}>
+                <Text style={[styles.profileLabel, { fontFamily: "Lora_400Regular_Italic" }]}>
+                  {tr ? "Odak Alanın" : "Your Focus Area"}
+                </Text>
+                <View style={styles.profileFocusGrid}>
+                  {([
+                    { key: "aşk",     icon: "🌸", labelTR: "Aşk",     labelEN: "Love" },
+                    { key: "kariyer", icon: "💼", labelTR: "Kariyer", labelEN: "Career" },
+                    { key: "enerji",  icon: "⚡", labelTR: "Enerji",  labelEN: "Energy" },
+                    { key: "kader",   icon: "✨", labelTR: "Kader",   labelEN: "Destiny" },
+                  ] as const).map(item => (
+                    <TouchableOpacity
+                      key={item.key}
+                      style={[
+                        styles.profileFocusBtn,
+                        profFocus === item.key && { borderColor: slide.accent, backgroundColor: slide.accent + "22" },
+                      ]}
+                      onPress={() => setProfFocus(profFocus === item.key ? null : item.key)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.profileFocusIcon}>{item.icon}</Text>
+                      <Text style={[styles.profileFocusLabel, { fontFamily: "Lora_400Regular" }, profFocus === item.key && { color: "#fff" }]}>
+                        {tr ? item.labelTR : item.labelEN}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
         )}
       </Animated.View>
 
@@ -731,4 +856,46 @@ const styles = StyleSheet.create({
   secondaryBtnText: { fontSize: 16, color: Colors.gold },
   skipLink: { paddingVertical: 8 },
   skipText: { fontSize: 13, color: Colors.textDim },
+
+  // ── Profile Slide ──
+  profileIconRow: { marginBottom: 12, alignItems: "center" },
+  profileBigIcon: { fontSize: 40 },
+  profileFieldWrap: { width: "100%", marginBottom: 20 },
+  profileLabel: {
+    fontSize: 12, color: Colors.textDim,
+    marginBottom: 8, letterSpacing: 0.4,
+  },
+  profileInput: {
+    width: "100%",
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderWidth: 1, borderColor: "rgba(155,111,187,0.35)",
+    borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14,
+    fontSize: 15, color: Colors.text,
+  },
+  profileDateRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  profileDateInput: {
+    flex: 1,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderWidth: 1, borderColor: "rgba(155,111,187,0.35)",
+    borderRadius: 14, paddingHorizontal: 12, paddingVertical: 14,
+    fontSize: 15, color: Colors.text, textAlign: "center",
+  },
+  profileDateInputYear: {
+    flex: 1.6,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderWidth: 1, borderColor: "rgba(155,111,187,0.35)",
+    borderRadius: 14, paddingHorizontal: 12, paddingVertical: 14,
+    fontSize: 15, color: Colors.text, textAlign: "center",
+  },
+  profileDateSep: { fontSize: 18, color: Colors.textDim, fontWeight: "300" },
+  profileFocusGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  profileFocusBtn: {
+    flex: 1, minWidth: "45%",
+    borderWidth: 1.5, borderColor: "rgba(155,111,187,0.3)",
+    borderRadius: 14, paddingVertical: 14,
+    alignItems: "center", gap: 4,
+    backgroundColor: "rgba(155,111,187,0.06)",
+  },
+  profileFocusIcon: { fontSize: 22 },
+  profileFocusLabel: { fontSize: 13, color: Colors.textSecondary },
 });

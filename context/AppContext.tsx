@@ -33,6 +33,10 @@ interface AppContextValue {
   isLoaded: boolean;
   hasSeenOnboarding: boolean;
   markOnboardingDone: () => Promise<void>;
+  mistikName: string | null;
+  mistikBirthDate: string | null;
+  mistikFocusArea: string | null;
+  setMistikProfile: (data: { name: string; birthDate: string; focusArea: string }) => Promise<void>;
   canAfford: (service: string) => boolean;
   spendGold: (service: string) => boolean;
   addGold: (amount: number) => void;
@@ -60,8 +64,9 @@ const AppContext = createContext<AppContextValue | null>(null);
 
 // Global (device-level) keys
 const GLOBAL_KEYS = {
-  profile:    'tengri_profile',
-  onboarding: 'tengri_onboarding_done',
+  profile:       'tengri_profile',
+  onboarding:    'tengri_onboarding_done',
+  mistikProfile: 'tengri_mistik_profile',
 };
 
 // User-scoped AsyncStorage keys — fast local cache
@@ -98,6 +103,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [zodiacSign, setZodiacState]            = useState<string | null>(null);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
   const [showWelcomeBonus, setShowWelcomeBonus]   = useState(false);
+  const [mistikName, setMistikNameState]          = useState<string | null>(null);
+  const [mistikBirthDate, setMistikBirthDateState] = useState<string | null>(null);
+  const [mistikFocusArea, setMistikFocusAreaState] = useState<string | null>(null);
 
   const emailRef = useRef<string | null>(null);
 
@@ -195,11 +203,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
-        const [profStr, obStr] = await Promise.all([
+        const [profStr, obStr, mpStr] = await Promise.all([
           AsyncStorage.getItem(GLOBAL_KEYS.profile),
           AsyncStorage.getItem(GLOBAL_KEYS.onboarding),
+          AsyncStorage.getItem(GLOBAL_KEYS.mistikProfile),
         ]);
         if (obStr === 'true') setHasSeenOnboarding(true);
+        if (mpStr) {
+          try {
+            const mp = JSON.parse(mpStr);
+            if (mp.name) setMistikNameState(mp.name);
+            if (mp.birthDate) setMistikBirthDateState(mp.birthDate);
+            if (mp.focusArea) setMistikFocusAreaState(mp.focusArea);
+          } catch {}
+        }
         if (profStr) {
           const profile: UserProfile = JSON.parse(profStr);
           setProfileState(profile);
@@ -360,6 +377,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await AsyncStorage.setItem(GLOBAL_KEYS.onboarding, 'true');
   };
 
+  // ── Mistik Profil ─────────────────────────────────────────────────────────
+  const setMistikProfile = async (data: { name: string; birthDate: string; focusArea: string }) => {
+    if (data.name) setMistikNameState(data.name);
+    if (data.birthDate) setMistikBirthDateState(data.birthDate);
+    if (data.focusArea) setMistikFocusAreaState(data.focusArea);
+    await AsyncStorage.setItem(GLOBAL_KEYS.mistikProfile, JSON.stringify(data));
+  };
+
   const remainingReadings = isPurchased ? 30 : Math.max(0, 5 - trialCount);
 
   const dismissWelcomeBonus = () => setShowWelcomeBonus(false);
@@ -373,10 +398,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     remainingReadings, consumeTrial, purchase,
     zodiacSign, setZodiacSign, canDailyFree, markDailyFreeUsed,
     showWelcomeBonus, dismissWelcomeBonus,
+    mistikName, mistikBirthDate, mistikFocusArea, setMistikProfile,
   }), [
     goldBalance, readings, userProfile, profilePhotoUri,
     isLoaded, hasSeenOnboarding, trialCount, isPurchased,
     lastSpinDate, zodiacSign, lastDailyFreeDate, showWelcomeBonus,
+    mistikName, mistikBirthDate, mistikFocusArea,
   ]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

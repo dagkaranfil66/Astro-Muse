@@ -724,7 +724,7 @@ function SharePanel({ text, serviceLabel, readingId, service }: { text: string; 
 export default function ReadingScreen() {
   const { service } = useLocalSearchParams<{ service: string }>();
   const insets = useSafeAreaInsets();
-  const { goldBalance, canAfford, spendGold, addReading, getServiceCost, userProfile } = useApp();
+  const { goldBalance, canAfford, spendGold, addReading, getServiceCost, userProfile, mistikName, mistikBirthDate, mistikFocusArea } = useApp();
   const { t, lang } = useLang();
 
   const base = SERVICE_META_BASE[service] || SERVICE_META_BASE.astroloji;
@@ -915,7 +915,13 @@ export default function ReadingScreen() {
             userInput.trim(),
           ].filter(Boolean).join(" | ")
         : userInput.trim() || "";
-      const body: Record<string, any> = { service, userInput: effectiveInput };
+      const body: Record<string, any> = {
+        service,
+        userInput: effectiveInput,
+        ...(mistikName ? { userName: mistikName } : {}),
+        ...(mistikBirthDate ? { birthDate: mistikBirthDate } : {}),
+        ...(mistikFocusArea ? { focusArea: mistikFocusArea } : {}),
+      };
       const photosToUse = photosOverride ?? kahvePhotos;
       if (isKahve && photosToUse.length > 0) {
         body.images = photosToUse.map((p) => ({ base64: p.base64, type: p.type }));
@@ -1107,6 +1113,21 @@ export default function ReadingScreen() {
           )}
 
           {/* Share + New reading */}
+          {isDone && readingText && (
+            <Animated.View entering={FadeIn.delay(300)} style={styles.personBadgeRow}>
+              <View style={styles.personBadge}>
+                <Text style={styles.personBadgeIcon}>✦</Text>
+                <Text style={styles.personBadgeText}>
+                  {lang === "tr" ? "Kişiselleştirilmiş AI Yorumu" : "Personalized AI Reading"}
+                </Text>
+              </View>
+              <View style={[styles.personBadge, styles.personBadge2]}>
+                <Text style={styles.personBadgeText}>
+                  {lang === "tr" ? "Sana özel oluşturuldu" : "Created just for you"}
+                </Text>
+              </View>
+            </Animated.View>
+          )}
           {isDone && readingText && <SharePanel text={readingText} serviceLabel={serviceLabel} readingId={readingId} service={service} />}
           {isDone && (
             <Animated.View entering={FadeIn.delay(400)} style={styles.doneActions}>
@@ -1819,4 +1840,14 @@ const styles = StyleSheet.create({
   },
   purchaseNudge: { alignItems: "center", paddingBottom: 2 },
   purchaseNudgeText: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textDim },
+  personBadgeRow: { flexDirection: "row", gap: 8, marginHorizontal: 16, marginBottom: 8, flexWrap: "wrap" },
+  personBadge: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    backgroundColor: "rgba(155,111,187,0.12)",
+    borderWidth: 1, borderColor: "rgba(155,111,187,0.3)",
+    borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6,
+  },
+  personBadge2: { backgroundColor: "rgba(200,160,32,0.10)", borderColor: "rgba(200,160,32,0.3)" },
+  personBadgeIcon: { fontSize: 10, color: "#9B6FBB" },
+  personBadgeText: { fontSize: 11, fontFamily: "Lora_400Regular", color: "rgba(255,255,255,0.6)" },
 });

@@ -104,7 +104,7 @@ const sHero = StyleSheet.create({
 
 export default function DailyReadingScreen() {
   const insets = useSafeAreaInsets();
-  const { canDailyFree, markDailyFreeUsed, goldBalance, userProfile } = useApp();
+  const { canDailyFree, markDailyFreeUsed, goldBalance, userProfile, mistikName, mistikBirthDate, mistikFocusArea } = useApp();
   const { lang } = useLang();
 
   // ── Auth guard: redirect to login if not signed in ──────────────────────
@@ -196,6 +196,9 @@ export default function DailyReadingScreen() {
       if (userNote.trim()) {
         body.userInput = userNote.trim();
       }
+      if (mistikName) body.userName = mistikName;
+      if (mistikBirthDate) body.birthDate = mistikBirthDate;
+      if (mistikFocusArea) body.focusArea = mistikFocusArea;
 
       const resp = await fetch(url.toString(), {
         method: "POST",
@@ -454,6 +457,23 @@ export default function DailyReadingScreen() {
           </Animated.View>
         )}
 
+        {/* ── Personalization badges ── */}
+        {isDone && (
+          <View style={s.personBadgeRow}>
+            <View style={s.personBadge}>
+              <Text style={s.personBadgeIcon}>✦</Text>
+              <Text style={s.personBadgeText}>
+                {lang === "tr" ? "Kişiselleştirilmiş AI Yorumu" : "Personalized AI Reading"}
+              </Text>
+            </View>
+            <View style={[s.personBadge, s.personBadge2]}>
+              <Text style={s.personBadgeText}>
+                {lang === "tr" ? "Sana özel oluşturuldu" : "Created just for you"}
+              </Text>
+            </View>
+          </View>
+        )}
+
         {/* ── Full Reading CTA ── */}
         {(isDone || !canDailyFree) && (
           <Animated.View entering={ZoomIn.delay(400).springify()} style={s.detailCard}>
@@ -594,4 +614,14 @@ const s = StyleSheet.create({
   detailBtnGold: { fontSize: 14, color: "#000" },
   buyGoldLink: { flexDirection: "row", alignItems: "center", gap: 5, justifyContent: "center", paddingVertical: 8 },
   buyGoldLinkText: { fontSize: 12, fontFamily: "Lora_400Regular", color: Colors.gold },
+  personBadgeRow: { flexDirection: "row", gap: 8, marginHorizontal: 16, marginBottom: 12, flexWrap: "wrap" },
+  personBadge: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    backgroundColor: "rgba(155,111,187,0.12)",
+    borderWidth: 1, borderColor: "rgba(155,111,187,0.3)",
+    borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6,
+  },
+  personBadge2: { backgroundColor: "rgba(200,160,32,0.10)", borderColor: "rgba(200,160,32,0.3)" },
+  personBadgeIcon: { fontSize: 10, color: "#9B6FBB" },
+  personBadgeText: { fontSize: 11, fontFamily: "Lora_400Regular", color: "rgba(255,255,255,0.6)" },
 });

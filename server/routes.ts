@@ -394,12 +394,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/reading", async (req: Request, res: Response) => {
     try {
-      const { service, userInput, imageBase64, imageType, images } = req.body;
+      const { service, userInput, imageBase64, imageType, images, userName, birthDate, focusArea } = req.body;
       if (!service) return res.status(400).json({ error: "Servis türü gerekli" });
       const validServices = ["astroloji","kahve","el","tarot","samanizm","numeroloji","ruh","dogum","ruya","burclar","ask","compat","crystal"];
       if (!validServices.includes(service)) return res.status(400).json({ error: "Geçersiz servis" });
       if (userInput && userInput.length > 2000) return res.status(400).json({ error: "Mesaj çok uzun (maks 2000 karakter)" });
-      const systemPrompt = serviceSystemPrompts[service] || serviceSystemPrompts.astroloji;
+      let systemPrompt = serviceSystemPrompts[service] || serviceSystemPrompts.astroloji;
+      if (userName || birthDate || focusArea) {
+        systemPrompt += "\n\n[KİŞİSEL PROFİL:";
+        if (userName) systemPrompt += ` Ad: ${userName}.`;
+        if (birthDate) systemPrompt += ` Doğum tarihi: ${birthDate}.`;
+        if (focusArea) systemPrompt += ` Odak alanı: ${focusArea}.`;
+        systemPrompt += " Bu bilgilere göre yorumu tamamen kişiselleştir. Mümkünse kullanıcıya adıyla hitap et.]";
+      }
       const userMessage = userInput || "Benim için mistik bir okuma yap.";
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");
@@ -445,14 +452,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/reading/daily-free", async (req: Request, res: Response) => {
     try {
-      const { service, lang, photos, userInput } = req.body as {
+      const { service, lang, photos, userInput, userName, birthDate, focusArea } = req.body as {
         service: string;
         lang?: string;
         photos?: { base64: string; type: string }[];
         userInput?: string;
+        userName?: string;
+        birthDate?: string;
+        focusArea?: string;
       };
       if (!service) return res.status(400).json({ error: "Servis gerekli" });
-      const basePrompt = serviceSystemPrompts[service] || serviceSystemPrompts.astroloji;
+      let basePrompt = serviceSystemPrompts[service] || serviceSystemPrompts.astroloji;
+      if (userName || birthDate || focusArea) {
+        basePrompt += "\n\n[KİŞİSEL PROFİL:";
+        if (userName) basePrompt += ` Ad: ${userName}.`;
+        if (birthDate) basePrompt += ` Doğum tarihi: ${birthDate}.`;
+        if (focusArea) basePrompt += ` Odak alanı: ${focusArea}.`;
+        basePrompt += " Bu bilgilere göre yorumu tamamen kişiselleştir. Mümkünse kullanıcıya adıyla hitap et.]";
+      }
       const teaserPrompt = `${basePrompt}
 
 ÖNEMLİ: Bu ücretsiz bir ön okuma önizlemesidir. 4-6 cümle yaz, gizemli ve merak uyandırıcı bir ton kullan, metnin ortasında cümleyi tam bitirme — kullanıcı devamını görmek için ödeme yapmalı. Türkçe veya İngilizce yaz (kullanıcı diline göre).`;
