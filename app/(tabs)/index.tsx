@@ -1202,11 +1202,11 @@ const styles = StyleSheet.create({
   popularBadgeText: { fontSize: 9, fontFamily: "Lora_700Bold", color: "#000", letterSpacing: 0.3 },
   trendingBadge: {
     position: "absolute", top: 8, right: 44,
-    backgroundColor: "#E7B00818", borderWidth: 1, borderColor: "#E7B008AA",
+    backgroundColor: "#FF521518", borderWidth: 1, borderColor: "#FF5215AA",
     borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3, zIndex: 10,
-    shadowColor: "#E7B008", shadowOffset: { width: 0, height: 0 }, shadowRadius: 6, elevation: 4,
+    shadowColor: "#FF5215", shadowOffset: { width: 0, height: 0 }, shadowRadius: 6, elevation: 4,
   },
-  trendingBadgeText: { fontSize: 9, fontFamily: "Lora_700Bold", color: "#F5C842", letterSpacing: 0.5 },
+  trendingBadgeText: { fontSize: 9, fontFamily: "Lora_700Bold", color: "#FF6B3A", letterSpacing: 0.5 },
 
   // ── Big free coffee banner ──
   freeBanner: {
