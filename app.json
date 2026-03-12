@@ -20,10 +20,10 @@
       "usesAppleSignIn": true,
       "infoPlist": {
         "CFBundleDisplayName": "Tengri",
-        "NSCameraUsageDescription": "Fal yorumu için fotoğraf çekmenize olanak tanır.",
-        "NSPhotoLibraryUsageDescription": "Fal yorumu için galerinizden fotoğraf seçmenize olanak tanır.",
-        "NSPhotoLibraryAddUsageDescription": "Okumalarınızı fotoğraf olarak kaydetmenize olanak tanır.",
-        "NSMicrophoneUsageDescription": "Uygulama ses kaydı yapmaz; kamera kullanımı için sistem gereksinimi.",
+        "NSCameraUsageDescription": "Tengri uses the camera so you can take a photo of your palm or coffee cup for a mystical reading.",
+        "NSPhotoLibraryUsageDescription": "Tengri uses your photo library so you can choose a photo of your palm or coffee cup for a mystical reading.",
+        "NSPhotoLibraryAddUsageDescription": "Tengri saves your reading results to your photo library so you can share them.",
+        "NSMicrophoneUsageDescription": "Tengri does not record audio. Microphone access is required by iOS when the camera is used.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "privacyManifests": {
@@ -102,16 +102,16 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Fal yorumu için fotoğraf çekmenize olanak tanır.",
-          "microphonePermission": "Uygulama ses kaydı yapmaz; kamera kullanımı için sistem gereksinimi.",
+          "cameraPermission": "Tengri uses the camera so you can take a photo of your palm or coffee cup for a mystical reading.",
+          "microphonePermission": "Tengri does not record audio. Microphone access is required by iOS when the camera is used.",
           "recordAudioAndroid": false
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Fal yorumu için galerinizden fotoğraf seçmenize olanak tanır.",
-          "cameraPermission": "Fal yorumu için fotoğraf çekmenize olanak tanır.",
+          "photosPermission": "Tengri uses your photo library so you can choose a photo of your palm or coffee cup for a mystical reading.",
+          "cameraPermission": "Tengri uses the camera so you can take a photo of your palm or coffee cup for a mystical reading.",
           "microphonePermission": false
         }
       ],
