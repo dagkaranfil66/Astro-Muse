@@ -358,6 +358,9 @@ function AnimatedSplashScreen({ onDone }: { onDone: () => void }) {
         <Animated.Text style={[sp.subtitle, subStyle]}>
           ✦  Mistik Rehberlik  ✦
         </Animated.Text>
+        <Animated.Text style={[sp.aiTag, subStyle]}>
+          Yapay Zeka Destekli
+        </Animated.Text>
       </Animated.View>
     </Animated.View>
   );
@@ -447,6 +450,14 @@ const sp = StyleSheet.create({
     fontFamily: "Lora_400Regular_Italic",
     color: "rgba(212,175,55,0.75)",
     letterSpacing: 2.5,
+  },
+  aiTag: {
+    fontSize: 10,
+    fontFamily: "Lora_400Regular",
+    color: "rgba(212,175,55,0.45)",
+    letterSpacing: 3,
+    marginTop: 6,
+    textTransform: "uppercase",
   },
 });
 
