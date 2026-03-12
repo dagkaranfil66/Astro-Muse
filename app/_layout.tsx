@@ -179,7 +179,7 @@ function OrbitRing({ r, speed, reverse, dashed }: { r: number; speed: number; re
 }
 
 // ─── Radial light rays ─────────────────────────────────────────────────────
-function LightRays({ glowOp }: { glowOp: Animated.SharedValue<number> }) {
+function LightRays({ glowOp }: { glowOp: SharedValue<number> }) {
   const rotate = useSharedValue(0);
   useEffect(() => {
     rotate.value = withRepeat(
