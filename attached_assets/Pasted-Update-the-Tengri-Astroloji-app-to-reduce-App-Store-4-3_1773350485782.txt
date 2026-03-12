@@ -1,0 +1,78 @@
+Update the Tengri Astroloji app to reduce App Store 4.3 spam rejection risk by making the app feel more unique, more personalized, and clearly AI-powered.
+
+Implement these product changes:
+
+1. ADD A UNIQUE ONBOARDING
+Create a premium onboarding flow before the main app opens.
+
+Screen ideas:
+- “Kişisel mistik rehberine hoş geldin”
+- “Bu uygulama sadece burç uygulaması değil”
+- “Kahve falı, tarot, numeroloji, rüya ve astroloji tek sistemde”
+- “Her yorum AI destekli ve kullanıcıya özel üretilir”
+
+Final CTA:
+- “Kişisel Yolculuğunu Başlat”
+
+2. ADD A MAIN DIFFERENTIATING FEATURE
+Create a new main feature on the home screen:
+- “Günlük Kader Rehberi”
+or
+- “Birleşik Mistik Yorum”
+
+This feature should combine multiple systems into one personalized result:
+- astrology
+- tarot
+- numerology
+- spiritual guidance
+- coffee fortune direction if available
+
+User selects a focus area:
+- aşk
+- kariyer
+- enerji
+- kader
+- ruhsal gelişim
+
+Then generate one combined premium interpretation.
+
+3. ADD PERSONALIZATION LABELS
+On all result screens, visibly show labels like:
+- “Kişiselleştirilmiş AI Yorumu”
+- “Sana özel oluşturuldu”
+- “Mistik profiline göre üretildi”
+
+This is important so App Review sees the app is not static generic content.
+
+4. ADD A LIGHT PERSONAL PROFILE
+Create a simple optional “Mistik Profil” system with:
+- ad
+- doğum tarihi
+- burç
+- odak alanı
+
+Use this data to personalize interpretations.
+
+5. IMPROVE FIRST EXPERIENCE
+Make the first coffee reading clearly free and visible.
+Show:
+- “İlk kahve falın ücretsiz”
+
+Do not push paywalls too aggressively on first use.
+
+6. IMPROVE HOME SCREEN MESSAGE
+Add a hero section on the home screen:
+Title:
+- “Kişisel AI Mistik Rehberin”
+
+Subtitle:
+- “Her yorum sana özel, çoklu mistik sistemlerle oluşturulur.”
+
+7. APP REVIEW READY
+Make the app clearly feel different from a generic astrology app.
+Avoid static-looking text, empty screens, repetitive cards, or template feel.
+
+Also tell me:
+- which files were changed
+- what was added
+- what I should test before creating the new iOS build
