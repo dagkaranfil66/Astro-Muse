@@ -7,7 +7,7 @@ import {
   AppState, AppStateStatus, Dimensions,
 } from "react-native";
 import Animated, {
-  useSharedValue, useAnimatedStyle,
+  useSharedValue, useAnimatedStyle, SharedValue,
   withTiming, withSpring, withRepeat, withSequence, withDelay,
   runOnJS, Easing,
 } from "react-native-reanimated";
@@ -60,33 +60,49 @@ if (Notifications) {
 
 const { width: SW, height: SH } = Dimensions.get("window");
 
-const STARS = [
-  { x: 0.12, y: 0.08, sz: 2.5, d: 80  },
-  { x: 0.82, y: 0.06, sz: 1.8, d: 200 },
-  { x: 0.45, y: 0.04, sz: 1.4, d: 340 },
-  { x: 0.93, y: 0.22, sz: 2.0, d: 120 },
-  { x: 0.05, y: 0.28, sz: 1.6, d: 460 },
-  { x: 0.68, y: 0.18, sz: 1.2, d: 280 },
-  { x: 0.28, y: 0.14, sz: 2.2, d: 560 },
-  { x: 0.55, y: 0.32, sz: 1.0, d: 400 },
-  { x: 0.88, y: 0.45, sz: 1.8, d: 180 },
-  { x: 0.03, y: 0.55, sz: 2.0, d: 640 },
-  { x: 0.75, y: 0.60, sz: 1.4, d: 320 },
-  { x: 0.20, y: 0.72, sz: 2.4, d: 100 },
-  { x: 0.92, y: 0.70, sz: 1.6, d: 500 },
-  { x: 0.38, y: 0.80, sz: 1.2, d: 240 },
-  { x: 0.60, y: 0.86, sz: 2.0, d: 380 },
-  { x: 0.10, y: 0.90, sz: 1.8, d: 60  },
-  { x: 0.50, y: 0.93, sz: 1.0, d: 430 },
-  { x: 0.80, y: 0.88, sz: 2.2, d: 300 },
-  { x: 0.35, y: 0.50, sz: 1.4, d: 700 },
-  { x: 0.72, y: 0.38, sz: 1.0, d: 520 },
+// ─── Star data — mix of twinklers and statics ──────────────────────────────
+const STARS: { x: number; y: number; sz: number; d: number; twinkle?: boolean }[] = [
+  { x: 0.12, y: 0.08, sz: 2.8, d: 60,  twinkle: true  },
+  { x: 0.82, y: 0.06, sz: 2.0, d: 120                  },
+  { x: 0.45, y: 0.04, sz: 1.4, d: 180, twinkle: true  },
+  { x: 0.93, y: 0.22, sz: 2.4, d: 80                   },
+  { x: 0.05, y: 0.28, sz: 1.8, d: 240, twinkle: true  },
+  { x: 0.68, y: 0.18, sz: 1.2, d: 160                  },
+  { x: 0.28, y: 0.14, sz: 2.6, d: 300, twinkle: true  },
+  { x: 0.55, y: 0.32, sz: 1.0, d: 200                  },
+  { x: 0.88, y: 0.45, sz: 2.0, d: 100, twinkle: true  },
+  { x: 0.03, y: 0.55, sz: 2.2, d: 360                  },
+  { x: 0.75, y: 0.60, sz: 1.6, d: 180, twinkle: true  },
+  { x: 0.20, y: 0.72, sz: 2.8, d: 60                   },
+  { x: 0.92, y: 0.70, sz: 1.8, d: 280, twinkle: true  },
+  { x: 0.38, y: 0.80, sz: 1.2, d: 140                  },
+  { x: 0.60, y: 0.86, sz: 2.4, d: 220, twinkle: true  },
+  { x: 0.10, y: 0.90, sz: 2.0, d: 40                   },
+  { x: 0.50, y: 0.93, sz: 1.0, d: 260                  },
+  { x: 0.80, y: 0.88, sz: 2.6, d: 180, twinkle: true  },
+  { x: 0.35, y: 0.50, sz: 1.4, d: 400                  },
+  { x: 0.72, y: 0.38, sz: 1.0, d: 320, twinkle: true  },
+  { x: 0.15, y: 0.42, sz: 3.0, d: 80,  twinkle: true  },
+  { x: 0.62, y: 0.10, sz: 1.6, d: 140                  },
+  { x: 0.90, y: 0.12, sz: 2.2, d: 200, twinkle: true  },
+  { x: 0.42, y: 0.95, sz: 1.8, d: 320                  },
 ];
 
-function SplashStar({ x, y, sz, d }: { x: number; y: number; sz: number; d: number }) {
+function SplashStar({ x, y, sz, d, twinkle }: { x: number; y: number; sz: number; d: number; twinkle?: boolean }) {
   const opacity = useSharedValue(0);
   useEffect(() => {
-    opacity.value = withDelay(d, withTiming(1, { duration: 600 }));
+    if (twinkle) {
+      opacity.value = withDelay(d,
+        withRepeat(
+          withSequence(
+            withTiming(1,   { duration: 350 }),
+            withTiming(0.2, { duration: 350 }),
+          ), -1, true,
+        ),
+      );
+    } else {
+      opacity.value = withDelay(d, withTiming(1, { duration: 400 }));
+    }
   }, []);
   const style = useAnimatedStyle(() => ({ opacity: opacity.value }));
   return (
@@ -94,103 +110,192 @@ function SplashStar({ x, y, sz, d }: { x: number; y: number; sz: number; d: numb
       style={[{
         position: "absolute",
         left: x * SW,
-        top: y * SH,
+        top:  y * SH,
         width: sz,
         height: sz,
         borderRadius: sz / 2,
-        backgroundColor: "#E8D5A0",
+        backgroundColor: twinkle ? "#FFE9A0" : "#E8D5A0",
       }, style]}
     />
   );
 }
 
-// Shooting star — one quick streak
-function ShootingStar({ delay }: { delay: number }) {
-  const x = useSharedValue(-60);
+// ─── Shooting star ─────────────────────────────────────────────────────────
+function ShootingStar({ delay, yRatio }: { delay: number; yRatio: number }) {
+  const x       = useSharedValue(-80);
   const opacity = useSharedValue(0);
   useEffect(() => {
-    setTimeout(() => {
+    const t = setTimeout(() => {
       opacity.value = withSequence(
-        withTiming(1,  { duration: 100 }),
-        withTiming(0,  { duration: 400 }),
+        withTiming(1, { duration: 80  }),
+        withTiming(0, { duration: 380 }),
       );
-      x.value = withTiming(SW + 60, { duration: 500, easing: Easing.linear });
+      x.value = withTiming(SW + 80, { duration: 460, easing: Easing.linear });
     }, delay);
+    return () => clearTimeout(t);
   }, []);
   const style = useAnimatedStyle(() => ({
-    opacity: opacity.value,
+    opacity:   opacity.value,
     transform: [{ translateX: x.value }],
   }));
   return (
     <Animated.View
       style={[{
         position: "absolute",
-        top: SH * 0.22,
-        left: SW * 0.1,
-        width: 60,
-        height: 1,
-        backgroundColor: "rgba(232,213,160,0.9)",
+        top:  SH * yRatio,
+        left: SW * 0.05,
+        width: 80,
+        height: 1.5,
         borderRadius: 1,
+        backgroundColor: "rgba(255,233,160,0.95)",
       }, style]}
     />
   );
 }
 
+// ─── Orbit ring (3 rings at different radii / speeds / directions) ─────────
+function OrbitRing({ r, speed, reverse, dashed }: { r: number; speed: number; reverse?: boolean; dashed?: boolean }) {
+  const rotate = useSharedValue(0);
+  useEffect(() => {
+    rotate.value = withRepeat(
+      withTiming(reverse ? -360 : 360, { duration: speed, easing: Easing.linear }),
+      -1, false,
+    );
+  }, []);
+  const style = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotate.value}deg` }],
+  }));
+  return (
+    <Animated.View style={[{
+      position: "absolute",
+      width:  r * 2,
+      height: r * 2,
+      borderRadius: r,
+      borderWidth: dashed ? 1 : 1.2,
+      borderColor: dashed ? "rgba(212,175,55,0.30)" : "rgba(212,175,55,0.50)",
+      borderStyle: dashed ? "dashed" : "solid",
+    }, style]} />
+  );
+}
+
+// ─── Radial light rays ─────────────────────────────────────────────────────
+function LightRays({ glowOp }: { glowOp: Animated.SharedValue<number> }) {
+  const rotate = useSharedValue(0);
+  useEffect(() => {
+    rotate.value = withRepeat(
+      withTiming(360, { duration: 9000, easing: Easing.linear }),
+      -1, false,
+    );
+  }, []);
+  const wrapStyle = useAnimatedStyle(() => ({
+    opacity:   glowOp.value * 0.28,
+    transform: [{ rotate: `${rotate.value}deg` }],
+  }));
+  const rayAngles = [0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5];
+  return (
+    <Animated.View style={[{ position: "absolute", width: 240, height: 240, alignItems: "center", justifyContent: "center" }, wrapStyle]}>
+      {rayAngles.map((a) => (
+        <View key={a} style={{
+          position:        "absolute",
+          width:           1,
+          height:          220,
+          backgroundColor: "#D4AF37",
+          transform:       [{ rotate: `${a}deg` }],
+        }} />
+      ))}
+    </Animated.View>
+  );
+}
+
+// ─── Burst particles (8 directions) ───────────────────────────────────────
+const BURST: { angle: number; dist: number; color: string }[] = [
+  { angle:   0, dist: 90, color: "#FFD700" },
+  { angle:  45, dist: 80, color: "#FFF8DC" },
+  { angle:  90, dist: 95, color: "#D4AF37" },
+  { angle: 135, dist: 78, color: "#FFD700" },
+  { angle: 180, dist: 88, color: "#FFF8DC" },
+  { angle: 225, dist: 82, color: "#D4AF37" },
+  { angle: 270, dist: 92, color: "#FFD700" },
+  { angle: 315, dist: 76, color: "#FFF8DC" },
+];
+
+function BurstParticle({ angle, dist, color, fireAt }: { angle: number; dist: number; color: string; fireAt: number }) {
+  const rad = (angle * Math.PI) / 180;
+  const tx  = useSharedValue(0);
+  const ty  = useSharedValue(0);
+  const op  = useSharedValue(0);
+  const sc  = useSharedValue(0.5);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      op.value = withSequence(withTiming(1, { duration: 80 }), withTiming(0, { duration: 480 }));
+      tx.value = withTiming(Math.cos(rad) * dist, { duration: 560, easing: Easing.out(Easing.cubic) });
+      ty.value = withTiming(Math.sin(rad) * dist, { duration: 560, easing: Easing.out(Easing.cubic) });
+      sc.value = withSequence(withTiming(1.4, { duration: 80 }), withTiming(0.2, { duration: 480 }));
+    }, fireAt);
+    return () => clearTimeout(t);
+  }, []);
+  const style = useAnimatedStyle(() => ({
+    opacity:   op.value,
+    transform: [{ translateX: tx.value }, { translateY: ty.value }, { scale: sc.value }],
+  }));
+  return (
+    <Animated.View style={[{ position: "absolute", width: 6, height: 6, borderRadius: 3, backgroundColor: color }, style]} />
+  );
+}
+
+// ─── Main animated splash ──────────────────────────────────────────────────
 function AnimatedSplashScreen({ onDone }: { onDone: () => void }) {
-  const exitOpacity   = useSharedValue(1);
-  const logoOpacity   = useSharedValue(0);
-  const logoScale     = useSharedValue(0.6);
-  const glowOpacity   = useSharedValue(0);
-  const ringRotate    = useSharedValue(0);
-  const titleY        = useSharedValue(28);
-  const titleOpacity  = useSharedValue(0);
-  const subOpacity    = useSharedValue(0);
-  const dividerWidth  = useSharedValue(0);
+  const exitOpacity  = useSharedValue(1);
+  const logoOpacity  = useSharedValue(0);
+  const logoScale    = useSharedValue(0.4);
+  const glowOpacity  = useSharedValue(0);
+  const titleY       = useSharedValue(32);
+  const titleOpacity = useSharedValue(0);
+  const subOpacity   = useSharedValue(0);
+  const dividerWidth = useSharedValue(0);
+  const titleScale   = useSharedValue(0.88);
 
   useEffect(() => {
-    // Logo appears
-    logoOpacity.value = withTiming(1, { duration: 350, easing: Easing.out(Easing.cubic) });
-    logoScale.value   = withSpring(1, { damping: 14, stiffness: 100 });
+    // Logo dramatic entrance
+    logoOpacity.value = withTiming(1, { duration: 280, easing: Easing.out(Easing.cubic) });
+    logoScale.value   = withSpring(1, { damping: 10, stiffness: 90, overshootClamping: false });
 
-    // Rotating ring
-    ringRotate.value  = withRepeat(withTiming(360, { duration: 4000, easing: Easing.linear }), -1, false);
+    // Glow breathes
+    glowOpacity.value = withDelay(200,
+      withRepeat(
+        withSequence(
+          withTiming(1,    { duration: 550 }),
+          withTiming(0.35, { duration: 550 }),
+        ), -1, true,
+      ),
+    );
 
-    // Glow pulse
-    glowOpacity.value = withDelay(280, withRepeat(
-      withSequence(
-        withTiming(0.85, { duration: 600 }),
-        withTiming(0.35, { duration: 600 }),
-      ), -1, true,
-    ));
-
-    // Title slides up
-    titleY.value       = withDelay(380, withSpring(0, { damping: 18 }));
-    titleOpacity.value = withDelay(380, withTiming(1, { duration: 280 }));
+    // Title rises + scales
+    titleY.value       = withDelay(330, withSpring(0,    { damping: 16, stiffness: 120 }));
+    titleOpacity.value = withDelay(330, withTiming(1,    { duration: 260 }));
+    titleScale.value   = withDelay(330, withSpring(1,    { damping: 16, stiffness: 120 }));
 
     // Divider expands
-    dividerWidth.value = withDelay(500, withTiming(64, { duration: 300, easing: Easing.out(Easing.cubic) }));
+    dividerWidth.value = withDelay(450, withTiming(80,   { duration: 350, easing: Easing.out(Easing.cubic) }));
 
     // Subtitle
-    subOpacity.value   = withDelay(580, withTiming(1, { duration: 280 }));
+    subOpacity.value   = withDelay(530, withTiming(1,    { duration: 260 }));
 
     // Exit — total ~1.5s
-    exitOpacity.value  = withDelay(1100, withTiming(0, { duration: 350 }, (done) => {
+    exitOpacity.value  = withDelay(1100, withTiming(0, { duration: 380 }, (done) => {
       if (done) runOnJS(onDone)();
     }));
   }, []);
 
   const containerStyle = useAnimatedStyle(() => ({ opacity: exitOpacity.value }));
   const logoStyle      = useAnimatedStyle(() => ({
-    opacity: logoOpacity.value,
+    opacity:   logoOpacity.value,
     transform: [{ scale: logoScale.value }],
   }));
   const glowStyle      = useAnimatedStyle(() => ({ opacity: glowOpacity.value }));
-  const ringStyle      = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${ringRotate.value}deg` }],
-  }));
   const titleStyle     = useAnimatedStyle(() => ({
-    opacity: titleOpacity.value,
-    transform: [{ translateY: titleY.value }],
+    opacity:   titleOpacity.value,
+    transform: [{ translateY: titleY.value }, { scale: titleScale.value }],
   }));
   const divStyle       = useAnimatedStyle(() => ({ width: dividerWidth.value }));
   const subStyle       = useAnimatedStyle(() => ({ opacity: subOpacity.value }));
@@ -198,24 +303,42 @@ function AnimatedSplashScreen({ onDone }: { onDone: () => void }) {
   return (
     <Animated.View style={[sp.container, containerStyle]}>
       <LinearGradient
-        colors={["#060214", "#08051A", "#050F1E"]}
+        colors={["#040110", "#07031A", "#050F20"]}
         style={StyleSheet.absoluteFill}
       />
 
+      {/* Nebula blobs */}
+      <View style={sp.nebula1} />
+      <View style={sp.nebula2} />
+
       {/* Stars */}
       {STARS.map((s, i) => <SplashStar key={i} {...s} />)}
-      <ShootingStar delay={400} />
-      <ShootingStar delay={800} />
+
+      {/* Shooting stars */}
+      <ShootingStar delay={350} yRatio={0.18} />
+      <ShootingStar delay={720} yRatio={0.32} />
+      <ShootingStar delay={980} yRatio={0.12} />
 
       {/* Logo area */}
       <View style={sp.logoArea}>
-        {/* Outer glow */}
+
+        {/* Light rays behind everything */}
+        <LightRays glowOp={glowOpacity} />
+
+        {/* 3 orbit rings */}
+        <OrbitRing r={140} speed={12000} reverse />
+        <OrbitRing r={110} speed={5000}  dashed />
+        <OrbitRing r={82}  speed={3000} />
+
+        {/* Glow layers */}
         <Animated.View style={[sp.glowOuter, glowStyle]} />
         <Animated.View style={[sp.glowMid,   glowStyle]} />
         <Animated.View style={[sp.glowInner, glowStyle]} />
 
-        {/* Rotating golden ring */}
-        <Animated.View style={[sp.ring, ringStyle]} />
+        {/* Burst particles (fire at 160ms when logo is mostly visible) */}
+        {BURST.map((b, i) => (
+          <BurstParticle key={i} {...b} fireAt={160} />
+        ))}
 
         {/* Logo */}
         <Animated.View style={logoStyle}>
@@ -245,44 +368,53 @@ const sp = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#060214",
+    backgroundColor: "#040110",
+  },
+  nebula1: {
+    position: "absolute",
+    width: 340,
+    height: 340,
+    borderRadius: 170,
+    backgroundColor: "rgba(80,30,160,0.07)",
+    top: -60,
+    left: -80,
+  },
+  nebula2: {
+    position: "absolute",
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: "rgba(212,175,55,0.05)",
+    bottom: 40,
+    right: -60,
   },
   logoArea: {
-    width: 180,
-    height: 180,
+    width: 300,
+    height: 300,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 28,
+    marginBottom: 24,
   },
   glowOuter: {
     position: "absolute",
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: "rgba(212,175,55,0.14)",
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: "rgba(212,175,55,0.12)",
   },
   glowMid: {
     position: "absolute",
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: "rgba(212,175,55,0.22)",
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: "rgba(212,175,55,0.20)",
   },
   glowInner: {
     position: "absolute",
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: "rgba(212,175,55,0.18)",
-  },
-  ring: {
-    position: "absolute",
-    width: 162,
-    height: 162,
-    borderRadius: 81,
-    borderWidth: 1.5,
-    borderColor: "rgba(212,175,55,0.55)",
-    borderStyle: "dashed",
+    width: 108,
+    height: 108,
+    borderRadius: 54,
+    backgroundColor: "rgba(212,175,55,0.16)",
   },
   logo: {
     width: 120,
