@@ -35,7 +35,7 @@ import { Colors } from "@/constants/colors";
 import { useLang } from "@/context/LanguageContext";
 import { useApp } from "@/context/AppContext";
 import { getApiUrl } from "@/lib/query-client";
-import { firebaseAppleSignIn, firebaseGoogleSignIn, firebaseGoogleSignInPopup } from "@/lib/firebase";
+import { firebaseAppleSignIn, firebaseGoogleSignIn, firebaseGoogleSignInRedirect, getGoogleRedirectResult } from "@/lib/firebase";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -83,6 +83,16 @@ function TengriWelcomeOrb() {
   const ring2Rot   = useSharedValue(0);
   const ring3Rot   = useSharedValue(0);
   const logoBreath = useSharedValue(1);
+
+  // ── On web: pick up Google redirect result after sign-in ──────────────
+  React.useEffect(() => {
+    if (Platform.OS !== "web") return;
+    getGoogleRedirectResult().then((info) => {
+      if (!info) return;
+      const googleName = info.name || (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
+      finishLogin(googleName, info.email, "google");
+    });
+  }, []);
 
   React.useEffect(() => {
     glowPhase.value  = withRepeat(withSequence(withTiming(1, { duration: 3000 }), withTiming(0, { duration: 3000 })), -1, false);
@@ -237,16 +247,13 @@ export default function AuthScreen() {
     setError("");
 
     try {
-      // ── Web: use Firebase popup (avoids sessionStorage/redirect issues) ──
+      // ── Web: Firebase redirect flow (sets up session state properly) ────
       if (Platform.OS === "web") {
-        const info = await firebaseGoogleSignInPopup();
-        if (!info) {
-          setGoogleLoading(false);
-          return;
-        }
-        const googleName = info.name || (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
-        await finishLogin(googleName, info.email, "google");
-        return;
+        // signInWithRedirect redirects the whole page to Google OAuth.
+        // The result is captured by getGoogleRedirectResult() on the next
+        // page load (handled in the useEffect above).
+        await firebaseGoogleSignInRedirect();
+        return; // page will navigate away
       }
 
       // ── Native: custom OAuth → Firebase credential ─────────────────────

@@ -20,6 +20,8 @@ import {
   GoogleAuthProvider,
   signInWithCredential,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   onAuthStateChanged,
   User as FirebaseUser,
 } from 'firebase/auth';
@@ -39,19 +41,29 @@ const auth = getAuth(app);
 
 export { db, auth };
 
-// ── Firebase Auth: Google sign-in via popup (web only) ───────────────────
-export async function firebaseGoogleSignInPopup(): Promise<{ email: string; name: string } | null> {
+// ── Firebase Auth: Google sign-in via redirect (web only) ────────────────
+// Redirects the page to Google OAuth, returns control after the user
+// authenticates. Call getGoogleRedirectResult() on the next page load.
+export async function firebaseGoogleSignInRedirect(): Promise<void> {
+  const provider = new GoogleAuthProvider();
+  provider.addScope("profile");
+  provider.addScope("email");
+  await signInWithRedirect(auth, provider);
+}
+
+// Call this on auth screen mount (web only) to pick up the redirect result.
+export async function getGoogleRedirectResult(): Promise<{ email: string; name: string } | null> {
   try {
-    const provider = new GoogleAuthProvider();
-    provider.addScope("profile");
-    provider.addScope("email");
-    const result = await signInWithPopup(auth, provider);
+    const result = await getRedirectResult(auth);
+    if (!result) return null;
     return {
       email: result.user.email ?? `google_${Date.now()}@tengri.social`,
       name:  result.user.displayName ?? "",
     };
-  } catch (e) {
-    console.warn("[Firebase] Google popup sign-in error:", e);
+  } catch (e: any) {
+    if (e?.code !== "auth/null-user") {
+      console.warn("[Firebase] Google redirect result error:", e?.code ?? e);
+    }
     return null;
   }
 }
