@@ -437,7 +437,18 @@ export default function ProfileScreen() {
               </Pressable>
             </View>
             {recentReadings.map((r) => (
-              <View key={r.id} style={[styles.recentCard, { borderColor: (SERVICE_COLORS[r.service] ?? Colors.gold) + "25" }]}>
+              <Pressable
+                key={r.id}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push("/(tabs)/history");
+                }}
+                style={({ pressed }) => [
+                  styles.recentCard,
+                  { borderColor: (SERVICE_COLORS[r.service] ?? Colors.gold) + "25" },
+                  pressed && { opacity: 0.75 },
+                ]}
+              >
                 <View style={[styles.recentIcon, { borderColor: (SERVICE_COLORS[r.service] ?? Colors.gold) + "40" }]}>
                   <Ionicons name={SERVICE_ICONS[r.service] ?? "star-outline"} size={16} color={SERVICE_COLORS[r.service] ?? Colors.gold} />
                 </View>
@@ -448,7 +459,7 @@ export default function ProfileScreen() {
                 {r.goldSpent && (
                   <Text style={styles.recentGold}>{r.goldSpent}✦</Text>
                 )}
-              </View>
+              </Pressable>
             ))}
           </Animated.View>
         )}
