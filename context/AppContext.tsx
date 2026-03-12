@@ -20,7 +20,7 @@ export interface UserProfile {
   name: string;
   email: string;
   joinDate: string;
-  loginProvider?: 'email' | 'apple';
+  loginProvider?: 'email' | 'apple' | 'google';
   appleUserId?: string;
 }
 

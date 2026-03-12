@@ -17,6 +17,7 @@ import {
 import {
   getAuth,
   OAuthProvider,
+  GoogleAuthProvider,
   signInWithCredential,
   onAuthStateChanged,
   User as FirebaseUser,
@@ -36,6 +37,21 @@ const db   = getFirestore(app);
 const auth = getAuth(app);
 
 export { db, auth };
+
+// ── Firebase Auth: Sign in with Google ───────────────────────────────────
+export async function firebaseGoogleSignIn(
+  idToken: string,
+  accessToken?: string,
+): Promise<FirebaseUser | null> {
+  try {
+    const credential = GoogleAuthProvider.credential(idToken, accessToken);
+    const result     = await signInWithCredential(auth, credential);
+    return result.user;
+  } catch (e) {
+    console.warn('[Firebase] Google sign-in error:', e);
+    return null;
+  }
+}
 
 // ── Firebase Auth: Sign in with Apple ────────────────────────────────────
 export async function firebaseAppleSignIn(
@@ -70,7 +86,7 @@ export interface FSUserData {
   lastDailyFreeDate: string | null;
   trialCount: number;
   welcomeBonusGiven: boolean;
-  loginProvider?: 'email' | 'apple';
+  loginProvider?: 'email' | 'apple' | 'google';
   appleUserId?: string;
   updatedAt?: Timestamp;
 }
