@@ -157,7 +157,7 @@ function LegalNote({ lang }: { lang: string }) {
 // ── Screen ────────────────────────────────────────────────────────────────
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
-  const { lang } = useLang();
+  const { lang, toggleLang } = useLang();
   const { setUserProfile } = useApp();
 
   const [view, setView]               = useState<"choice" | "email">("choice");
@@ -389,10 +389,22 @@ export default function AuthScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Back / close */}
-          <Pressable onPress={goBack} style={styles.closeBtn} hitSlop={12}>
-            <Ionicons name={view === "email" ? "chevron-back" : "close"} size={22} color={Colors.textSecondary} />
-          </Pressable>
+          {/* Top row: back/close + language toggle */}
+          <View style={styles.topRow}>
+            <Pressable onPress={goBack} style={styles.closeBtn} hitSlop={12}>
+              <Ionicons name={view === "email" ? "chevron-back" : "close"} size={22} color={Colors.textSecondary} />
+            </Pressable>
+
+            <Pressable
+              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); toggleLang(); }}
+              style={styles.langPill}
+              hitSlop={12}
+            >
+              <Text style={[styles.langPillText, lang === "tr" && styles.langPillTextActive]}>TR</Text>
+              <View style={styles.langPillDivider} />
+              <Text style={[styles.langPillText, lang === "en" && styles.langPillTextActive]}>EN</Text>
+            </Pressable>
+          </View>
 
           <TengriWelcomeOrb />
 
@@ -553,14 +565,46 @@ const styles = StyleSheet.create({
   root:  { flex: 1, backgroundColor: Colors.background },
   scroll: { paddingHorizontal: 24, alignItems: "center" },
 
+  topRow: {
+    flexDirection: "row",
+    alignSelf: "stretch",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
   closeBtn: {
-    alignSelf: "flex-start",
     width: 36, height: 36,
     alignItems: "center", justifyContent: "center",
     backgroundColor: Colors.surface,
     borderRadius: 18,
     borderWidth: 1,
     borderColor: Colors.cardBorder,
+  },
+
+  langPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.surface,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    paddingHorizontal: 12,
+    height: 36,
+    gap: 6,
+  },
+  langPillText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: Colors.textSecondary,
+    letterSpacing: 0.5,
+  },
+  langPillTextActive: {
+    color: Colors.gold,
+  },
+  langPillDivider: {
+    width: 1,
+    height: 14,
+    backgroundColor: Colors.cardBorder,
   },
 
   orbContainer: {
