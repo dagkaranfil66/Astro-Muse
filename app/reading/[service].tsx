@@ -134,21 +134,31 @@ function Star({ top, left, dur, init }: { top: number; left: number; dur: number
 
 // ────────── Service-specific Intro Animations ──────────
 function KahveIntro({ color }: { color: string }) {
+  const { t, lang } = useLang();
   return (
     <View style={styles.serviceIntro}>
       <ServiceHeroBanner serviceId="kahve" color={color} />
-      <Text style={styles.introServiceTitle}>Kahve Falı</Text>
-      <Text style={styles.introDesc}>Fincanınızın fotoğrafını yükleyin{"\n"}veya gördüğünüz sembolleri yazın.</Text>
+      <Text style={styles.introServiceTitle}>{(t.services_list as any).kahve?.label ?? 'Kahve Falı'}</Text>
+      <Text style={styles.introDesc}>
+        {lang === "tr"
+          ? "Fincanınızın fotoğrafını yükleyin\nveya gördüğünüz sembolleri yazın."
+          : "Upload a photo of your cup\nor describe the symbols you see."}
+      </Text>
     </View>
   );
 }
 
 function ElIntro({ color }: { color: string }) {
+  const { t, lang } = useLang();
   return (
     <View style={styles.serviceIntro}>
       <ServiceHeroBanner serviceId="el" color={color} />
-      <Text style={styles.introServiceTitle}>El Falı</Text>
-      <Text style={styles.introDesc}>Avucunuzun fotoğrafını yükleyin ya da çizgilerinizi anlatın. Kader haritanız okunacak.</Text>
+      <Text style={styles.introServiceTitle}>{(t.services_list as any).el?.label ?? 'El Falı'}</Text>
+      <Text style={styles.introDesc}>
+        {lang === "tr"
+          ? "Avucunuzun fotoğrafını yükleyin ya da çizgilerinizi anlatın. Kader haritanız okunacak."
+          : "Upload a photo of your palm or describe your lines. Your destiny map will be revealed."}
+      </Text>
     </View>
   );
 }
@@ -397,42 +407,58 @@ function KahvePhotoSection({
 }
 
 function DogumIntro({ color }: { color: string }) {
+  const { t, lang } = useLang();
   return (
     <View style={styles.serviceIntro}>
       <ServiceHeroBanner serviceId="dogum" color={color} />
-      <Text style={styles.introServiceTitle}>Doğum Haritası</Text>
-      <Text style={styles.introDesc}>Doğum tarihiniz, saatiniz ve şehrinizi girerek kişisel yıldız haritanızı çıkarın.</Text>
+      <Text style={styles.introServiceTitle}>{(t.services_list as any).dogum?.label ?? 'Doğum Haritası'}</Text>
+      <Text style={styles.introDesc}>
+        {lang === "tr"
+          ? "Doğum tarihiniz, saatiniz ve şehrinizi girerek kişisel yıldız haritanızı çıkarın."
+          : "Enter your birth date, time and city to reveal your personal star chart."}
+      </Text>
     </View>
   );
 }
 
 function RuyaIntro({ color }: { color: string }) {
+  const { t, lang } = useLang();
   return (
     <View style={styles.serviceIntro}>
       <ServiceHeroBanner serviceId="ruya" color={color} />
-      <Text style={styles.introServiceTitle}>Rüya Yorumu</Text>
-      <Text style={styles.introDesc}>Gördüğünüz rüyayı anlatın. Şamanist gelenek ile rüyanızın mistik mesajını çözelim.</Text>
+      <Text style={styles.introServiceTitle}>{(t.services_list as any).ruya?.label ?? 'Rüya Yorumu'}</Text>
+      <Text style={styles.introDesc}>
+        {lang === "tr"
+          ? "Gördüğünüz rüyayı anlatın. Şamanist gelenek ile rüyanızın mistik mesajını çözelim."
+          : "Describe your dream. Let us decode its mystic message through shamanic tradition."}
+      </Text>
     </View>
   );
 }
 
 function BurclarIntro({ color }: { color: string }) {
+  const { t, lang } = useLang();
   return (
     <View style={styles.serviceIntro}>
       <ServiceHeroBanner serviceId="burclar" color={color} />
-      <Text style={styles.introServiceTitle}>Burçlar</Text>
-      <Text style={styles.introDesc}>Burcunuzu yazın ve bu haftaya özel mistik yorumunuzu alın. Aşk, kariyer ve ruhsal rehberlik.</Text>
+      <Text style={styles.introServiceTitle}>{(t.services_list as any).burclar?.label ?? 'Burçlar'}</Text>
+      <Text style={styles.introDesc}>
+        {lang === "tr"
+          ? "Burcunuzu yazın ve bu haftaya özel mistik yorumunuzu alın. Aşk, kariyer ve ruhsal rehberlik."
+          : "Enter your zodiac sign and receive your personal weekly mystic insight. Love, career and spiritual guidance."}
+      </Text>
     </View>
   );
 }
 
 function AskIntro({ color }: { color: string }) {
+  const { lang } = useLang();
   useEffect(() => { router.replace("/love-compat" as any); }, []);
   return (
     <View style={styles.serviceIntro}>
       <ServiceHeroBanner serviceId="ask" color={color} />
-      <Text style={styles.introServiceTitle}>Aşk Uyumu</Text>
-      <Text style={styles.introDesc}>Yönlendiriliyor...</Text>
+      <Text style={styles.introServiceTitle}>{lang === "tr" ? "Aşk Uyumu" : "Love Compatibility"}</Text>
+      <Text style={styles.introDesc}>{lang === "tr" ? "Yönlendiriliyor..." : "Redirecting..."}</Text>
     </View>
   );
 }

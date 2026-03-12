@@ -217,31 +217,40 @@ function ScoreBar({ label, value, color }: { label: string; value: number; color
 }
 
 // ─── Loading screen ───────────────────────────────────────────────────────────
-const LOADING_LINES = [
+const LOADING_LINES_TR = [
   "Enerjiler analiz ediliyor...",
   "İsimler ve burçlar yorumlanıyor...",
   "Kalpler arasındaki titreşim hesaplanıyor...",
   "Duygusal frekanslar karşılaştırılıyor...",
   "Ruhsal bağ değerlendiriliyor...",
 ];
+const LOADING_LINES_EN = [
+  "Analyzing energies...",
+  "Interpreting names and zodiac signs...",
+  "Calculating vibration between hearts...",
+  "Comparing emotional frequencies...",
+  "Evaluating spiritual bond...",
+];
 function LoveLoadingScreen() {
   const [lineIdx, setLineIdx] = useState(0);
   const heartScale = useSharedValue(1);
+  const { lang } = useLang();
+  const loadingLines = lang === "tr" ? LOADING_LINES_TR : LOADING_LINES_EN;
   useEffect(() => {
     heartScale.value = withRepeat(withSequence(
       withTiming(1.2, { duration: 700 }),
       withTiming(1, { duration: 700 }),
     ), -1);
-    const t = setInterval(() => setLineIdx(i => (i + 1) % LOADING_LINES.length), 1200);
+    const t = setInterval(() => setLineIdx(i => (i + 1) % loadingLines.length), 1200);
     return () => clearInterval(t);
   }, []);
   const heartStyle = useAnimatedStyle(() => ({ transform: [{ scale: heartScale.value }] }));
   return (
     <View style={styles.loadingContainer}>
       <Animated.Text style={[styles.loadingHeart, heartStyle]}>❤️</Animated.Text>
-      <Text style={styles.loadingTitle}>Tengri analiz ediyor...</Text>
+      <Text style={styles.loadingTitle}>{lang === "tr" ? "Tengri analiz ediyor..." : "Tengri is analyzing..."}</Text>
       <Animated.Text key={lineIdx} entering={FadeIn.duration(400)} style={styles.loadingLine}>
-        {LOADING_LINES[lineIdx]}
+        {loadingLines[lineIdx]}
       </Animated.Text>
       <ActivityIndicator color={Colors.gold} style={{ marginTop: 24 }} />
     </View>
@@ -356,7 +365,7 @@ export default function LoveCompatScreen() {
             if (evt.done) {
               setPhase("result");
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-              const rid = await addReading({ service: "ask", serviceLabel: "Aşk Uyumu", content: full, userInput: prompt });
+              const rid = await addReading({ service: "ask", serviceLabel: lang === "tr" ? "Aşk Uyumu" : "Love Compatibility", content: full, userInput: prompt });
               setReadingId(rid);
             }
           } catch {}
@@ -394,7 +403,9 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
   // ── Mini share card
   const shareCard = () => {
     if (!scores) return;
-    const txt = `❤️ ${data.name1} & ${data.name2}\nAşk Uyumu: %${scores.love}\nTUTKU: %${scores.passion} | GÜVEN: %${scores.trust}\n\nTENGRI uygulamasından — tengristar.com`;
+    const txt = lang === "tr"
+      ? `❤️ ${data.name1} & ${data.name2}\nAşk Uyumu: %${scores.love}\nTUTKU: %${scores.passion} | GÜVEN: %${scores.trust}\n\nTENGRI uygulamasından — tengristar.com`
+      : `❤️ ${data.name1} & ${data.name2}\nLove Compatibility: ${scores.love}%\nPASSION: ${scores.passion}% | TRUST: ${scores.trust}%\n\nFrom TENGRI app — tengristar.com`;
     Share.share({ message: txt });
   };
 
@@ -409,7 +420,7 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
           <Pressable onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="chevron-back" size={22} color={Colors.textSecondary} />
           </Pressable>
-          <Text style={styles.headerTitle}>Aşk Uyumu</Text>
+          <Text style={styles.headerTitle}>{lang === "tr" ? "Aşk Uyumu" : "Love Compatibility"}</Text>
           <View style={{ width: 38 }} />
         </View>
 
@@ -421,16 +432,16 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
 
             {step === 1 && (
               <Animated.View entering={FadeInDown.springify()} style={styles.card}>
-                <StepHint>Yorumun sana özel hazırlanması için birkaç detay gerekli...</StepHint>
-                <Text style={styles.fieldLabel}>Senin adın</Text>
+                <StepHint>{lang === "tr" ? "Yorumun sana özel hazırlanması için birkaç detay gerekli..." : "A few details are needed to personalize your reading..."}</StepHint>
+                <Text style={styles.fieldLabel}>{lang === "tr" ? "Senin adın" : "Your name"}</Text>
                 <TextInput style={[styles.input, errors.name1 && styles.inputError]}
-                  placeholder="Adını yaz..." placeholderTextColor={Colors.textDim}
+                  placeholder={lang === "tr" ? "Adını yaz..." : "Enter your name..."} placeholderTextColor={Colors.textDim}
                   value={data.name1} onChangeText={v => upd("name1", v)} />
                 {errors.name1 && <Text style={styles.errText}>{errors.name1}</Text>}
 
-                <Text style={[styles.fieldLabel, { marginTop: 16 }]}>Partnerinin adı</Text>
+                <Text style={[styles.fieldLabel, { marginTop: 16 }]}>{lang === "tr" ? "Partnerinin adı" : "Partner's name"}</Text>
                 <TextInput style={[styles.input, errors.name2 && styles.inputError]}
-                  placeholder="Partnerinin adını yaz..." placeholderTextColor={Colors.textDim}
+                  placeholder={lang === "tr" ? "Partnerinin adını yaz..." : "Enter partner's name..."} placeholderTextColor={Colors.textDim}
                   value={data.name2} onChangeText={v => upd("name2", v)} />
                 {errors.name2 && <Text style={styles.errText}>{errors.name2}</Text>}
               </Animated.View>
@@ -438,17 +449,17 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
 
             {step === 2 && (
               <Animated.View entering={FadeInDown.springify()} style={styles.card}>
-                <StepHint>İsimler ve doğum enerjileri aşk bağını doğrudan etkiler...</StepHint>
-                <Text style={styles.fieldLabel}>Senin doğum yılın</Text>
+                <StepHint>{lang === "tr" ? "İsimler ve doğum enerjileri aşk bağını doğrudan etkiler..." : "Names and birth energies directly affect the love bond..."}</StepHint>
+                <Text style={styles.fieldLabel}>{lang === "tr" ? "Senin doğum yılın" : "Your birth year"}</Text>
                 <TextInput style={[styles.input, errors.year1 && styles.inputError]}
-                  placeholder="Örn: 1995" placeholderTextColor={Colors.textDim}
+                  placeholder={lang === "tr" ? "Örn: 1995" : "e.g. 1995"} placeholderTextColor={Colors.textDim}
                   value={data.year1} onChangeText={v => upd("year1", v.replace(/[^0-9]/g, ""))}
                   keyboardType="numeric" maxLength={4} />
                 {errors.year1 && <Text style={styles.errText}>{errors.year1}</Text>}
 
-                <Text style={[styles.fieldLabel, { marginTop: 16 }]}>Partnerinin doğum yılı</Text>
+                <Text style={[styles.fieldLabel, { marginTop: 16 }]}>{lang === "tr" ? "Partnerinin doğum yılı" : "Partner's birth year"}</Text>
                 <TextInput style={[styles.input, errors.year2 && styles.inputError]}
-                  placeholder="Örn: 1993" placeholderTextColor={Colors.textDim}
+                  placeholder={lang === "tr" ? "Örn: 1993" : "e.g. 1993"} placeholderTextColor={Colors.textDim}
                   value={data.year2} onChangeText={v => upd("year2", v.replace(/[^0-9]/g, ""))}
                   keyboardType="numeric" maxLength={4} />
                 {errors.year2 && <Text style={styles.errText}>{errors.year2}</Text>}
@@ -457,12 +468,12 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
 
             {step === 3 && (
               <Animated.View entering={FadeInDown.springify()} style={styles.card}>
-                <StepHint>Burç enerjileri ruhsal çekimin sırrını taşır...</StepHint>
-                <Text style={styles.fieldLabel}>Senin burcun</Text>
+                <StepHint>{lang === "tr" ? "Burç enerjileri ruhsal çekimin sırrını taşır..." : "Zodiac energies carry the secret of spiritual attraction..."}</StepHint>
+                <Text style={styles.fieldLabel}>{lang === "tr" ? "Senin burcun" : "Your zodiac sign"}</Text>
                 {errors.zodiac1 && <Text style={styles.errText}>{errors.zodiac1}</Text>}
                 <ChipSelect options={ZODIAC_LIST} value={data.zodiac1} onChange={v => upd("zodiac1", v)} />
 
-                <Text style={[styles.fieldLabel, { marginTop: 20 }]}>Partnerinin burcu</Text>
+                <Text style={[styles.fieldLabel, { marginTop: 20 }]}>{lang === "tr" ? "Partnerinin burcu" : "Partner's zodiac sign"}</Text>
                 {errors.zodiac2 && <Text style={styles.errText}>{errors.zodiac2}</Text>}
                 <ChipSelect options={ZODIAC_LIST} value={data.zodiac2} onChange={v => upd("zodiac2", v)} />
               </Animated.View>
@@ -470,33 +481,39 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
 
             {step === 4 && (
               <Animated.View entering={FadeInDown.springify()} style={styles.card}>
-                <StepHint>İlişki durumu yorumun tonunu ve derinliğini belirler...</StepHint>
-                <Text style={styles.fieldLabel}>Şu anki ilişki durumunuz</Text>
+                <StepHint>{lang === "tr" ? "İlişki durumu yorumun tonunu ve derinliğini belirler..." : "Relationship status determines the tone and depth of the reading..."}</StepHint>
+                <Text style={styles.fieldLabel}>{lang === "tr" ? "Şu anki ilişki durumunuz" : "Your current relationship status"}</Text>
                 {errors.relStatus && <Text style={styles.errText}>{errors.relStatus}</Text>}
                 <ChipSelect
-                  options={["Yeni tanıştık", "Flört ediyoruz", "İlişkimiz var", "Evliyiz", "Ayrıyız ama konuşuyoruz", "Platonik", "Eski sevgili"]}
+                  options={lang === "tr"
+                    ? ["Yeni tanıştık", "Flört ediyoruz", "İlişkimiz var", "Evliyiz", "Ayrıyız ama konuşuyoruz", "Platonik", "Eski sevgili"]
+                    : ["Just met", "Flirting", "In a relationship", "Married", "Separated but talking", "Platonic", "Ex-partner"]}
                   value={data.relStatus} onChange={v => upd("relStatus", v)} />
               </Animated.View>
             )}
 
             {step === 5 && (
               <Animated.View entering={FadeInDown.springify()} style={styles.card}>
-                <StepHint>Niyetin, analizin derinliğini ve yönünü belirler...</StepHint>
-                <Text style={styles.fieldLabel}>Bu ilişkiden beklentin ne?</Text>
+                <StepHint>{lang === "tr" ? "Niyetin, analizin derinliğini ve yönünü belirler..." : "Your intention determines the depth and direction of the analysis..."}</StepHint>
+                <Text style={styles.fieldLabel}>{lang === "tr" ? "Bu ilişkiden beklentin ne?" : "What do you expect from this relationship?"}</Text>
                 {errors.expectation && <Text style={styles.errText}>{errors.expectation}</Text>}
                 <ChipSelect
-                  options={["Ciddi ilişki", "Evlilik", "Flört", "Barışma", "Sadece merak ediyorum"]}
+                  options={lang === "tr"
+                    ? ["Ciddi ilişki", "Evlilik", "Flört", "Barışma", "Sadece merak ediyorum"]
+                    : ["Serious relationship", "Marriage", "Flirting", "Reconciliation", "Just curious"]}
                   value={data.expectation} onChange={v => upd("expectation", v)} />
               </Animated.View>
             )}
 
             {step === 6 && (
               <Animated.View entering={FadeInDown.springify()} style={styles.card}>
-                <StepHint>Son bir adım — sana özel yorumun hazırlanıyor...</StepHint>
-                <Text style={styles.fieldLabel}>En çok neyi merak ediyorsun?</Text>
+                <StepHint>{lang === "tr" ? "Son bir adım — sana özel yorumun hazırlanıyor..." : "One last step — your personalized reading is being prepared..."}</StepHint>
+                <Text style={styles.fieldLabel}>{lang === "tr" ? "En çok neyi merak ediyorsun?" : "What are you most curious about?"}</Text>
                 {errors.curiosity && <Text style={styles.errText}>{errors.curiosity}</Text>}
                 <ChipSelect
-                  options={["Beni gerçekten seviyor mu?", "Beni düşünüyor mu?", "Geri dönecek mi?", "İlişkimizin geleceği var mı?", "Aramızda güçlü çekim var mı?", "Benden uzaklaşıyor mu?"]}
+                  options={lang === "tr"
+                    ? ["Beni gerçekten seviyor mu?", "Beni düşünüyor mu?", "Geri dönecek mi?", "İlişkimizin geleceği var mı?", "Aramızda güçlü çekim var mı?", "Benden uzaklaşıyor mu?"]
+                    : ["Does he/she really love me?", "Is he/she thinking of me?", "Will he/she come back?", "Does our relationship have a future?", "Is there strong attraction between us?", "Is he/she pulling away?"]}
                   value={data.curiosity} onChange={v => upd("curiosity", v)} />
               </Animated.View>
             )}
@@ -506,13 +523,13 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
               {step > 1 && (
                 <Pressable onPress={() => setStep(s => s - 1)} style={styles.backStepBtn}>
                   <Ionicons name="chevron-back" size={18} color={Colors.textSecondary} />
-                  <Text style={styles.backStepText}>Geri</Text>
+                  <Text style={styles.backStepText}>{lang === "tr" ? "Geri" : "Back"}</Text>
                 </Pressable>
               )}
               <Pressable onPress={nextStep} style={[styles.nextBtn, step === 1 && { flex: 1 }]}>
                 <LinearGradient colors={[Colors.gold, "#8B6914"]} style={styles.nextBtnInner}
                   start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                  <Text style={styles.nextBtnText}>{step < STEPS ? "Devam Et" : "Analizi Başlat"}</Text>
+                  <Text style={styles.nextBtnText}>{step < STEPS ? (lang === "tr" ? "Devam Et" : "Continue") : (lang === "tr" ? "Analizi Başlat" : "Start Analysis")}</Text>
                   <Ionicons name={step < STEPS ? "chevron-forward" : "heart"} size={16} color="#000" />
                 </LinearGradient>
               </Pressable>
@@ -531,21 +548,21 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
             <View style={styles.card}>
               <View style={styles.cardHeader}>
                 <Ionicons name="analytics-outline" size={15} color={Colors.gold} />
-                <Text style={styles.cardHeaderText}>UYUM ANALİZİ</Text>
+                <Text style={styles.cardHeaderText}>{lang === "tr" ? "UYUM ANALİZİ" : "COMPATIBILITY ANALYSIS"}</Text>
               </View>
               <Text style={styles.namesDisplay}>{data.name1} ❤️ {data.name2}</Text>
-              <ScoreBar label="Aşk Uyumu" value={scores.love} color="#FF4757" />
-              <ScoreBar label="Tutku" value={scores.passion} color="#FF6B9D" />
-              <ScoreBar label="Güven" value={scores.trust} color="#4CAF7A" />
-              <ScoreBar label="Gelecek Potansiyeli" value={scores.future} color={Colors.gold} />
-              <ScoreBar label="İletişim Gücü" value={scores.communication} color="#5B9BD5" />
+              <ScoreBar label={lang === "tr" ? "Aşk Uyumu" : "Love Compatibility"} value={scores.love} color="#FF4757" />
+              <ScoreBar label={lang === "tr" ? "Tutku" : "Passion"} value={scores.passion} color="#FF6B9D" />
+              <ScoreBar label={lang === "tr" ? "Güven" : "Trust"} value={scores.trust} color="#4CAF7A" />
+              <ScoreBar label={lang === "tr" ? "Gelecek Potansiyeli" : "Future Potential"} value={scores.future} color={Colors.gold} />
+              <ScoreBar label={lang === "tr" ? "İletişim Gücü" : "Communication"} value={scores.communication} color="#5B9BD5" />
             </View>
 
             {/* Teaser micro-texts */}
             <View style={styles.card}>
               <View style={styles.cardHeader}>
                 <Ionicons name="eye-outline" size={15} color={Colors.gold} />
-                <Text style={styles.cardHeaderText}>ÖN ANALİZ</Text>
+                <Text style={styles.cardHeaderText}>{lang === "tr" ? "ÖN ANALİZ" : "PREVIEW"}</Text>
               </View>
               {teaserLines.map((line, i) => (
                 <Animated.View key={i} entering={FadeInDown.delay(i * 120).springify()} style={styles.teaserLine}>
@@ -560,7 +577,7 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
               <View style={styles.card}>
                 <View style={styles.cardHeader}>
                   <Ionicons name="heart-outline" size={15} color="#FF4757" />
-                  <Text style={styles.cardHeaderText}>DETAYLI YORUM</Text>
+                  <Text style={styles.cardHeaderText}>{lang === "tr" ? "DETAYLI YORUM" : "DETAILED READING"}</Text>
                 </View>
                 <Text style={styles.resultText}>{fullText}</Text>
                 {phase === "streaming" && <ActivityIndicator color={Colors.gold} style={{ marginTop: 12 }} />}
@@ -572,19 +589,19 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
               <Animated.View entering={ZoomIn.springify()} style={styles.shareCard}>
                 <LinearGradient colors={["#1A0508", "#1A0820"]} style={styles.shareCardInner}>
                   <Text style={styles.shareCardNames}>{data.name1} ❤️ {data.name2}</Text>
-                  <Text style={styles.shareCardScore}>Aşk Uyumu: %{scores.love}</Text>
+                  <Text style={styles.shareCardScore}>{lang === "tr" ? "Aşk Uyumu" : "Love Compatibility"}: %{scores.love}</Text>
                   <View style={styles.shareCardMini}>
-                    <Text style={styles.shareCardMiniItem}>TUTKU %{scores.passion}</Text>
+                    <Text style={styles.shareCardMiniItem}>{lang === "tr" ? "TUTKU" : "PASSION"} %{scores.passion}</Text>
                     <Text style={styles.shareCardMiniDot}>·</Text>
-                    <Text style={styles.shareCardMiniItem}>GÜVEN %{scores.trust}</Text>
+                    <Text style={styles.shareCardMiniItem}>{lang === "tr" ? "GÜVEN" : "TRUST"} %{scores.trust}</Text>
                     <Text style={styles.shareCardMiniDot}>·</Text>
-                    <Text style={styles.shareCardMiniItem}>GELECEK %{scores.future}</Text>
+                    <Text style={styles.shareCardMiniItem}>{lang === "tr" ? "GELECEK" : "FUTURE"} %{scores.future}</Text>
                   </View>
                   <Text style={styles.shareCardBrand}>✦ TENGRI · tengristar.com ✦</Text>
                 </LinearGradient>
                 <Pressable onPress={shareCard} style={styles.shareCardBtn}>
                   <Ionicons name="share-social-outline" size={15} color={Colors.gold} />
-                  <Text style={styles.shareCardBtnText}>Bu kartı paylaş</Text>
+                  <Text style={styles.shareCardBtnText}>{lang === "tr" ? "Bu kartı paylaş" : "Share this card"}</Text>
                 </Pressable>
               </Animated.View>
             )}
@@ -599,25 +616,29 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
 
                   {/* Micro-texts that tease the locked content */}
                   <Text style={styles.lockedTease}>
-                    Partnerinin sakladığı bir duygu öne çıkıyor olabilir...
+                    {lang === "tr"
+                      ? "Partnerinin sakladığı bir duygu öne çıkıyor olabilir..."
+                      : "A hidden feeling from your partner may be surfacing..."}
                   </Text>
                   <Text style={styles.lockedTease2}>
-                    Detaylı analiz; duygusal bağ, tutku, güven, gelecek potansiyeli ve gizli duyguları içeriyor.
+                    {lang === "tr"
+                      ? "Detaylı analiz; duygusal bağ, tutku, güven, gelecek potansiyeli ve gizli duyguları içeriyor."
+                      : "The detailed analysis covers emotional bond, passion, trust, future potential and hidden feelings."}
                   </Text>
 
                   <View style={styles.lockedDivider} />
 
                   {/* Campaign hint */}
-                  <Text style={styles.campaignHint}>✦ İlk aşk uyumu yorumuna özel ✦</Text>
+                  <Text style={styles.campaignHint}>{lang === "tr" ? "✦ İlk aşk uyumu yorumuna özel ✦" : "✦ Special offer for your first love reading ✦"}</Text>
 
                   <Pressable onPress={unlockDetail} style={styles.unlockBtn}>
                     <LinearGradient colors={["#FF4757", "#C0932A"]} style={styles.unlockBtnInner}
                       start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
                       <Ionicons name="lock-open-outline" size={18} color="#fff" />
-                      <Text style={styles.unlockBtnText}>Detaylı Yorumu Aç  ·  {GOLD_COST} ✦</Text>
+                      <Text style={styles.unlockBtnText}>{lang === "tr" ? "Detaylı Yorumu Aç" : "Unlock Full Reading"}  ·  {GOLD_COST} ✦</Text>
                     </LinearGradient>
                   </Pressable>
-                  <Text style={styles.lockedGoldHint}>Mevcut altın: {goldBalance} ✦</Text>
+                  <Text style={styles.lockedGoldHint}>{lang === "tr" ? "Mevcut altın" : "Current gold"}: {goldBalance} ✦</Text>
                 </LinearGradient>
               </Animated.View>
             )}
@@ -626,7 +647,7 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
             <Pressable onPress={() => { setPhase("form"); setStep(1); setFullText(""); setScores(null); }}
               style={styles.startOver}>
               <Ionicons name="refresh-outline" size={13} color={Colors.textDim} />
-              <Text style={styles.startOverText}>Yeniden analiz et</Text>
+              <Text style={styles.startOverText}>{lang === "tr" ? "Yeniden analiz et" : "Analyze again"}</Text>
             </Pressable>
           </Animated.View>
         )}
@@ -635,7 +656,7 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
       <InsufficientGoldModal
         visible={showGoldModal}
         onClose={() => setShowGoldModal(false)}
-        serviceLabel="Aşk Uyumu"
+        serviceLabel={lang === "tr" ? "Aşk Uyumu" : "Love Compatibility"}
         goldCost={GOLD_COST}
         goldBalance={goldBalance}
       />
