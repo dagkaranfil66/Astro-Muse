@@ -69,7 +69,6 @@ function WheelSvg() {
         const startDeg = i * SLICE_ANGLE;
         const endDeg = (i + 1) * SLICE_ANGLE;
         const midDeg = startDeg + SLICE_ANGLE / 2;
-        const textRotation = midDeg;
 
         const textR = R * 0.62;
         const textPos = polarToXY(midDeg, textR);
@@ -80,20 +79,19 @@ function WheelSvg() {
               d={segmentPath(startDeg, endDeg)}
               fill={prize.color}
             />
-            <SvgText
-              x={textPos.x}
-              y={textPos.y}
-              fill="#FFFFFF"
-              fontSize={13}
-              fontWeight="bold"
-              textAnchor="middle"
-              alignmentBaseline="middle"
-              rotation={textRotation}
-              originX={textPos.x}
-              originY={textPos.y}
-            >
-              {prize.label}
-            </SvgText>
+            <G transform={`rotate(${midDeg}, ${textPos.x}, ${textPos.y})`}>
+              <SvgText
+                x={textPos.x}
+                y={textPos.y}
+                fill="#FFFFFF"
+                fontSize={13}
+                fontWeight="bold"
+                textAnchor="middle"
+                alignmentBaseline="middle"
+              >
+                {prize.label}
+              </SvgText>
+            </G>
           </G>
         );
       })}
