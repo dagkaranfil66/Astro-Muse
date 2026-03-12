@@ -149,32 +149,32 @@ function AnimatedSplashScreen({ onDone }: { onDone: () => void }) {
 
   useEffect(() => {
     // Logo appears
-    logoOpacity.value = withTiming(1, { duration: 550, easing: Easing.out(Easing.cubic) });
-    logoScale.value   = withSpring(1, { damping: 13, stiffness: 80 });
+    logoOpacity.value = withTiming(1, { duration: 350, easing: Easing.out(Easing.cubic) });
+    logoScale.value   = withSpring(1, { damping: 14, stiffness: 100 });
 
     // Rotating ring
-    ringRotate.value  = withRepeat(withTiming(360, { duration: 6000, easing: Easing.linear }), -1, false);
+    ringRotate.value  = withRepeat(withTiming(360, { duration: 4000, easing: Easing.linear }), -1, false);
 
     // Glow pulse
-    glowOpacity.value = withDelay(450, withRepeat(
+    glowOpacity.value = withDelay(280, withRepeat(
       withSequence(
-        withTiming(0.85, { duration: 1000 }),
-        withTiming(0.35, { duration: 1000 }),
+        withTiming(0.85, { duration: 600 }),
+        withTiming(0.35, { duration: 600 }),
       ), -1, true,
     ));
 
     // Title slides up
-    titleY.value       = withDelay(620, withSpring(0, { damping: 16 }));
-    titleOpacity.value = withDelay(620, withTiming(1, { duration: 420 }));
+    titleY.value       = withDelay(380, withSpring(0, { damping: 18 }));
+    titleOpacity.value = withDelay(380, withTiming(1, { duration: 280 }));
 
     // Divider expands
-    dividerWidth.value = withDelay(820, withTiming(64, { duration: 500, easing: Easing.out(Easing.cubic) }));
+    dividerWidth.value = withDelay(500, withTiming(64, { duration: 300, easing: Easing.out(Easing.cubic) }));
 
     // Subtitle
-    subOpacity.value   = withDelay(950, withTiming(1, { duration: 420 }));
+    subOpacity.value   = withDelay(580, withTiming(1, { duration: 280 }));
 
-    // Exit
-    exitOpacity.value  = withDelay(2000, withTiming(0, { duration: 550 }, (done) => {
+    // Exit — total ~1.5s
+    exitOpacity.value  = withDelay(1100, withTiming(0, { duration: 350 }, (done) => {
       if (done) runOnJS(onDone)();
     }));
   }, []);
@@ -204,8 +204,8 @@ function AnimatedSplashScreen({ onDone }: { onDone: () => void }) {
 
       {/* Stars */}
       {STARS.map((s, i) => <SplashStar key={i} {...s} />)}
-      <ShootingStar delay={700} />
-      <ShootingStar delay={1300} />
+      <ShootingStar delay={400} />
+      <ShootingStar delay={800} />
 
       {/* Logo area */}
       <View style={sp.logoArea}>
