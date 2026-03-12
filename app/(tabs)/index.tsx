@@ -814,8 +814,9 @@ function CategorySlider({ selected, onSelect, lang }: {
 
 // ────────── Spin Countdown Button ──────────
 function SpinCountdownBtn() {
-  const { canSpin, lastSpinDate } = useApp();
+  const { canSpin, lastSpinDate, userProfile } = useApp();
   const { lang } = useLang();
+  const goSpin = () => { if (!userProfile) { router.push("/auth"); return; } router.push("/spin"); };
   const [countdown, setCountdown] = useState("");
   const glowPulse = useSharedValue(1);
 
@@ -847,7 +848,7 @@ function SpinCountdownBtn() {
 
   if (canSpin) {
     return (
-      <Pressable onPress={() => router.push("/spin")} style={styles.spinPillReady}>
+      <Pressable onPress={goSpin} style={styles.spinPillReady}>
         <Animated.View style={[styles.spinPillReadyInner, glowStyle]}>
           <Text style={styles.spinPillReadyStar}>✦</Text>
           <Text style={styles.spinPillReadyText}>{lang === "tr" ? "ÇEVİR" : "SPIN"}</Text>
@@ -857,7 +858,7 @@ function SpinCountdownBtn() {
   }
 
   return (
-    <Pressable onPress={() => router.push("/spin")} style={styles.spinPillCountdown}>
+    <Pressable onPress={goSpin} style={styles.spinPillCountdown}>
       <Text style={styles.spinPillCountdownIcon}>⏱</Text>
       <Text style={styles.spinPillCountdownText}>{countdown || "00:00:00"}</Text>
     </Pressable>
