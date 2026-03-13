@@ -87,7 +87,7 @@ args = "EXPO_PUBLIC_DOMAIN=$REPLIT_DEV_DOMAIN:5000 CI=1 npx expo start --tunnel"
 [userenv]
 
 [userenv.shared]
-EXPO_PUBLIC_REVENUECAT_TEST_API_KEY = "test_slMDeFgvwbIaiUlkbilBcbFUgnu"
+EXPO_PUBLIC_REVENUECAT_TEST_API_KEY = "test_ayFSiejdmrfuUEsBmcAGeemrbFq"
 EXPO_PUBLIC_REVENUECAT_IOS_API_KEY = "appl_xqIeAOBvBABTyCvxpsXWzOQGDci"
 EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY = "goog_yEESddOlVzHNhLPzniwhgWVBbJq"
 REVENUECAT_PROJECT_ID = "projadae9d62"
