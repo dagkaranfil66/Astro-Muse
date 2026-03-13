@@ -8,21 +8,33 @@ import Purchases, {
 } from "react-native-purchases";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-// ── Gold awarded per product identifier ──────────────────────────────────────
+// ── Gold awarded per identifier ───────────────────────────────────────────────
+// Keyed by BOTH RC package identifier (e.g. "gold_20") AND product identifier
+// (e.g. "tengri_gold_20") so lookups work regardless of which is used.
+// Values are TOTAL gold including bonus.
 export const PACKAGE_GOLD_MAP: Record<string, number> = {
-  tengri_starter:  20,
-  tengri_premium:  50,
-  tengri_standard: 120,
-  tengri_vip:      300,
+  // RC package identifiers (used by rcPkg.identifier)
+  gold_20:  20,
+  gold_50:  55,   // 50 + 5 bonus
+  gold_120: 140,  // 120 + 20 bonus
+  gold_300: 360,  // 300 + 60 bonus
+  // Product identifiers (used by rcPkg.product.identifier) — fallback
+  tengri_gold_20:  20,
+  tengri_gold_50:  55,
+  tengri_gold_120: 140,
+  tengri_gold_300: 360,
 };
 
 // ── Expected product IDs (for diagnostic comparison) ─────────────────────────
 export const EXPECTED_PRODUCT_IDS = [
-  "tengri_starter",
-  "tengri_premium",
-  "tengri_standard",
-  "tengri_vip",
+  "tengri_gold_20",
+  "tengri_gold_50",
+  "tengri_gold_120",
+  "tengri_gold_300",
 ];
+
+// ── RC package identifier order (cheapest → most expensive) ──────────────────
+export const RC_PACKAGE_ORDER = ["gold_20", "gold_50", "gold_120", "gold_300"];
 
 // ── Entitlement ID (must match RevenueCat dashboard) ─────────────────────────
 export const RC_ENTITLEMENT = "altın";

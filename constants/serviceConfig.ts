@@ -16,9 +16,13 @@ export const SERVICE_GOLD_COST: Record<string, number> = {
 // 50+5=55   = 99,99 ₺  (1,82 ₺/altın — %27 indirim)
 // 120+20=140 = 199,99 ₺ (1,43 ₺/altın — %43 indirim)
 // 300+60=360 = 399,99 ₺ (1,11 ₺/altın — %56 indirim)
+// GOLD_PACKAGES is reference data only (prices shown are approximate).
+// Actual prices and purchase flow come from RevenueCat / App Store Connect.
+// Product IDs match App Store Connect consumable products.
 export const GOLD_PACKAGES = [
   {
-    id: "tengri_starter",
+    id: "tengri_gold_20",
+    rcPackageId: "gold_20",
     nameKey: "pkgBasic",
     label: "Başlangıç Paketi",
     gold: 20,
@@ -30,7 +34,8 @@ export const GOLD_PACKAGES = [
     popular: false,
   },
   {
-    id: "tengri_premium",
+    id: "tengri_gold_50",
+    rcPackageId: "gold_50",
     nameKey: "pkgPlus",
     label: "Popüler Paket",
     gold: 50,
@@ -42,7 +47,8 @@ export const GOLD_PACKAGES = [
     popular: true,
   },
   {
-    id: "tengri_standard",
+    id: "tengri_gold_120",
+    rcPackageId: "gold_120",
     nameKey: "pkgPremium",
     label: "Büyük Paket",
     gold: 120,
@@ -54,7 +60,8 @@ export const GOLD_PACKAGES = [
     popular: false,
   },
   {
-    id: "tengri_vip",
+    id: "tengri_gold_300",
+    rcPackageId: "gold_300",
     nameKey: "pkgVip",
     label: "Mega Paket",
     gold: 300,

@@ -27,7 +27,7 @@ import { Colors } from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
 import { SERVICE_GOLD_COST, FREE_START_GOLD } from "@/constants/serviceConfig";
-import { useSubscription, PACKAGE_GOLD_MAP } from "@/lib/revenuecat";
+import { useSubscription, PACKAGE_GOLD_MAP, RC_PACKAGE_ORDER } from "@/lib/revenuecat";
 import type { PurchasesPackage } from "react-native-purchases";
 
 const SERVICE_NAMES_TR: Record<string, string> = {
@@ -37,7 +37,7 @@ const SERVICE_NAMES_TR: Record<string, string> = {
   tarot: "Tarot", dogum: "Doğum Haritası",
 };
 
-// RC package display data
+// RC package display data — keyed by RC package identifier (gold_20, gold_50, etc.)
 const PKG_DISPLAY: Record<string, {
   gradient: [string, string];
   popular: boolean;
@@ -49,10 +49,10 @@ const PKG_DISPLAY: Record<string, {
   desc: string;
   descEn: string;
 }> = {
-  tengri_starter:  { gradient: ["#1A1A30", "#0D1526"], popular: false, advantage: false, gold: 20,  bonus: 0, label: "Başlangıç Paketi", discount: 0,  desc: "", descEn: "" },
-  tengri_premium:  { gradient: ["#1A1030", "#0D1526"], popular: true,  advantage: false, gold: 50,  bonus: 0, label: "Popüler Paket",    discount: 27, desc: "", descEn: "" },
-  tengri_standard: { gradient: ["#1A0A20", "#0D1526"], popular: false, advantage: false, gold: 120, bonus: 0, label: "Büyük Paket",      discount: 43, desc: "", descEn: "" },
-  tengri_vip:      { gradient: ["#1A0805", "#0D1526"], popular: false, advantage: true,  gold: 300, bonus: 0, label: "Mega Paket",       discount: 56, desc: "", descEn: "" },
+  gold_20:  { gradient: ["#1A1A30", "#0D1526"], popular: false, advantage: false, gold: 20,  bonus: 0,  label: "Başlangıç Paketi", discount: 0,  desc: "", descEn: "" },
+  gold_50:  { gradient: ["#1A1030", "#0D1526"], popular: true,  advantage: false, gold: 50,  bonus: 5,  label: "Popüler Paket",    discount: 27, desc: "", descEn: "" },
+  gold_120: { gradient: ["#1A0A20", "#0D1526"], popular: false, advantage: false, gold: 120, bonus: 20, label: "Büyük Paket",      discount: 43, desc: "", descEn: "" },
+  gold_300: { gradient: ["#1A0805", "#0D1526"], popular: false, advantage: true,  gold: 300, bonus: 60, label: "Mega Paket",       discount: 56, desc: "", descEn: "" },
 };
 
 // ─── Auth Gate (not logged in) ─────────────────────────────────────────────
@@ -300,7 +300,9 @@ export default function PurchaseScreen() {
 
   const isLoggedIn = !!userProfile;
 
-  const ORDER = ["tengri_starter", "tengri_premium", "tengri_standard", "tengri_vip"];
+  // RC_PACKAGE_ORDER = ["gold_20", "gold_50", "gold_120", "gold_300"]
+  // These are RC *package* identifiers, not product identifiers.
+  const ORDER = RC_PACKAGE_ORDER;
   const sortedRcPkgs = [...packages]
     .filter((p) => ORDER.includes(p.identifier))
     .sort((a, b) => ORDER.indexOf(a.identifier) - ORDER.indexOf(b.identifier));
@@ -318,14 +320,34 @@ export default function PurchaseScreen() {
     setBuying(true);
     try {
       await purchase(rcPkg);
-      const gold = PACKAGE_GOLD_MAP[rcPkg.identifier] ?? 0;
-      addGold(gold);
+      // Look up by RC package identifier first, then by product identifier as fallback.
+      // Both are in PACKAGE_GOLD_MAP so at least one will always resolve.
+      const gold =
+        PACKAGE_GOLD_MAP[rcPkg.identifier] ??
+        PACKAGE_GOLD_MAP[rcPkg.product.identifier] ??
+        0;
+      console.log(
+        `[Purchase] ✅ pkg=${rcPkg.identifier} product=${rcPkg.product.identifier} gold=${gold}`
+      );
+      if (gold > 0) {
+        addGold(gold);
+      } else {
+        console.warn(
+          `[Purchase] ⚠️ Gold lookup returned 0. pkg identifier="${rcPkg.identifier}" product="${rcPkg.product.identifier}"`
+        );
+      }
       setBoughtId(rcPkg.identifier);
       setBoughtGold(gold);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setTimeout(() => router.back(), 1800);
     } catch (e: any) {
       if (!e?.userCancelled) {
+        console.error(
+          "[Purchase] ❌ Error:",
+          (e as any)?.message ?? e,
+          "code:",
+          (e as any)?.code
+        );
         setPurchaseError(lang === "tr" ? "Satın alma başarısız oldu" : "Purchase failed");
       }
     } finally {

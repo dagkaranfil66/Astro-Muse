@@ -1,0 +1,70 @@
+Tengri Astroloji iOS uygulamamda RevenueCat + App Store consumable altın paketleri için kod tarafını kontrol et ve düzelt.
+
+Amaç:
+- TestFlight’ta altın paketleri düzgün yüklensin
+- Purchases.getOfferings() boş dönmesin
+- Apple satın alma popup’ı açılsın
+- Satın alma başarılı olunca kullanıcının altın bakiyesi artsın
+- Hata olursa kullanıcıya düzgün mesaj gösterilsin
+
+Kullandığım RevenueCat ürünleri:
+- tengri_gold_20
+- tengri_gold_50
+- tengri_gold_120
+- tengri_gold_300
+
+RevenueCat offering:
+- default
+
+RevenueCat package identifier’ları:
+- gold_20
+- gold_50
+- gold_120
+- gold_300
+
+İstediğim kontroller:
+1. RevenueCat initialize/configure kodunu bul
+2. iOS public SDK key doğru yerde mi kontrol et
+3. Purchases.configure app açılışında bir kez mi çalışıyor kontrol et
+4. Purchases.getOfferings() doğru şekilde çağrılıyor mu kontrol et
+5. offerings.current yerine yanlış offering erişimi varsa düzelt
+6. availablePackages içinden gold_20, gold_50, gold_120, gold_300 paketleri doğru okunuyor mu kontrol et
+7. Paketler yüklenirken loading state göster
+8. Paketler gelmezse “Paketler yüklenemedi” hatasını sadece gerçek hata varsa göster
+9. Hata detayını console’a yazdır
+10. Satın alma butonu ilgili package ile purchasePackage çağrıyor mu kontrol et
+11. Satın alma sonrası transaction / customerInfo sonucunu doğru işle
+12. Consumable mantığına uygun şekilde satın alma sonrası Firestore’daki kullanıcının altın bakiyesini artır
+13. Restore purchases coin sisteminde yanlış çalışıyorsa güvenli hale getir
+14. Sandbox / TestFlight ortamında crash veya null hata vermeyecek şekilde defensive coding ekle
+15. iOS tarafında offerings gelmezse debug log ekle:
+   - RevenueCat configured mı
+   - offerings.current var mı
+   - availablePackages count kaç
+   - package identifier listesi ne
+16. UI tarafında fiyat, başlık ve ürün listesi RevenueCat’ten gelsin
+17. Hardcoded fake paket veya eski product id varsa temizle:
+   - tengri_starter
+   - tengri_standard
+   - tengri_premium
+   - tengri_vip
+18. Sadece yeni product id’ler kullanılsın:
+   - tengri_gold_20
+   - tengri_gold_50
+   - tengri_gold_120
+   - tengri_gold_300
+19. Offering identifier default olacak şekilde kodu düzenle
+20. Kodda eski subscription mantığı varsa kaldır; bunlar consumable ürün
+
+Beklediğim çıktı:
+- Düzeltilmiş dosyalar
+- Hangi dosyalarda neyi değiştirdiğinin kısa özeti
+- Satın alma ekranı için temiz ve güvenli final kod
+- TestFlight’ta test etmek için adım adım kısa checklist
+
+Önemli:
+- Mevcut UI tasarımını bozma
+- Sadece satın alma akışını ve veri akışını düzelt
+- Null / undefined hatalarına karşı güvenli kod yaz
+- Eski product id veya subscription tipi referanslarını kaldır
+- Kod production’a uygun olsun
