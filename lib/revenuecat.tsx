@@ -75,20 +75,30 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   // Initialize RevenueCat once, safely inside useEffect
   useEffect(() => {
     console.log('REVENUECAT_INIT_START');
+
+    // Safety timeout: if RC doesn't init within 12s, unblock the UI anyway
+    const timeout = setTimeout(() => {
+      console.warn("[RC] Init timeout — forcing isReady to unblock UI");
+      setIsReady(true);
+    }, 12000);
+
     async function init() {
       try {
         const apiKey = getApiKey();
         if (!apiKey) {
           console.warn("[RC] No API key found — purchases disabled. Set EXPO_PUBLIC_REVENUECAT_IOS_API_KEY in EAS secrets.");
+          clearTimeout(timeout);
+          setIsReady(true); // Unblock UI so UnavailableCards render
           return;
         }
 
         if (Platform.OS !== "web") {
-          Purchases.setLogLevel(LOG_LEVEL.WARN);
+          Purchases.setLogLevel(LOG_LEVEL.DEBUG);
         }
 
         await Purchases.configure({ apiKey });
         console.log('REVENUECAT_INIT_OK platform=' + Platform.OS);
+        clearTimeout(timeout);
         setIsReady(true);
 
         // Prefetch customer info after init
@@ -96,11 +106,14 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         qc.invalidateQueries({ queryKey: ["rc", "offerings"] });
       } catch (e) {
         console.error("[RC] configure failed:", e);
-        // Do NOT crash — app continues without purchases
+        clearTimeout(timeout);
+        setIsReady(true); // Unblock UI even on error
       }
     }
 
     init();
+
+    return () => clearTimeout(timeout);
   }, []);
 
   const customerInfoQuery = useQuery<CustomerInfo>({
@@ -118,10 +131,16 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const offeringsQuery = useQuery<PurchasesOfferings>({
     queryKey: ["rc", "offerings"],
     queryFn: async () => {
-      const offerings = await Purchases.getOfferings();
+      // Timeout wrapper: if getOfferings hangs > 15s, throw so error state shows
+      const offeringsPromise = Purchases.getOfferings();
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("[RC] getOfferings timeout")), 15000)
+      );
+      const offerings = await Promise.race([offeringsPromise, timeoutPromise]);
       const pkgs = offerings.current?.availablePackages ?? [];
       if (pkgs.length === 0) {
-        console.warn("[RC] No packages found — check RevenueCat dashboard.");
+        console.warn("[RC] No packages found. Check: 1) RC Dashboard → Offerings → Make Current  2) App Store Connect products 'Ready to Submit'");
+        console.warn("[RC] Full offerings:", JSON.stringify(offerings));
       } else {
         pkgs.forEach((p) =>
           console.log("[RC] Package:", p.identifier, "| price:", p.product?.priceString)
@@ -131,7 +150,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     },
     staleTime: 0,
     retry: 2,
-    retryDelay: 2000,
+    retryDelay: 3000,
     enabled: isReady,
   });
 
