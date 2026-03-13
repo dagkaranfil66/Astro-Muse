@@ -52,8 +52,6 @@
     "android": {
       "package": "com.tengriastrolojifalburlarmistikyolculuk.app",
       "versionCode": 2,
-      "compileSdkVersion": 35,
-      "targetSdkVersion": 35,
       "adaptiveIcon": {
         "backgroundColor": "#070D1A",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
