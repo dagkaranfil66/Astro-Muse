@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "app.replit.tengri-astroloji-fal-burclar",
-      "buildNumber": "3",
+      "buildNumber": "23",
       "usesAppleSignIn": true,
       "splash": {
         "image": "./assets/images/splash-icon.png",
