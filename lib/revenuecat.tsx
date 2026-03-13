@@ -42,7 +42,8 @@ export const EXPECTED_PRODUCT_IDS = [
 export const RC_PACKAGE_ORDER = ["gold_20", "gold_50", "gold_120", "gold_300"];
 
 // ── Entitlement ID (must match RevenueCat dashboard) ─────────────────────────
-export const RC_ENTITLEMENT = "altın";
+// RC Dashboard → Entitlements → identifier = "gold_access"
+export const RC_ENTITLEMENT = "gold_access";
 
 // ── API key resolver ───────────────────────────────────────────────────────────
 // Expo Go requires a DIFFERENT key than native builds.
