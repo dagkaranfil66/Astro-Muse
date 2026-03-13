@@ -35,11 +35,21 @@ const firebaseConfig = {
   appId: '1:317895705040:web:ffd878c9a9a64fe10b5339',
 };
 
-const app  = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-const db   = getFirestore(app);
-const auth = getAuth(app);
+function initFirebase() {
+  try {
+    const a = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+    return { app: a, db: getFirestore(a), auth: getAuth(a) };
+  } catch (e) {
+    console.error('[Firebase] initializeApp failed:', e);
+    const fallbackConfig = { ...firebaseConfig, apiKey: firebaseConfig.apiKey || 'MISSING' };
+    const a = getApps().length > 0 ? getApp() : initializeApp(fallbackConfig);
+    return { app: a, db: getFirestore(a), auth: getAuth(a) };
+  }
+}
 
-export { db, auth };
+const { app, db, auth } = initFirebase();
+
+export { app, db, auth };
 
 // ── Firebase Auth: Google sign-in via redirect (web only) ────────────────
 // Redirects the page to Google OAuth, returns control after the user

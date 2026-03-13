@@ -24,31 +24,9 @@ import {
   cancelReengagementNotifications,
 } from "@/lib/notifications";
 
-SplashScreen.preventAutoHideAsync();
-initializeRevenueCat();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 let Notifications: typeof NotificationsType | null = null;
-if (Platform.OS !== "web") {
-  try {
-    Notifications = require("expo-notifications");
-  } catch {
-    // Expo Go on Android
-  }
-}
-
-if (Notifications) {
-  try {
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-        shouldShowBanner: true,
-        shouldShowList: true,
-      }),
-    });
-  } catch {}
-}
 
 // ── App navigation ─────────────────────────────────────────────────────────
 
@@ -132,9 +110,38 @@ export default function RootLayout() {
     Lora_700Bold,
   });
 
+  // Initialize native SDKs AFTER the component mounts (safe for iOS)
+  useEffect(() => {
+    // RevenueCat — must be called after app mounts, not at module scope
+    try {
+      initializeRevenueCat();
+    } catch (e) {
+      console.error("[RC] initializeRevenueCat failed:", e);
+    }
+
+    // expo-notifications setup
+    if (Platform.OS !== "web") {
+      try {
+        const N = require("expo-notifications") as typeof NotificationsType;
+        Notifications = N;
+        N.setNotificationHandler({
+          handleNotification: async () => ({
+            shouldShowAlert: true,
+            shouldPlaySound: true,
+            shouldSetBadge: false,
+            shouldShowBanner: true,
+            shouldShowList: true,
+          }),
+        });
+      } catch (e) {
+        console.warn("[Notifications] setup failed:", e);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded, fontError]);
 
