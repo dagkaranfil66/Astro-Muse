@@ -1,0 +1,133 @@
+Tengri Astroloji iOS uygulamamın onboarding, login ve izin akışını App Store review standartlarına göre optimize et ve gerekli kod iyileştirmelerini yap.
+
+AMAÇ:
+- Apple App Store review sürecinde sorun çıkarmayan temiz bir onboarding ve login akışı
+- Kullanıcıya uygulamanın değerini ilk 5 ekranda net anlatmak
+- Ücretsiz başlangıç avantajını güçlü göstermek
+- Bildirim izinlerini doğru UX ile istemek
+- Login ve privacy linklerini stabil çalıştırmak
+
+YAPILACAKLAR:
+
+1) ONBOARDING FLOW
+Onboarding ekranlarını yeniden düzenle ve optimize et.
+
+Sıra şu şekilde olsun:
+1. Hoş geldin ekranı
+2. 11 mistik hizmet tanıtımı
+3. Ücretsiz başlangıç avantajı
+4. Profil kişiselleştirme
+5. Hesap oluştur / giriş ekranı
+
+Her ekranda:
+- Net başlık
+- Kısa açıklama
+- Alt CTA butonu
+- “Geç” seçeneği
+
+Component yapısını reusable hale getir.
+
+2) APPLE REVIEW DISCLAIMER
+“Önemli Bilgilendirme” ekranını koru ama metni optimize et.
+
+Metin:
+“Bu uygulamada sunulan yorumlar yalnızca eğlence ve kişisel keşif amaçlıdır. Geleceğe dair kesin sonuç veya profesyonel tavsiye sunmaz.”
+
+Ayrıca:
+- Gizlilik Politikası
+- Kullanım Koşulları
+
+linkleri çalışır durumda olmalı.
+
+Link açılmazsa hata handling ekle.
+
+3) PUSH NOTIFICATION UX
+Push izni direkt iOS popup ile isteme.
+
+Önce bir uygulama ekranı göster:
+
+“Falın hazır olduğunda ve günlük ödüller geldiğinde sana bildirim gönderebiliriz.”
+
+Butonlar:
+- Bildirimleri Aç
+- Şimdilik Geç
+
+Kullanıcı kabul ederse iOS izin popup aç.
+
+4) ÜCRETSİZ DEĞERİ GÖSTER
+Onboarding içinde güçlü şekilde göster:
+
+- Yeni kullanıcılar 15 altın ile başlar
+- Günlük çarktan altın kazanılabilir
+- İlk mistik deneyim ücretsizdir
+
+CTA örnekleri:
+- Ücretsiz Başla
+- 15 Altın ile Başla
+- Keşfet
+
+5) PROFİL EKRANI
+“Mistik Profilini Oluştur” ekranında:
+
+Alanlar:
+- Ad (isteğe bağlı)
+- Doğum tarihi (isteğe bağlı)
+- Odak alanı seçimi
+
+Odak seçenekleri:
+- Aşk
+- Kariyer
+- Enerji
+- Kader
+
+Form zorunlu olmasın.
+
+6) LOGIN FLOW
+Login ekranını stabilize et.
+
+Desteklenen girişler:
+- Apple ile giriş
+- E-posta ile giriş
+
+Kontroller:
+- Apple login production build'de çalışmalı
+- Hata durumlarında kullanıcı mesaj görmeli
+- Loading state ekle
+- Crash oluşmasın
+
+7) UI İYİLEŞTİRME
+Mevcut tasarım korunmalı:
+
+- koyu lacivert mistik tema
+- altın CTA butonları
+- yıldız efektleri
+- premium görünüm
+
+Ama:
+
+- metin kontrastı artır
+- küçük yazıları okunur yap
+- safe area uyumunu kontrol et
+
+8) STABİLİTE
+Şunları kontrol et:
+
+- onboarding navigation crash
+- login state bug
+- notification race condition
+- webview link açılmama sorunu
+
+9) KOD TEMİZLİĞİ
+- tekrar eden componentleri ortaklaştır
+- onboarding data model kullan
+- TR/EN text config yap
+- navigation sadeleştir
+
+10) ÇIKTI
+Şunları üret:
+
+- güncellenmiş onboarding kodu
+- notification pre-permission ekranı
+- login stabilizasyonu
+- privacy link handling
+- değişen dosyaların listesi

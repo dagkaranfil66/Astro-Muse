@@ -32,6 +32,7 @@ import Animated, {
 import { Colors } from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
+import { requestNotificationPermission } from "@/lib/notifications";
 
 const { width, height } = Dimensions.get("window");
 
@@ -366,6 +367,20 @@ function getSlides(lang: "tr" | "en") {
       cta: tr ? "Devam Et" : "Continue",
     },
     {
+      id: "notification",
+      type: "icon" as const,
+      icon: "🔔",
+      title: tr ? "Seni Haberdar\nEdelim" : "Stay in the\nLoop",
+      subtitle: tr
+        ? "Falın hazır olduğunda ve günlük ödüller geldiğinde sana bildirim gönderebiliriz."
+        : "We can notify you when your reading is ready and when daily rewards are available.",
+      detail: tr
+        ? "📿 Günlük altın hatırlatıcısı\n🔮 Fal hazır bildirimi\n✨ Özel mistik mesajlar"
+        : "📿 Daily gold reminders\n🔮 Reading ready alerts\n✨ Special mystical messages",
+      accent: "#9B6FBB",
+      cta: tr ? "Bildirimleri Aç" : "Enable Notifications",
+    },
+    {
       id: "profile",
       type: "profile" as const,
       title: tr ? "Mistik Profilini\nOluştur" : "Create Your\nMystical Profile",
@@ -410,9 +425,15 @@ export default function OnboardingScreen() {
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
 
-  const isLast = activeIndex === SLIDES.length - 1;
-  const isDisclaimer = activeIndex === 0;
-  const isProfile = SLIDES[activeIndex]?.type === "profile";
+  const isLast         = activeIndex === SLIDES.length - 1;
+  const isDisclaimer   = activeIndex === 0;
+  const isProfile      = SLIDES[activeIndex]?.type === "profile";
+  const isNotification = SLIDES[activeIndex]?.id === "notification";
+
+  const handleNotificationAccept = async () => {
+    try { await requestNotificationPermission(); } catch {}
+    setActiveIndex((i) => i + 1);
+  };
 
   const goNext = async () => {
     if (isProfile) {
@@ -474,8 +495,8 @@ export default function OnboardingScreen() {
               <View style={styles.disclaimerDivider} />
               <Text style={[styles.disclaimerText, { fontFamily: "Lora_400Regular_Italic" }]}>
                 {tr
-                  ? "Bu uygulamada sunulan yorumlar yalnızca eğlence amaçlıdır. Geleceği öngörme veya kişisel kararları yönlendirme amacı taşımaz."
-                  : "All readings and interpretations in this app are for entertainment purposes only. They are not intended to predict the future or guide personal decisions."}
+                  ? "Bu uygulamada sunulan yorumlar yalnızca eğlence ve kişisel keşif amaçlıdır. Geleceğe dair kesin sonuç veya profesyonel tavsiye sunmaz."
+                  : "All readings in this app are for entertainment and personal exploration only. They do not provide definitive predictions or professional advice."}
               </Text>
               <Text style={[styles.disclaimerTextSmall, { fontFamily: "Lora_400Regular" }]}>
                 {tr
@@ -484,7 +505,10 @@ export default function OnboardingScreen() {
               </Text>
               <View style={styles.disclaimerLinksRow}>
                 <TouchableOpacity
-                  onPress={() => router.push("/privacy")}
+                  onPress={() => {
+                    try { router.push("/legal?doc=privacy" as any); }
+                    catch { router.push("/privacy"); }
+                  }}
                   activeOpacity={0.7}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
@@ -494,7 +518,10 @@ export default function OnboardingScreen() {
                 </TouchableOpacity>
                 <Text style={[styles.disclaimerLinkSep, { fontFamily: "Lora_400Regular" }]}>·</Text>
                 <TouchableOpacity
-                  onPress={() => router.push("/terms")}
+                  onPress={() => {
+                    try { router.push("/legal?doc=terms" as any); }
+                    catch { router.push("/terms"); }
+                  }}
                   activeOpacity={0.7}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
@@ -693,6 +720,21 @@ export default function OnboardingScreen() {
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
+          ) : isNotification ? (
+            <>
+              <TouchableOpacity style={styles.primaryBtn} onPress={handleNotificationAccept} activeOpacity={0.85}>
+                <LinearGradient colors={["#7B4FBB", "#5A30A0"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.primaryBtnInner}>
+                  <Text style={[styles.primaryBtnText, { fontFamily: "Lora_700Bold", color: "#F0E8FF" }]}>
+                    {tr ? "🔔 Bildirimleri Aç" : "🔔 Enable Notifications"}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={goNext} activeOpacity={0.7} style={styles.skipLink}>
+                <Text style={[styles.skipText, { fontFamily: "Lora_400Regular" }]}>
+                  {tr ? "Şimdilik Geç" : "Not Now"}
+                </Text>
+              </TouchableOpacity>
+            </>
           ) : isLast ? (
             <>
               <TouchableOpacity style={styles.primaryBtn} onPress={handleAuth} activeOpacity={0.85}>
