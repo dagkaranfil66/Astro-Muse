@@ -30,51 +30,15 @@ import Animated, {
   interpolateColor,
 } from "react-native-reanimated";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Svg, { Path, G, ClipPath, Defs, Rect } from "react-native-svg";
 import { Colors } from "@/constants/colors";
 import { useLang } from "@/context/LanguageContext";
 import { useApp } from "@/context/AppContext";
 import { getApiUrl } from "@/lib/query-client";
-import { firebaseAppleSignIn, firebaseGoogleSignIn, getGoogleRedirectResult } from "@/lib/firebase";
+import { firebaseAppleSignIn } from "@/lib/firebase";
 
 WebBrowser.maybeCompleteAuthSession();
 
 const APPLE_USER_KEY = "tengri_apple_uid";
-
-// ── Google "G" Logo — official multicolor SVG ────────────────────────────
-function GoogleIcon({ size = 24 }: { size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Defs>
-        <ClipPath id="clip">
-          <Rect width="24" height="24" />
-        </ClipPath>
-      </Defs>
-      <G clipPath="url(#clip)">
-        {/* Blue */}
-        <Path
-          d="M23.745 12.27c0-.79-.07-1.54-.19-2.27h-11.3v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"
-          fill="#4285F4"
-        />
-        {/* Green */}
-        <Path
-          d="M12.255 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96h-3.98v3.09C3.515 21.3 7.615 24 12.255 24z"
-          fill="#34A853"
-        />
-        {/* Yellow */}
-        <Path
-          d="M5.525 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62h-3.98a11.86 11.86 0 000 10.76l3.98-3.09z"
-          fill="#FBBC05"
-        />
-        {/* Red */}
-        <Path
-          d="M12.255 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C18.205 1.19 15.495 0 12.255 0c-4.64 0-8.74 2.7-10.71 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"
-          fill="#EA4335"
-        />
-      </G>
-    </Svg>
-  );
-}
 
 // ── Animated orb ──────────────────────────────────────────────────────────
 function TengriWelcomeOrb() {
@@ -195,10 +159,9 @@ export default function AuthScreen() {
   const [name, setName]               = useState("");
   const [error, setError]             = useState("");
   const [loading, setLoading]         = useState(false);
-  const [appleLoading, setAppleLoading]   = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
   const [showPass, setShowPass]       = useState(false);
-  const [showConfPass, setShowConfPass]   = useState(false);
+  const [showConfPass, setShowConfPass] = useState(false);
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -219,113 +182,6 @@ export default function AuthScreen() {
     });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.replace("/(tabs)");
-  };
-
-  // ── On web: pick up Google redirect result after sign-in ─────────────
-  React.useEffect(() => {
-    if (Platform.OS !== "web") return;
-    getGoogleRedirectResult().then((info) => {
-      if (!info) return;
-      const googleName = info.name || (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
-      finishLogin(googleName, info.email, "google");
-    });
-  }, []);
-
-  // ── Google Sign-In (Firebase HTTPS handler — no custom URI scheme) ────
-  const handleGoogleSignIn = async () => {
-    // Web preview: Firebase Auth requires an authorized domain.
-    // The Replit preview domain is not whitelisted — show a friendly message.
-    if (Platform.OS === "web") {
-      setError(
-        lang === "tr"
-          ? "Google ile giriş mobil uygulamada kullanılabilir. Lütfen e-posta ile giriş yapın."
-          : "Google sign-in is available in the mobile app. Please use email to sign in.",
-      );
-      return;
-    }
-
-    const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
-    if (!webClientId) {
-      setError(
-        lang === "tr"
-          ? "Google girişi henüz yapılandırılmadı."
-          : "Google login is not configured yet.",
-      );
-      return;
-    }
-
-    setGoogleLoading(true);
-    setError("");
-
-    try {
-
-      // ── Native: custom OAuth → Firebase credential ─────────────────────
-      const FIREBASE_REDIRECT = "https://tengri-astroloji.firebaseapp.com/__/auth/handler";
-
-      const state = Math.random().toString(36).substring(2, 18);
-      const nonce = Math.random().toString(36).substring(2, 18); // required for id_token
-
-      // response_type=token id_token → returns both access_token and id_token in URL fragment.
-      // nonce is mandatory when requesting id_token (OpenID Connect implicit flow).
-      const params = new URLSearchParams({
-        client_id:     webClientId,
-        redirect_uri:  FIREBASE_REDIRECT,
-        response_type: "token id_token",
-        scope:         "openid profile email",
-        state,
-        nonce,
-      });
-
-      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-
-      // openAuthSessionAsync intercepts the redirect to FIREBASE_REDIRECT and returns
-      // immediately with result.url containing the full URL (including hash fragment).
-      const result = await WebBrowser.openAuthSessionAsync(authUrl, FIREBASE_REDIRECT);
-
-      if (result.type !== "success") {
-        setGoogleLoading(false);
-        return;
-      }
-
-      // Tokens arrive in the URL hash fragment (#access_token=...&id_token=...)
-      // Fall back to query string in case of a code flow response.
-      const hashPart    = result.url.includes("#") ? result.url.split("#")[1] : "";
-      const queryPart   = result.url.includes("?")
-        ? result.url.split("?")[1].split("#")[0]
-        : "";
-      const fromHash    = Object.fromEntries(new URLSearchParams(hashPart));
-      const fromQuery   = Object.fromEntries(new URLSearchParams(queryPart));
-
-      const accessToken = fromHash.access_token ?? fromQuery.access_token ?? null;
-      const idToken     = fromHash.id_token     ?? fromQuery.id_token     ?? null;
-
-      if (!accessToken && !idToken) {
-        throw new Error("No tokens returned by Google");
-      }
-
-      // Sign in to Firebase Auth using the Google credential
-      await firebaseGoogleSignIn(idToken, accessToken);
-
-      // Fetch Google profile (name + email)
-      const userRes  = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-        headers: { Authorization: `Bearer ${accessToken ?? ""}` },
-      });
-      const userInfo = (await userRes.json()) as {
-        name?: string; email?: string; given_name?: string;
-      };
-
-      const googleEmail = userInfo.email ?? `google_${Date.now()}@tengri.social`;
-      const googleName  = userInfo.name
-        ?? userInfo.given_name
-        ?? (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
-
-      await finishLogin(googleName, googleEmail, "google");
-    } catch (e) {
-      console.warn("[Google Sign-In]", e);
-      setError(lang === "tr" ? "Google ile giriş başarısız." : "Google sign-in failed.");
-    } finally {
-      setGoogleLoading(false);
-    }
   };
 
   // ── Apple Sign-In ─────────────────────────────────────────────────────
@@ -479,24 +335,8 @@ export default function AuthScreen() {
                 </Animated.View>
               )}
 
-              {/* 2. Google — all platforms */}
+              {/* 2. Email — all platforms */}
               <Animated.View entering={FadeInDown.delay(Platform.OS === "ios" ? 370 : 310).springify()} style={styles.btnRow}>
-                <Pressable
-                  onPress={handleGoogleSignIn}
-                  disabled={googleLoading}
-                  style={({ pressed }) => [styles.googleBtn, pressed && { opacity: 0.88 }]}
-                >
-                  <GoogleIcon size={22} />
-                  <Text style={styles.googleBtnText}>
-                    {googleLoading
-                      ? (lang === "tr" ? "Bağlanıyor..." : "Connecting...")
-                      : (lang === "tr" ? "Google ile giriş yap" : "Sign in with Google")}
-                  </Text>
-                </Pressable>
-              </Animated.View>
-
-              {/* 3. Email — all platforms */}
-              <Animated.View entering={FadeInDown.delay(Platform.OS === "ios" ? 440 : 380).springify()} style={styles.btnRow}>
                 <Pressable
                   onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setView("email"); }}
                   style={({ pressed }) => [styles.emailBtn, pressed && { opacity: 0.88 }]}
@@ -694,33 +534,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
 
-  // ── Choice buttons ───────────────────────────────────────────────────
   btnStack: { width: "100%", gap: 14, alignItems: "center" },
   btnRow:   { width: "100%" },
 
   appleBtn: { width: "100%", height: 58, borderRadius: 14 },
-
-  googleBtn: {
-    width: "100%",
-    height: 58,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
-  },
-  googleBtnText: {
-    fontSize: 17,
-    fontWeight: "500",
-    color: "#3C4043",
-    letterSpacing: 0.15,
-  },
 
   emailBtn: {
     width: "100%",
@@ -757,7 +574,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
 
-  // ── Email form ───────────────────────────────────────────────────────
   form: { width: "100%", gap: 12 },
 
   modeToggle: {
