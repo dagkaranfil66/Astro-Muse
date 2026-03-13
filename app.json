@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.tengriastrolojifalburlarmistikyolculuk.app",
+      "bundleIdentifier": "app.replit.tengri-astroloji-fal-burclar",
       "buildNumber": "3",
       "usesAppleSignIn": true,
       "infoPlist": {
