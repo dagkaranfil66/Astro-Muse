@@ -282,7 +282,7 @@ export default function PurchaseScreen() {
   const insets = useSafeAreaInsets();
   const { addGold, goldBalance, userProfile, canSpin } = useApp();
   const { lang } = useLang();
-  const { isReady, packages, offeringsLoading, offeringsError, offeringsEmpty, purchase, restore, isRestoring, refetchOfferings } = useSubscription();
+  const { isReady, rcConfigured, isExpoGo, packages, offeringsLoading, offeringsError, offeringsEmpty, purchase, restore, isRestoring, refetchOfferings } = useSubscription();
 
   const [buying, setBuying] = useState(false);
   const [boughtId, setBoughtId] = useState<string | null>(null);
@@ -461,6 +461,18 @@ export default function PurchaseScreen() {
                   {lang === "tr"
                     ? "Satın alma yalnızca mobil uygulamada çalışır. Expo Go ile telefonunuzda deneyin."
                     : "Purchases only work in the mobile app. Try on your phone with Expo Go."}
+                </Text>
+              </Animated.View>
+            )}
+
+            {/* Expo Go notice — purchases require a native build */}
+            {isExpoGo && !rcConfigured && (
+              <Animated.View entering={FadeIn.duration(400)} style={styles.webNoticeBanner}>
+                <Ionicons name="construct-outline" size={16} color={Colors.gold} />
+                <Text style={styles.webNoticeText}>
+                  {lang === "tr"
+                    ? "Satın alma yalnızca TestFlight veya App Store sürümünde çalışır. Expo Go test modunda satın alma desteklenmez."
+                    : "Purchases only work in TestFlight or App Store builds. In-app purchases are not supported in Expo Go."}
                 </Text>
               </Animated.View>
             )}

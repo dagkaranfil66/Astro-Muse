@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Platform } from "react-native";
+import Constants from "expo-constants";
 import Purchases, {
   type PurchasesPackage,
   type CustomerInfo,
@@ -7,6 +8,10 @@ import Purchases, {
   LOG_LEVEL,
 } from "react-native-purchases";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+// Expo Go (StoreClient) cannot use the native production API key.
+// It requires the RevenueCat "Test Store" key (different key, starts with rcb_).
+const IS_EXPO_GO = Constants.executionEnvironment === "storeClient";
 
 // ── Gold awarded per identifier ───────────────────────────────────────────────
 // Keyed by BOTH RC package identifier (e.g. "gold_20") AND product identifier
@@ -40,28 +45,43 @@ export const RC_PACKAGE_ORDER = ["gold_20", "gold_50", "gold_120", "gold_300"];
 export const RC_ENTITLEMENT = "altın";
 
 // ── API key resolver ───────────────────────────────────────────────────────────
+// Expo Go requires a DIFFERENT key than native builds.
+// Production iOS key (appl_xxx) does NOT work in Expo Go.
+// If you need to test purchases in Expo Go, set EXPO_PUBLIC_REVENUECAT_TEST_API_KEY.
 function getApiKey(): { key: string; source: string } {
+  // ── Expo Go: must use Test Store key ──
+  if (IS_EXPO_GO) {
+    const test = process.env.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY ?? "";
+    if (test) return { key: test, source: "EXPO_PUBLIC_REVENUECAT_TEST_API_KEY (Expo Go mode)" };
+    // No test key — we'll skip configure and show graceful message in UI
+    return { key: "", source: "NONE_EXPO_GO" };
+  }
+
+  // ── Native build (TestFlight, production, dev client) ──
   if (Platform.OS === "ios") {
     const key = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY ?? "";
     if (key) return { key, source: "EXPO_PUBLIC_REVENUECAT_IOS_API_KEY" };
     const test = process.env.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY ?? "";
     if (test) return { key: test, source: "EXPO_PUBLIC_REVENUECAT_TEST_API_KEY (fallback)" };
-    return { key: "", source: "NONE" };
+    return { key: "", source: "NONE_IOS" };
   }
   if (Platform.OS === "android") {
     const key = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY ?? "";
     if (key) return { key, source: "EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY" };
     const test = process.env.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY ?? "";
     if (test) return { key: test, source: "EXPO_PUBLIC_REVENUECAT_TEST_API_KEY (fallback)" };
-    return { key: "", source: "NONE" };
+    return { key: "", source: "NONE_ANDROID" };
   }
+  // Web / other
   const test = process.env.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY ?? "";
-  return { key: test, source: `TEST (web/other platform: ${Platform.OS})` };
+  return { key: test, source: `TEST (web/other: ${Platform.OS})` };
 }
 
 // ── Context type ──────────────────────────────────────────────────────────────
 interface SubscriptionCtx {
   isReady: boolean;
+  rcConfigured: boolean;   // false if RC couldn't be configured (e.g. Expo Go w/o test key)
+  isExpoGo: boolean;       // true when running in Expo Go
   customerInfo: CustomerInfo | undefined;
   offerings: PurchasesOfferings | undefined;
   packages: PurchasesPackage[];
@@ -82,6 +102,7 @@ const Context = createContext<SubscriptionCtx | null>(null);
 // ── Provider ───────────────────────────────────────────────────────────────────
 export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
   const [isReady, setIsReady] = useState(false);
+  const [rcConfigured, setRcConfigured] = useState(false);
   const qc = useQueryClient();
 
   useEffect(() => {
@@ -90,6 +111,8 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     console.log("RevenueCat init başladı");
     console.log("=== [RC] INIT START ===");
     console.log("[RC] Platform:", Platform.OS);
+    console.log("[RC] IS_EXPO_GO:", IS_EXPO_GO);
+    console.log("[RC] executionEnvironment:", Constants.executionEnvironment);
     console.log("[RC] API key source:", source);
     console.log("[RC] API key prefix:", apiKey ? apiKey.slice(0, 12) + "..." : "(none)");
     console.log("[RC] Expected product IDs:", EXPECTED_PRODUCT_IDS.join(", "));
@@ -102,10 +125,22 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
     async function init() {
       try {
+        // ── Expo Go without test key: skip configure gracefully ──
+        if (!apiKey && IS_EXPO_GO) {
+          console.warn("[RC] ⚠️ Expo Go detected but no EXPO_PUBLIC_REVENUECAT_TEST_API_KEY found");
+          console.warn("[RC]    Purchases are only available in TestFlight / App Store builds.");
+          console.warn("[RC]    To test in Expo Go, add EXPO_PUBLIC_REVENUECAT_TEST_API_KEY env var.");
+          clearTimeout(initTimeout);
+          setRcConfigured(false);
+          setIsReady(true);
+          return;
+        }
+
         if (!apiKey) {
-          console.error("[RC] ❌ NO API KEY FOUND");
+          console.error("[RC] ❌ NO API KEY FOUND (source: " + source + ")");
           console.error("[RC]    → Set EXPO_PUBLIC_REVENUECAT_IOS_API_KEY in EAS secrets for iOS builds");
           clearTimeout(initTimeout);
+          setRcConfigured(false);
           setIsReady(true);
           return;
         }
@@ -119,6 +154,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         await Purchases.configure({ apiKey });
         console.log("[RC] ✅ configure() SUCCESS");
         clearTimeout(initTimeout);
+        setRcConfigured(true);
         setIsReady(true);
 
         qc.invalidateQueries({ queryKey: ["rc", "customerInfo"] });
@@ -127,7 +163,12 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         console.error("[RC] ❌ configure() FAILED:", e?.message ?? e);
         console.error("[RC]    Code:", e?.code);
         console.error("[RC]    Full error:", JSON.stringify(e, null, 2));
+        if (IS_EXPO_GO) {
+          console.error("[RC]    ⚠️ Running in Expo Go — production API key (appl_...) is not supported.");
+          console.error("[RC]       Set EXPO_PUBLIC_REVENUECAT_TEST_API_KEY to test purchases in Expo Go.");
+        }
         clearTimeout(initTimeout);
+        setRcConfigured(false);
         setIsReady(true);
       }
     }
@@ -146,7 +187,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     },
     staleTime: 60_000,
     retry: 1,
-    enabled: isReady,
+    enabled: isReady && rcConfigured,
   });
 
   const offeringsQuery = useQuery<PurchasesOfferings>({
@@ -240,7 +281,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       console.log(`[RC] Retrying getOfferings (attempt ${attempt + 1}) in ${delay}ms...`);
       return delay;
     },
-    enabled: isReady,
+    enabled: isReady && rcConfigured,
   });
 
   const purchaseMutation = useMutation<CustomerInfo, Error, PurchasesPackage>({
@@ -288,6 +329,8 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     <Context.Provider
       value={{
         isReady,
+        rcConfigured,
+        isExpoGo:         IS_EXPO_GO,
         customerInfo:     customerInfoQuery.data,
         offerings:        offeringsQuery.data,
         packages,
