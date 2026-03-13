@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
+  Pressable,
   Platform,
   Image,
   Linking,
@@ -390,7 +391,7 @@ function getSlides(lang: "tr" | "en") {
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const { markOnboardingDone, setMistikProfile } = useApp();
-  const { lang } = useLang();
+  const { lang, toggleLang } = useLang();
   const [activeIndex, setActiveIndex] = useState(0);
 
   // Profil form state
@@ -438,6 +439,17 @@ export default function OnboardingScreen() {
   return (
     <View style={styles.container}>
       <CosmicBackground />
+
+      {/* ── TR/EN dil butonu — sağ üst ── */}
+      <Pressable
+        onPress={toggleLang}
+        style={[styles.langPill, { top: topPad + 12 }]}
+        hitSlop={12}
+      >
+        <Text style={[styles.langPillText, lang === "tr" && styles.langPillActive]}>TR</Text>
+        <View style={styles.langPillDivider} />
+        <Text style={[styles.langPillText, lang === "en" && styles.langPillActive]}>EN</Text>
+      </Pressable>
 
       {/* ── Slide content ── */}
       <Animated.View
@@ -664,7 +676,7 @@ export default function OnboardingScreen() {
                     {tr ? "Ücretsiz Hesap Oluştur" : "Create Free Account"}
                   </Text>
                   <Text style={[styles.primaryBtnBadge, { fontFamily: "Lora_400Regular" }]}>
-                    {tr ? "✦ 10 Altın Hediye ile Başla" : "✦ Start with 10 Gold Gift"}
+                    {tr ? "✦ 10 Altın Hediye ile Başla" : "✦ 10 Free Gold Coins Included"}
                   </Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -703,6 +715,35 @@ export default function OnboardingScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#08051A" },
+
+  langPill: {
+    position: "absolute",
+    right: 20,
+    zIndex: 100,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.07)",
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+    paddingHorizontal: 12,
+    height: 34,
+    gap: 6,
+  },
+  langPillText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "rgba(255,255,255,0.4)",
+    letterSpacing: 0.5,
+  },
+  langPillActive: {
+    color: Colors.gold,
+  },
+  langPillDivider: {
+    width: 1,
+    height: 12,
+    backgroundColor: "rgba(255,255,255,0.15)",
+  },
 
   slide: {
     flex: 1,
