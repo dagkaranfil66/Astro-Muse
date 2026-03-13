@@ -36,6 +36,32 @@ import { getApiUrl } from "@/lib/query-client";
 import InsufficientGoldModal from "@/components/InsufficientGoldModal";
 import { SectionedReading, parseKahveSections } from "@/components/SectionedReading";
 
+// ─── Daily cosmic messages shown when free reading is already used ─────────────
+const DAILY_COSMIC_MESSAGES_TR = [
+  { title: "✦ Bugünün Enerjisi: Yeniden Doğuş", body: "Ay ışığı bugün sana özel bir mesaj taşıyor. Geçmişin gölgeleri çekilirken, yeni bir kapı aralanıyor. Kalbindeki en derin arzu bu hafta şekil almaya başlayacak. Sabırlı ol — evren senin için en güzeli hazırlıyor.", sign: "🌙 Ay enerjisi güçlü · ✦ Şans yüksek" },
+  { title: "✦ Bugünün Enerjisi: Dönüşüm", body: "Yıldızlar bugün senin adına dans ediyor. İçindeki güç beklenmedik bir anda ortaya çıkacak. Zorlandığın şeylerde gizli bir nimet var; bugün o nimetin izini süreceksin. Bırak evren seni yönlendirsin.", sign: "⭐ Venüs etkisi aktif · 🔮 Sezgiler keskin" },
+  { title: "✦ Bugünün Enerjisi: Işık Zamanı", body: "Kaderin sana özel bir şifre gönderiyor. Rastlantı gibi görünen her şey aslında birbiriyle bağlantılı. Bugün fark ettiğin küçük bir işaret, önümüzdeki günlerin anahtarı olabilir. Gözlerini aç, kulak ver.", sign: "☀ Güneş enerjisi parlak · ✨ Sihirli an yakın" },
+  { title: "✦ Bugünün Enerjisi: Kalp Sesi", body: "Sevgi ve bağlantı enerjisi bugün seninle. Bir yakının sana düşünüyor, belki de söyleyemediği şeyler var. Bugün köprüler kurulacak, kırık bir şey onarılacak. Kalbini açık tut.", sign: "❤️ Kalp çakrası açık · 🌸 İyileşme zamanı" },
+  { title: "✦ Bugünün Enerjisi: Bolluk Kapısı", body: "Maddi ve manevi bolluk için güçlü bir gün. Attığın her adım ileride büyük kazanımlara dönüşecek. Bugün verdiğin emek katlanarak geri gelecek. Şükret ve ilerle.", sign: "💫 Jüpiter destekli · 🌟 Bolluk enerjisi" },
+  { title: "✦ Bugünün Enerjisi: Sırrın Zamanı", body: "Gizem dolu bir gün seni bekliyor. Cevabını aradığın soru yakında netleşecek. Sezgilerine güven — bugün içten gelen ses hiç bu kadar açık konuşmuyor. Sessiz ol ve dinle.", sign: "🔮 Sezgi güçlü · 🌌 Kozmik uyum tam" },
+  { title: "✦ Bugünün Enerjisi: Cesaret Vakti", body: "Bugün cesaretine ihtiyacın olacak — ve o cesaret içinde hazır. Erteleyip durduğun bir şey için mükemmel zaman. Evren adım atmana izin veriyor, hatta teşvik ediyor. Kork ama yine de ilerle.", sign: "🔥 Mars enerjisi ateşli · ⚡ Karar zamanı" },
+];
+
+const DAILY_COSMIC_MESSAGES_EN = [
+  { title: "✦ Today's Energy: Rebirth", body: "The moonlight carries a special message just for you today. As the shadows of the past recede, a new door is opening. Your deepest desire will begin to take shape this week. Be patient — the universe is preparing the best for you.", sign: "🌙 Moon energy strong · ✦ Luck elevated" },
+  { title: "✦ Today's Energy: Transformation", body: "The stars are dancing for you today. A hidden strength inside you will emerge at an unexpected moment. There is a hidden blessing in your struggles; today you will trace it. Let the universe guide you.", sign: "⭐ Venus active · 🔮 Intuition sharp" },
+  { title: "✦ Today's Energy: Light Time", body: "Destiny is sending you a special code. Everything that seems like coincidence is actually connected. A small sign you notice today could be the key to the days ahead. Open your eyes and listen.", sign: "☀ Solar energy bright · ✨ Magic moment near" },
+  { title: "✦ Today's Energy: Heart's Call", body: "Love and connection energy is with you today. Someone close is thinking of you, perhaps with things left unsaid. Bridges will be built, something broken will be mended. Keep your heart open.", sign: "❤️ Heart chakra open · 🌸 Healing time" },
+  { title: "✦ Today's Energy: Gate of Abundance", body: "A powerful day for material and spiritual abundance. Every step you take will turn into great gains ahead. The effort you put in today will multiply and return to you. Be grateful and move forward.", sign: "💫 Jupiter-aligned · 🌟 Abundance flowing" },
+  { title: "✦ Today's Energy: Time of Secrets", body: "A mysterious day awaits you. The question you've been searching for will soon become clear. Trust your intuition — today the inner voice speaks more clearly than ever. Be still and listen.", sign: "🔮 Intuition strong · 🌌 Cosmic alignment full" },
+  { title: "✦ Today's Energy: Courage Moment", body: "Today you will need courage — and that courage is already within you. The perfect time for something you've been putting off. The universe is permitting, even encouraging you to take a step. Be afraid and move forward anyway.", sign: "🔥 Mars energy fired · ⚡ Decision time" },
+];
+
+function getDailyCosmicMessage(lang: string) {
+  const dayIndex = Math.floor(Date.now() / 86400000) % DAILY_COSMIC_MESSAGES_TR.length;
+  return lang === "tr" ? DAILY_COSMIC_MESSAGES_TR[dayIndex] : DAILY_COSMIC_MESSAGES_EN[dayIndex];
+}
+
 const DAILY_SERVICE = "kahve";
 
 const SERVICE_META: Record<string, {
@@ -100,6 +126,62 @@ function ServiceHeroBanner({ serviceId, color }: { serviceId: string; color: str
 const sHero = StyleSheet.create({
   wrap: { width: "100%", height: 200, borderRadius: 18, overflow: "hidden", marginBottom: 12 },
   img: { width: "100%", height: "100%", position: "absolute" },
+});
+
+// ─── Shown when daily free reading is already used ───────────────────────────
+function UsedDailyMessage({ lang }: { lang: string }) {
+  const msg = getDailyCosmicMessage(lang);
+  const twinkle = useSharedValue(0.4);
+  React.useEffect(() => {
+    twinkle.value = withRepeat(
+      withSequence(withTiming(1, { duration: 1800 }), withTiming(0.4, { duration: 1800 })),
+      -1, false
+    );
+  }, []);
+  const twStyle = useAnimatedStyle(() => ({ opacity: twinkle.value }));
+  return (
+    <Animated.View entering={FadeIn.duration(600)}>
+      <Animated.View style={[{ alignItems: "center", marginBottom: 12 }, twStyle]}>
+        <Text style={{ fontSize: 32, color: Colors.gold }}>✦</Text>
+      </Animated.View>
+      <Text style={sMsgStyle.title}>{msg.title}</Text>
+      <View style={sMsgStyle.divider} />
+      <Text style={sMsgStyle.body}>{msg.body}</Text>
+      <View style={sMsgStyle.signRow}>
+        <Text style={sMsgStyle.sign}>{msg.sign}</Text>
+      </View>
+      <View style={sMsgStyle.tomorrowBadge}>
+        <Ionicons name="time-outline" size={12} color={Colors.textDim} />
+        <Text style={sMsgStyle.tomorrowText}>
+          {lang === "tr"
+            ? "Yarın yeni bir ücretsiz okuma seni bekliyor"
+            : "A new free reading awaits you tomorrow"}
+        </Text>
+      </View>
+    </Animated.View>
+  );
+}
+const sMsgStyle = StyleSheet.create({
+  title: {
+    fontSize: 16, fontFamily: "Lora_700Bold",
+    color: Colors.gold, textAlign: "center", marginBottom: 12, letterSpacing: 0.5,
+  },
+  divider: { height: 1, backgroundColor: Colors.gold + "30", marginBottom: 14 },
+  body: {
+    fontSize: 15, fontFamily: "Lora_400Regular_Italic",
+    color: "#D4C8A8", textAlign: "center", lineHeight: 24, marginBottom: 14,
+  },
+  signRow: {
+    alignItems: "center", backgroundColor: "rgba(200,160,32,0.08)",
+    borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12, marginBottom: 14,
+    borderWidth: 1, borderColor: Colors.gold + "25",
+  },
+  sign: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.gold, letterSpacing: 0.5 },
+  tomorrowBadge: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 5, opacity: 0.55,
+  },
+  tomorrowText: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textDim },
 });
 
 export default function DailyReadingScreen() {
@@ -185,7 +267,6 @@ export default function DailyReadingScreen() {
     setIsDone(false);
 
     try {
-      await markDailyFreeUsed();
       const apiBase = getApiUrl();
       const url = new URL("/api/reading/daily-free", apiBase);
 
@@ -228,8 +309,11 @@ export default function DailyReadingScreen() {
         }
       }
       setIsDone(true);
+      // Mark as used only AFTER a successful reading — prevents "used" on API failure
+      await markDailyFreeUsed();
     } catch {
       setIsDone(true);
+      // Don't mark as used if the reading failed
     } finally {
       setIsLoading(false);
     }
@@ -397,16 +481,7 @@ export default function DailyReadingScreen() {
                   </Pressable>
                 </>
               ) : (
-                <>
-                  <Text style={s.ctaTitle}>
-                    {lang === "tr" ? "✦ Bugünkü Falınızı Kullandınız" : "✦ Today's Reading Used"}
-                  </Text>
-                  <Text style={s.ctaDesc}>
-                    {lang === "tr"
-                      ? "Ücretsiz ön okumanız için yarın tekrar gelin. Detaylı okuma için altın kullanabilirsiniz."
-                      : "Come back tomorrow for your free preview. Use gold for detailed readings anytime."}
-                  </Text>
-                </>
+                <UsedDailyMessage lang={lang} />
               )}
             </LinearGradient>
           </Animated.View>
