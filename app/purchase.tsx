@@ -535,6 +535,26 @@ export default function PurchaseScreen() {
                 </Pressable>
               </Animated.View>
             )}
+
+            {/* Trust / security note */}
+            <Animated.View entering={FadeInDown.delay(560).springify()} style={styles.trustNote}>
+              <View style={styles.trustRow}>
+                <Ionicons name="shield-checkmark-outline" size={13} color="#4CAF7A" />
+                <Text style={styles.trustText}>
+                  {lang === "tr"
+                    ? "Tüm ödemeler Apple App Store'un güvenli ödeme sistemi üzerinden gerçekleştirilir."
+                    : "All payments are processed through Apple App Store's secure payment system."}
+                </Text>
+              </View>
+              <View style={styles.trustRow}>
+                <Ionicons name="flash-outline" size={13} color={Colors.gold} />
+                <Text style={styles.trustText}>
+                  {lang === "tr"
+                    ? "Satın alınan altınlar hesabınıza anında yüklenir."
+                    : "Purchased gold is instantly credited to your account."}
+                </Text>
+              </View>
+            </Animated.View>
           </Animated.View>
         )}
 
@@ -691,6 +711,27 @@ const styles = StyleSheet.create({
   spinCardInner: { flexDirection: "row", alignItems: "center", gap: 14, padding: 16 },
   spinCardTitle: { fontSize: 14, fontFamily: "Lora_700Bold", color: Colors.text },
   spinCardSub: { fontSize: 12, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary, marginTop: 2 },
+
+  trustNote: {
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.06)",
+    paddingTop: 14,
+    gap: 8,
+  },
+  trustRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 7,
+  },
+  trustText: {
+    flex: 1,
+    fontSize: 11,
+    fontFamily: "Lora_400Regular",
+    color: Colors.textDim,
+    lineHeight: 17,
+    letterSpacing: 0.1,
+  },
 
   costTier: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
   costTierBadge: { backgroundColor: Colors.surface, borderRadius: 10, borderWidth: 1, borderColor: Colors.cardBorder, paddingHorizontal: 10, paddingVertical: 6, minWidth: 52, alignItems: "center" },
