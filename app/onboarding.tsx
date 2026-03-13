@@ -676,7 +676,7 @@ export default function OnboardingScreen() {
                     {tr ? "Ücretsiz Hesap Oluştur" : "Create Free Account"}
                   </Text>
                   <Text style={[styles.primaryBtnBadge, { fontFamily: "Lora_400Regular" }]}>
-                    {tr ? "✦ 10 Altın Hediye ile Başla" : "✦ 10 Free Gold Coins Included"}
+                    {tr ? "✦ 15 Altın Hediye ile Başla" : "✦ 15 Free Gold Coins Included"}
                   </Text>
                 </LinearGradient>
               </TouchableOpacity>
