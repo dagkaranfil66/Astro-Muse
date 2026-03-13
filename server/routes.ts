@@ -338,6 +338,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.send(fs.readFileSync(templatePath, "utf-8"));
   });
 
+  app.get("/support", (_req: Request, res: Response) => {
+    const templatePath = path.resolve(process.cwd(), "server", "templates", "support.html");
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(fs.readFileSync(templatePath, "utf-8"));
+  });
+
   app.post("/api/auth/register", async (req: Request, res: Response) => {
     try {
       const { name, email, password } = req.body;
