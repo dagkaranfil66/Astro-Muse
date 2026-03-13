@@ -207,6 +207,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // ── Initial load ──────────────────────────────────────────────────────────
   useEffect(() => {
+    console.log('APP_CONTEXT_INIT_START');
     (async () => {
       try {
         const [profStr, obStr, mpStr] = await Promise.all([
@@ -229,10 +230,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
           emailRef.current = profile.email;
           await loadUserData(profile.email);
         }
+        console.log('APP_CONTEXT_INIT_OK');
       } catch (e) {
-        console.error('AppContext load error', e);
+        console.error('APP_CONTEXT_INIT_FAILED', e);
       } finally {
         setIsLoaded(true);
+        console.log('APP_CONTEXT_LOADED');
       }
     })();
   }, []);

@@ -827,6 +827,7 @@ function SpinCountdownBtn() {
 
 // ────────── Main Screen ──────────
 export default function HomeScreen() {
+  console.log('HOME_SCREEN_RENDER');
   const insets = useSafeAreaInsets();
   const { goldBalance, userProfile, canSpin, showWelcomeBonus, dismissWelcomeBonus } = useApp();
   const { lang, t, toggleLang } = useLang();

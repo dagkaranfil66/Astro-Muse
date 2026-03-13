@@ -26,6 +26,8 @@ import {
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
+console.log('APP_START');
+
 let Notifications: typeof NotificationsType | null = null;
 
 // ── App navigation ─────────────────────────────────────────────────────────
@@ -33,6 +35,10 @@ let Notifications: typeof NotificationsType | null = null;
 function RootLayoutNav() {
   const { isLoaded, hasSeenOnboarding, zodiacSign } = useApp();
   const { lang } = useLang();
+
+  React.useEffect(() => {
+    console.log('NAVIGATION_READY');
+  }, []);
   const appState = useRef<AppStateStatus>(AppState.currentState);
 
   useEffect(() => {
@@ -102,6 +108,8 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
+  console.log('ROOT_LAYOUT_RENDER');
+
   const [fontsLoaded, fontError] = useFonts({
     CinzelDecorative_400Regular,
     CinzelDecorative_700Bold,
@@ -112,6 +120,7 @@ export default function RootLayout() {
 
   // Initialize native SDKs AFTER the component mounts (safe for iOS)
   useEffect(() => {
+    console.log('NOTIFICATIONS_INIT_START');
     // expo-notifications setup
     if (Platform.OS !== "web") {
       try {
@@ -126,14 +135,16 @@ export default function RootLayout() {
             shouldShowList: true,
           }),
         });
+        console.log('NOTIFICATIONS_INIT_OK');
       } catch (e) {
-        console.warn("[Notifications] setup failed:", e);
+        console.warn("NOTIFICATIONS_INIT_FAILED:", e);
       }
     }
   }, []);
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
+      console.log('FONTS_LOADED fontsLoaded=' + fontsLoaded + ' fontError=' + !!fontError);
       SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded, fontError]);
@@ -141,6 +152,8 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) {
     return <View style={styles.loading} />;
   }
+
+  console.log('PROVIDERS_RENDER_START');
 
   return (
     <ErrorBoundary>

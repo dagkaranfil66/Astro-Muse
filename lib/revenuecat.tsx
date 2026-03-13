@@ -74,6 +74,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
   // Initialize RevenueCat once, safely inside useEffect
   useEffect(() => {
+    console.log('REVENUECAT_INIT_START');
     async function init() {
       try {
         const apiKey = getApiKey();
@@ -87,7 +88,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         }
 
         await Purchases.configure({ apiKey });
-        console.log("[RC] Configured ✓ platform:", Platform.OS);
+        console.log('REVENUECAT_INIT_OK platform=' + Platform.OS);
         setIsReady(true);
 
         // Prefetch customer info after init

@@ -37,17 +37,24 @@ const firebaseConfig = {
 
 function initFirebase() {
   try {
-    const a = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-    return { app: a, db: getFirestore(a), auth: getAuth(a) };
+    const a = getApps().length === 0
+      ? initializeApp(firebaseConfig)
+      : getApp();
+    const firestoreDb = getFirestore(a);
+    const firebaseAuth = getAuth(a);
+    console.log('[Firebase] FIREBASE_INIT OK');
+    return { app: a, db: firestoreDb, auth: firebaseAuth };
   } catch (e) {
-    console.error('[Firebase] initializeApp failed:', e);
-    const fallbackConfig = { ...firebaseConfig, apiKey: firebaseConfig.apiKey || 'MISSING' };
-    const a = getApps().length > 0 ? getApp() : initializeApp(fallbackConfig);
-    return { app: a, db: getFirestore(a), auth: getAuth(a) };
+    console.error('[Firebase] FIREBASE_INIT FAILED:', e);
+    // Return null-safe stubs so module imports don't crash
+    return { app: null as any, db: null as any, auth: null as any };
   }
 }
 
-const { app, db, auth } = initFirebase();
+const _fb = initFirebase();
+const app  = _fb.app;
+const db   = _fb.db;
+const auth = _fb.auth;
 
 export { app, db, auth };
 
@@ -152,6 +159,7 @@ function safeEmail(email: string) {
 
 // Get or create user document
 export async function fsGetUser(email: string): Promise<FSUserData | null> {
+  if (!db) return null;
   try {
     const ref  = doc(db, 'users', safeEmail(email));
     const snap = await getDoc(ref);
@@ -165,6 +173,7 @@ export async function fsGetUser(email: string): Promise<FSUserData | null> {
 
 // Create a new user document
 export async function fsCreateUser(data: FSUserData): Promise<void> {
+  if (!db) return;
   try {
     const ref = doc(db, 'users', safeEmail(data.email));
     await setDoc(ref, { ...data, updatedAt: serverTimestamp() });
@@ -175,6 +184,7 @@ export async function fsCreateUser(data: FSUserData): Promise<void> {
 
 // Partial update of user document
 export async function fsUpdateUser(email: string, fields: Partial<FSUserData>): Promise<void> {
+  if (!db) return;
   try {
     const ref = doc(db, 'users', safeEmail(email));
     await updateDoc(ref, { ...fields, updatedAt: serverTimestamp() });
@@ -185,6 +195,7 @@ export async function fsUpdateUser(email: string, fields: Partial<FSUserData>): 
 
 // Add a reading to the user's subcollection
 export async function fsAddReading(email: string, reading: FSReading): Promise<void> {
+  if (!db) return;
   try {
     const ref = collection(db, 'users', safeEmail(email), 'readings');
     await addDoc(ref, { ...reading, createdAt: serverTimestamp() });
@@ -195,6 +206,7 @@ export async function fsAddReading(email: string, reading: FSReading): Promise<v
 
 // Load readings from Firestore (latest 50)
 export async function fsGetReadings(email: string): Promise<FSReading[]> {
+  if (!db) return [];
   try {
     const ref = collection(db, 'users', safeEmail(email), 'readings');
     const q   = query(ref, orderBy('createdAt', 'desc'), limit(50));
