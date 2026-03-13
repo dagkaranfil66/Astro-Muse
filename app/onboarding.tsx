@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   ScrollView,
+  Keyboard,
 } from "react-native";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -400,6 +401,8 @@ export default function OnboardingScreen() {
   const [profMonth, setProfMonth] = useState("");
   const [profYear, setProfYear]  = useState("");
   const [profFocus, setProfFocus] = useState<string | null>(null);
+  const monthRef = useRef<TextInput>(null);
+  const yearRef  = useRef<TextInput>(null);
 
   const SLIDES = getSlides(lang);
   const tr = lang === "tr";
@@ -575,29 +578,51 @@ export default function OnboardingScreen() {
                     placeholder={tr ? "GG" : "DD"}
                     placeholderTextColor="rgba(255,255,255,0.25)"
                     value={profDay}
-                    onChangeText={v => setProfDay(v.replace(/[^0-9]/g, "").slice(0, 2))}
+                    onChangeText={v => {
+                      const clean = v.replace(/[^0-9]/g, "").slice(0, 2);
+                      setProfDay(clean);
+                      if (clean.length === 2) monthRef.current?.focus();
+                    }}
                     keyboardType="number-pad"
                     maxLength={2}
+                    returnKeyType="next"
+                    onSubmitEditing={() => monthRef.current?.focus()}
+                    blurOnSubmit={false}
                   />
                   <Text style={styles.profileDateSep}>/</Text>
                   <TextInput
+                    ref={monthRef}
                     style={[styles.profileDateInput, { fontFamily: "Lora_400Regular" }]}
                     placeholder={tr ? "AA" : "MM"}
                     placeholderTextColor="rgba(255,255,255,0.25)"
                     value={profMonth}
-                    onChangeText={v => setProfMonth(v.replace(/[^0-9]/g, "").slice(0, 2))}
+                    onChangeText={v => {
+                      const clean = v.replace(/[^0-9]/g, "").slice(0, 2);
+                      setProfMonth(clean);
+                      if (clean.length === 2) yearRef.current?.focus();
+                    }}
                     keyboardType="number-pad"
                     maxLength={2}
+                    returnKeyType="next"
+                    onSubmitEditing={() => yearRef.current?.focus()}
+                    blurOnSubmit={false}
                   />
                   <Text style={styles.profileDateSep}>/</Text>
                   <TextInput
+                    ref={yearRef}
                     style={[styles.profileDateInputYear, { fontFamily: "Lora_400Regular" }]}
                     placeholder="YYYY"
                     placeholderTextColor="rgba(255,255,255,0.25)"
                     value={profYear}
-                    onChangeText={v => setProfYear(v.replace(/[^0-9]/g, "").slice(0, 4))}
+                    onChangeText={v => {
+                      const clean = v.replace(/[^0-9]/g, "").slice(0, 4);
+                      setProfYear(clean);
+                      if (clean.length === 4) Keyboard.dismiss();
+                    }}
                     keyboardType="number-pad"
                     maxLength={4}
+                    returnKeyType="done"
+                    onSubmitEditing={() => Keyboard.dismiss()}
                   />
                 </View>
               </View>
@@ -929,14 +954,14 @@ const styles = StyleSheet.create({
     fontSize: 15, color: Colors.text, textAlign: "center",
   },
   profileDateSep: { fontSize: 18, color: Colors.textDim, fontWeight: "300" },
-  profileFocusGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  profileFocusGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   profileFocusBtn: {
     flex: 1, minWidth: "45%",
     borderWidth: 1.5, borderColor: "rgba(155,111,187,0.3)",
-    borderRadius: 14, paddingVertical: 14,
-    alignItems: "center", gap: 4,
+    borderRadius: 12, paddingVertical: 10,
+    alignItems: "center", gap: 3,
     backgroundColor: "rgba(155,111,187,0.06)",
   },
-  profileFocusIcon: { fontSize: 22 },
-  profileFocusLabel: { fontSize: 13, color: Colors.textSecondary },
+  profileFocusIcon: { fontSize: 18 },
+  profileFocusLabel: { fontSize: 12, color: Colors.textSecondary },
 });
