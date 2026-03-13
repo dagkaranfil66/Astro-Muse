@@ -87,6 +87,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     const { key: apiKey, source } = getApiKey();
 
+    console.log("RevenueCat init başladı");
     console.log("=== [RC] INIT START ===");
     console.log("[RC] Platform:", Platform.OS);
     console.log("[RC] API key source:", source);
@@ -169,7 +170,17 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       }
 
       // ── User-requested debug logs ──
-      console.log("Offerings result:", offerings);
+      console.log("RevenueCat offerings:", offerings);
+      console.log("Current offering:", offerings?.current?.identifier);
+      console.log(
+        "Available packages:",
+        offerings?.current?.availablePackages?.map((p) => ({
+          identifier: p.identifier,
+          productId: p.product.identifier,
+          priceString: p.product.priceString,
+          title: p.product.title,
+        }))
+      );
 
       if (!offerings.current) {
         console.log("No offerings returned from RevenueCat");
@@ -235,8 +246,10 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const purchaseMutation = useMutation<CustomerInfo, Error, PurchasesPackage>({
     mutationFn: async (pkg: PurchasesPackage) => {
       console.log("[RC] purchasePackage:", pkg.identifier, pkg.product.priceString);
-      const { customerInfo } = await Purchases.purchasePackage(pkg);
-      return customerInfo;
+      const result = await Purchases.purchasePackage(pkg);
+      console.log("Purchase result:", result);
+      console.log("Customer info:", result.customerInfo);
+      return result.customerInfo;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["rc", "customerInfo"] });

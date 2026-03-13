@@ -319,6 +319,11 @@ export default function PurchaseScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setBuying(true);
     try {
+      console.log(
+        "Selected package:",
+        rcPkg?.identifier,
+        rcPkg?.product?.identifier
+      );
       await purchase(rcPkg);
       // Look up by RC package identifier first, then by product identifier as fallback.
       // Both are in PACKAGE_GOLD_MAP so at least one will always resolve.
