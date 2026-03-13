@@ -156,6 +156,17 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         throw e;
       }
 
+      // ── User-requested debug logs ──
+      console.log("Offerings result:", offerings);
+
+      if (!offerings.current) {
+        console.log("No offerings returned from RevenueCat");
+      }
+
+      if (offerings.current) {
+        console.log("Packages:", offerings.current.availablePackages);
+      }
+
       // ── Full diagnostic dump ──
       const allOfferingKeys = Object.keys(offerings.all ?? {});
       console.log("[RC] ── OFFERINGS DIAGNOSTIC ──");
