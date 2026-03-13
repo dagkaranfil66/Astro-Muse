@@ -15,7 +15,7 @@ import { LanguageProvider, useLang } from "@/context/LanguageContext";
 import { useFonts, CinzelDecorative_400Regular, CinzelDecorative_700Bold } from "@expo-google-fonts/cinzel-decorative";
 import { Lora_400Regular, Lora_400Regular_Italic, Lora_700Bold } from "@expo-google-fonts/lora";
 import { Colors } from "@/constants/colors";
-import { initializeRevenueCat, SubscriptionProvider } from "@/lib/revenuecat";
+import { SubscriptionProvider } from "@/lib/revenuecat";
 import type * as NotificationsType from "expo-notifications";
 import {
   requestNotificationPermission,
@@ -112,13 +112,6 @@ export default function RootLayout() {
 
   // Initialize native SDKs AFTER the component mounts (safe for iOS)
   useEffect(() => {
-    // RevenueCat — must be called after app mounts, not at module scope
-    try {
-      initializeRevenueCat();
-    } catch (e) {
-      console.error("[RC] initializeRevenueCat failed:", e);
-    }
-
     // expo-notifications setup
     if (Platform.OS !== "web") {
       try {

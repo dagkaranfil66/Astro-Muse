@@ -282,7 +282,7 @@ export default function PurchaseScreen() {
   const insets = useSafeAreaInsets();
   const { addGold, goldBalance, userProfile, canSpin } = useApp();
   const { lang } = useLang();
-  const { packages, offeringsLoading, offeringsError, purchase, restore, isRestoring, refetchOfferings } = useSubscription();
+  const { isReady, packages, offeringsLoading, offeringsError, purchase, restore, isRestoring, refetchOfferings } = useSubscription();
 
   const [buying, setBuying] = useState(false);
   const [boughtId, setBoughtId] = useState<string | null>(null);
@@ -438,7 +438,7 @@ export default function PurchaseScreen() {
               </Animated.View>
             )}
 
-            {offeringsLoading ? (
+            {!isReady || offeringsLoading ? (
               <View style={styles.loadingWrap}>
                 <ActivityIndicator color={Colors.gold} />
                 <Text style={styles.loadingText}>{lang === "tr" ? "Paketler yükleniyor..." : "Loading packages..."}</Text>
