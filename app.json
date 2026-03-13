@@ -18,6 +18,16 @@
       "bundleIdentifier": "app.replit.tengri-astroloji-fal-burclar",
       "buildNumber": "3",
       "usesAppleSignIn": true,
+      "splash": {
+        "image": "./assets/images/splash-icon.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#070D1A",
+        "dark": {
+          "image": "./assets/images/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#070D1A"
+        }
+      },
       "infoPlist": {
         "CFBundleDisplayName": "Tengri",
         "NSCameraUsageDescription": "Tengri uses the camera so you can take a photo of your palm or coffee cup for a mystical reading.",

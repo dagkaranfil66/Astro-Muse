@@ -4,7 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect, useRef } from "react";
 import {
   Platform, View, StyleSheet,
-  AppState, AppStateStatus,
+  AppState, AppStateStatus, StatusBar,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
@@ -107,6 +107,10 @@ function RootLayoutNav() {
   );
 }
 
+// Dark background applied immediately at module level to prevent white flash
+// on iOS before the first React Native frame is painted
+const BG = "#070D1A";
+
 export default function RootLayout() {
   console.log('ROOT_LAYOUT_RENDER');
 
@@ -121,7 +125,6 @@ export default function RootLayout() {
   // Initialize native SDKs AFTER the component mounts (safe for iOS)
   useEffect(() => {
     console.log('NOTIFICATIONS_INIT_START');
-    // expo-notifications setup
     if (Platform.OS !== "web") {
       try {
         const N = require("expo-notifications") as typeof NotificationsType;
@@ -149,31 +152,41 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
+  // Show dark screen while fonts load — same color as splash to avoid flash
   if (!fontsLoaded && !fontError) {
-    return <View style={styles.loading} />;
+    return (
+      <View style={styles.loading}>
+        <StatusBar barStyle="light-content" backgroundColor={BG} />
+      </View>
+    );
   }
 
   console.log('PROVIDERS_RENDER_START');
 
   return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <SubscriptionProvider>
-          <AppProvider>
-            <LanguageProvider>
-              <GestureHandlerRootView style={{ flex: 1, backgroundColor: Colors.background }}>
-                <KeyboardProvider>
-                  <RootLayoutNav />
-                </KeyboardProvider>
-              </GestureHandlerRootView>
-            </LanguageProvider>
-          </AppProvider>
-        </SubscriptionProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
+    <View style={styles.root}>
+      <StatusBar barStyle="light-content" backgroundColor={BG} />
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <SubscriptionProvider>
+            <AppProvider>
+              <LanguageProvider>
+                <GestureHandlerRootView style={styles.gesture}>
+                  <KeyboardProvider>
+                    <RootLayoutNav />
+                  </KeyboardProvider>
+                </GestureHandlerRootView>
+              </LanguageProvider>
+            </AppProvider>
+          </SubscriptionProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  loading: { flex: 1, backgroundColor: "#060214" },
+  root:    { flex: 1, backgroundColor: BG },
+  gesture: { flex: 1, backgroundColor: BG },
+  loading: { flex: 1, backgroundColor: BG },
 });
