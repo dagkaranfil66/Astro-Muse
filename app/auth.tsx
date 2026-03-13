@@ -105,8 +105,8 @@ function TengriWelcomeOrb() {
       <Animated.View style={[styles.orbCenter, logoStyle]}>
         <Image
           source={require("@/assets/images/tengri-logo.png")}
-          style={{ width: 72, height: 72 }}
-          resizeMode="contain"
+          style={{ width: 88, height: 88, borderRadius: 44 }}
+          resizeMode="cover"
         />
       </Animated.View>
     </View>

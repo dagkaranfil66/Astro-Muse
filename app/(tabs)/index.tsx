@@ -354,7 +354,7 @@ function AnimatedLogo() {
           <Image
             source={require("@/assets/images/tengri-logo.png")}
             style={styles.logoImage}
-            resizeMode="contain"
+            resizeMode="cover"
           />
         </Animated.View>
       </Animated.View>

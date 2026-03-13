@@ -277,7 +277,7 @@ function AnimatedLogoCenter() {
       })}
       <Animated.View style={floatStyle}>
         <Animated.View style={breatheStyle}>
-          <Image source={require("@/assets/images/tengri-logo.png")} style={styles.logoImage} resizeMode="contain" />
+          <Image source={require("@/assets/images/tengri-logo.png")} style={styles.logoImage} resizeMode="cover" />
         </Animated.View>
       </Animated.View>
     </View>
@@ -786,7 +786,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: 220, height: 220, borderRadius: 110,
   },
-  logoImage: { width: 130, height: 130 },
+  logoImage: { width: 130, height: 130, borderRadius: 65, overflow: "hidden" },
 
   // ── Pulsing icon ──
   pulsingWrap: { marginBottom: 28 },
