@@ -16,36 +16,35 @@ export const PACKAGE_GOLD_MAP: Record<string, number> = {
   tengri_vip:      300,
 };
 
+// ── Expected product IDs (for diagnostic comparison) ─────────────────────────
+export const EXPECTED_PRODUCT_IDS = [
+  "tengri_starter",
+  "tengri_premium",
+  "tengri_standard",
+  "tengri_vip",
+];
+
 // ── Entitlement ID (must match RevenueCat dashboard) ─────────────────────────
 export const RC_ENTITLEMENT = "altın";
 
 // ── API key resolver ───────────────────────────────────────────────────────────
-function getApiKey(): string {
+function getApiKey(): { key: string; source: string } {
   if (Platform.OS === "ios") {
     const key = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY ?? "";
-    if (key) return key;
-    // Fallback to test key (Expo Go / simulator)
+    if (key) return { key, source: "EXPO_PUBLIC_REVENUECAT_IOS_API_KEY" };
     const test = process.env.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY ?? "";
-    if (test) {
-      console.warn("[RC] iOS key missing — using TEST key");
-      return test;
-    }
-    return "";
+    if (test) return { key: test, source: "EXPO_PUBLIC_REVENUECAT_TEST_API_KEY (fallback)" };
+    return { key: "", source: "NONE" };
   }
-
   if (Platform.OS === "android") {
     const key = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY ?? "";
-    if (key) return key;
+    if (key) return { key, source: "EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY" };
     const test = process.env.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY ?? "";
-    if (test) {
-      console.warn("[RC] Android key missing — using TEST key");
-      return test;
-    }
-    return "";
+    if (test) return { key: test, source: "EXPO_PUBLIC_REVENUECAT_TEST_API_KEY (fallback)" };
+    return { key: "", source: "NONE" };
   }
-
-  // Web — purchases are mocked by RevenueCat SDK automatically
-  return process.env.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY ?? "";
+  const test = process.env.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY ?? "";
+  return { key: test, source: `TEST (web/other platform: ${Platform.OS})` };
 }
 
 // ── Context type ──────────────────────────────────────────────────────────────
@@ -57,6 +56,7 @@ interface SubscriptionCtx {
   isLoading: boolean;
   offeringsLoading: boolean;
   offeringsError: boolean;
+  offeringsEmpty: boolean;
   refetchOfferings: () => void;
   purchase: (pkg: PurchasesPackage) => Promise<CustomerInfo>;
   restore: () => Promise<CustomerInfo>;
@@ -72,55 +72,63 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const [isReady, setIsReady] = useState(false);
   const qc = useQueryClient();
 
-  // Initialize RevenueCat once, safely inside useEffect
   useEffect(() => {
-    console.log('REVENUECAT_INIT_START');
+    const { key: apiKey, source } = getApiKey();
 
-    // Safety timeout: if RC doesn't init within 12s, unblock the UI anyway
-    const timeout = setTimeout(() => {
-      console.warn("[RC] Init timeout — forcing isReady to unblock UI");
+    console.log("=== [RC] INIT START ===");
+    console.log("[RC] Platform:", Platform.OS);
+    console.log("[RC] API key source:", source);
+    console.log("[RC] API key prefix:", apiKey ? apiKey.slice(0, 12) + "..." : "(none)");
+    console.log("[RC] Expected product IDs:", EXPECTED_PRODUCT_IDS.join(", "));
+
+    // Safety timeout: if RC doesn't init within 10s, unblock the UI
+    const initTimeout = setTimeout(() => {
+      console.warn("[RC] ⚠️ INIT TIMEOUT (10s) — forcing isReady=true to unblock UI");
       setIsReady(true);
-    }, 12000);
+    }, 10000);
 
     async function init() {
       try {
-        const apiKey = getApiKey();
         if (!apiKey) {
-          console.warn("[RC] No API key found — purchases disabled. Set EXPO_PUBLIC_REVENUECAT_IOS_API_KEY in EAS secrets.");
-          clearTimeout(timeout);
-          setIsReady(true); // Unblock UI so UnavailableCards render
+          console.error("[RC] ❌ NO API KEY FOUND");
+          console.error("[RC]    → Set EXPO_PUBLIC_REVENUECAT_IOS_API_KEY in EAS secrets for iOS builds");
+          clearTimeout(initTimeout);
+          setIsReady(true);
           return;
         }
 
         if (Platform.OS !== "web") {
           Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+          console.log("[RC] Debug logging enabled");
         }
 
+        console.log("[RC] Calling Purchases.configure()...");
         await Purchases.configure({ apiKey });
-        console.log('REVENUECAT_INIT_OK platform=' + Platform.OS);
-        clearTimeout(timeout);
+        console.log("[RC] ✅ configure() SUCCESS");
+        clearTimeout(initTimeout);
         setIsReady(true);
 
-        // Prefetch customer info after init
         qc.invalidateQueries({ queryKey: ["rc", "customerInfo"] });
         qc.invalidateQueries({ queryKey: ["rc", "offerings"] });
-      } catch (e) {
-        console.error("[RC] configure failed:", e);
-        clearTimeout(timeout);
-        setIsReady(true); // Unblock UI even on error
+      } catch (e: any) {
+        console.error("[RC] ❌ configure() FAILED:", e?.message ?? e);
+        console.error("[RC]    Code:", e?.code);
+        console.error("[RC]    Full error:", JSON.stringify(e, null, 2));
+        clearTimeout(initTimeout);
+        setIsReady(true);
       }
     }
 
     init();
-
-    return () => clearTimeout(timeout);
+    return () => clearTimeout(initTimeout);
   }, []);
 
   const customerInfoQuery = useQuery<CustomerInfo>({
     queryKey: ["rc", "customerInfo"],
     queryFn: async () => {
+      console.log("[RC] getCustomerInfo() called");
       const info = await Purchases.getCustomerInfo();
-      console.log("[RC] customerInfo fetched, activeSubscriptions:", info.activeSubscriptions);
+      console.log("[RC] getCustomerInfo() success, activeSubscriptions:", info.activeSubscriptions);
       return info;
     },
     staleTime: 60_000,
@@ -131,32 +139,79 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const offeringsQuery = useQuery<PurchasesOfferings>({
     queryKey: ["rc", "offerings"],
     queryFn: async () => {
-      // Timeout wrapper: if getOfferings hangs > 15s, throw so error state shows
+      console.log("=== [RC] getOfferings() CALLED ===");
+
       const offeringsPromise = Purchases.getOfferings();
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("[RC] getOfferings timeout")), 15000)
+        setTimeout(() => reject(new Error("[RC] getOfferings() timed out after 10s")), 10000)
       );
-      const offerings = await Promise.race([offeringsPromise, timeoutPromise]);
-      const pkgs = offerings.current?.availablePackages ?? [];
-      if (pkgs.length === 0) {
-        console.warn("[RC] No packages found. Check: 1) RC Dashboard → Offerings → Make Current  2) App Store Connect products 'Ready to Submit'");
-        console.warn("[RC] Full offerings:", JSON.stringify(offerings));
-      } else {
-        pkgs.forEach((p) =>
-          console.log("[RC] Package:", p.identifier, "| price:", p.product?.priceString)
-        );
+
+      let offerings: PurchasesOfferings;
+      try {
+        offerings = await Promise.race([offeringsPromise, timeoutPromise]);
+      } catch (e: any) {
+        console.error("[RC] ❌ getOfferings() ERROR:", e?.message ?? e);
+        console.error("[RC]    Code:", e?.code);
+        console.error("[RC]    underlyingError:", e?.underlyingErrorMessage ?? e?.userInfo);
+        throw e;
       }
+
+      // ── Full diagnostic dump ──
+      const allOfferingKeys = Object.keys(offerings.all ?? {});
+      console.log("[RC] ── OFFERINGS DIAGNOSTIC ──");
+      console.log("[RC] offerings.current:", offerings.current ? offerings.current.identifier : "null ← NO CURRENT OFFERING");
+      console.log("[RC] offerings.all keys:", allOfferingKeys.length > 0 ? allOfferingKeys.join(", ") : "(empty)");
+
+      if (offerings.current) {
+        const pkgs = offerings.current.availablePackages;
+        console.log("[RC] currentOffering.availablePackages count:", pkgs.length);
+        if (pkgs.length === 0) {
+          console.error("[RC] ❌ Current offering has 0 packages");
+          console.error("[RC]    → Check: RC Dashboard → Offerings → Add packages to current offering");
+        }
+        pkgs.forEach((p, i) => {
+          console.log(`[RC]   [${i}] identifier: ${p.identifier}`);
+          console.log(`[RC]       product.identifier: ${p.product.identifier}`);
+          console.log(`[RC]       product.priceString: ${p.product.priceString}`);
+          console.log(`[RC]       product.title: ${p.product.title}`);
+          const expected = EXPECTED_PRODUCT_IDS.includes(p.product.identifier);
+          if (!expected) {
+            console.warn(`[RC]       ⚠️ Product ID mismatch! "${p.product.identifier}" not in expected list`);
+          }
+        });
+
+        // Check which expected IDs are missing
+        const foundIds = pkgs.map(p => p.product.identifier);
+        const missing = EXPECTED_PRODUCT_IDS.filter(id => !foundIds.includes(id));
+        if (missing.length > 0) {
+          console.warn("[RC] ⚠️ Missing expected product IDs:", missing.join(", "));
+          console.warn("[RC]    → These products may be missing from App Store Connect or RC offering");
+        } else {
+          console.log("[RC] ✅ All expected product IDs found");
+        }
+      } else {
+        console.error("[RC] ❌ offerings.current is null");
+        console.error("[RC]    CAUSE 1: No offering set as 'Current' in RC Dashboard");
+        console.error("[RC]    CAUSE 2: API key pointing to wrong RC project");
+        console.error("[RC]    CAUSE 3: App Store Connect products not yet approved");
+        console.error("[RC] Full offerings JSON:", JSON.stringify(offerings));
+      }
+
       return offerings;
     },
     staleTime: 0,
     retry: 2,
-    retryDelay: 3000,
+    retryDelay: (attempt) => {
+      const delay = attempt === 0 ? 2000 : 5000;
+      console.log(`[RC] Retrying getOfferings (attempt ${attempt + 1}) in ${delay}ms...`);
+      return delay;
+    },
     enabled: isReady,
   });
 
   const purchaseMutation = useMutation<CustomerInfo, Error, PurchasesPackage>({
     mutationFn: async (pkg: PurchasesPackage) => {
-      // This opens the real Apple/Google purchase sheet
+      console.log("[RC] purchasePackage:", pkg.identifier, pkg.product.priceString);
       const { customerInfo } = await Purchases.purchasePackage(pkg);
       return customerInfo;
     },
@@ -167,14 +222,16 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       if (e?.userCancelled) {
         console.log("[RC] Purchase cancelled by user");
       } else {
-        console.error("[RC] Purchase error:", e);
+        console.error("[RC] ❌ Purchase error:", e?.message ?? e, "code:", e?.code);
       }
     },
   });
 
   const restoreMutation = useMutation<CustomerInfo, Error>({
     mutationFn: async () => {
+      console.log("[RC] restorePurchases() called");
       const info = await Purchases.restorePurchases();
+      console.log("[RC] restorePurchases() success");
       return info;
     },
     onSuccess: () => {
@@ -183,6 +240,13 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   });
 
   const packages = offeringsQuery.data?.current?.availablePackages ?? [];
+
+  // offeringsEmpty: query finished (no loading, no error) but packages is still 0
+  const offeringsEmpty =
+    !offeringsQuery.isLoading &&
+    !offeringsQuery.isError &&
+    offeringsQuery.isFetched &&
+    packages.length === 0;
 
   return (
     <Context.Provider
@@ -194,6 +258,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         isLoading:        customerInfoQuery.isLoading || offeringsQuery.isLoading,
         offeringsLoading: offeringsQuery.isLoading,
         offeringsError:   offeringsQuery.isError,
+        offeringsEmpty,
         refetchOfferings: offeringsQuery.refetch,
         purchase:         purchaseMutation.mutateAsync,
         restore:          restoreMutation.mutateAsync,

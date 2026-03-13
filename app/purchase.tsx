@@ -282,7 +282,7 @@ export default function PurchaseScreen() {
   const insets = useSafeAreaInsets();
   const { addGold, goldBalance, userProfile, canSpin } = useApp();
   const { lang } = useLang();
-  const { isReady, packages, offeringsLoading, offeringsError, purchase, restore, isRestoring, refetchOfferings } = useSubscription();
+  const { isReady, packages, offeringsLoading, offeringsError, offeringsEmpty, purchase, restore, isRestoring, refetchOfferings } = useSubscription();
 
   const [buying, setBuying] = useState(false);
   const [boughtId, setBoughtId] = useState<string | null>(null);
@@ -439,11 +439,15 @@ export default function PurchaseScreen() {
             )}
 
             {!isReady || offeringsLoading ? (
+              // ── Loading ─────────────────────────────────────────────────────
               <View style={styles.loadingWrap}>
                 <ActivityIndicator color={Colors.gold} />
-                <Text style={styles.loadingText}>{lang === "tr" ? "Paketler yükleniyor..." : "Loading packages..."}</Text>
+                <Text style={styles.loadingText}>
+                  {lang === "tr" ? "Paketler yükleniyor..." : "Loading packages..."}
+                </Text>
               </View>
             ) : offeringsError ? (
+              // ── Error (network / StoreKit failure) ──────────────────────────
               <Animated.View entering={FadeIn.duration(400)} style={styles.rcErrorWrap}>
                 <Ionicons name="cloud-offline-outline" size={32} color={Colors.textDim} />
                 <Text style={styles.rcErrorTitle}>
@@ -459,10 +463,35 @@ export default function PurchaseScreen() {
                   style={styles.retryBtn}
                 >
                   <Ionicons name="refresh-outline" size={16} color={Colors.gold} />
-                  <Text style={styles.retryBtnText}>{lang === "tr" ? "Tekrar Dene" : "Try Again"}</Text>
+                  <Text style={styles.retryBtnText}>
+                    {lang === "tr" ? "Tekrar Dene" : "Try Again"}
+                  </Text>
+                </Pressable>
+              </Animated.View>
+            ) : offeringsEmpty && Platform.OS !== "web" ? (
+              // ── Empty — RC configured but no current offering / products not approved ─
+              <Animated.View entering={FadeIn.duration(400)} style={styles.rcErrorWrap}>
+                <Ionicons name="storefront-outline" size={32} color={Colors.textDim} />
+                <Text style={styles.rcErrorTitle}>
+                  {lang === "tr" ? "Paketler şu anda kullanılamıyor" : "Packages unavailable"}
+                </Text>
+                <Text style={styles.rcErrorDesc}>
+                  {lang === "tr"
+                    ? "Ürünler App Store'dan yüklenemedi. Lütfen daha sonra tekrar deneyin."
+                    : "Products could not be loaded from App Store. Please try again later."}
+                </Text>
+                <Pressable
+                  onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); refetchOfferings(); }}
+                  style={styles.retryBtn}
+                >
+                  <Ionicons name="refresh-outline" size={16} color={Colors.gold} />
+                  <Text style={styles.retryBtnText}>
+                    {lang === "tr" ? "Tekrar Dene" : "Try Again"}
+                  </Text>
                 </Pressable>
               </Animated.View>
             ) : (
+              // ── Packages (real RC price or unavailable shell on web) ─────────
               packagesToShow.map((pkgId, i) => {
                 const rcPkg = rcPkgMap[pkgId];
                 return (
