@@ -29,6 +29,7 @@
     "drizzle-orm": "^0.39.3",
     "drizzle-zod": "^0.7.1",
     "eas-cli": "^18.0.6",
+    "esbuild": "^0.27.4",
     "expo": "~54.0.33",
     "expo-apple-authentication": "~8.0.8",
     "expo-auth-session": "~7.0.10",
