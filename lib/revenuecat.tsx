@@ -212,23 +212,35 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
       // ── User-requested debug logs ──
       console.log("RevenueCat offerings:", offerings);
-      console.log("Current offering:", offerings?.current?.identifier);
+      console.log("Current offering:", offerings?.current?.identifier ?? "null ← NOT SET AS CURRENT");
+      console.log("All offerings:", Object.keys(offerings?.all ?? {}));
+
+      // Active = current OR first in all (fallback for "Tengri IAP" not set as current)
+      const activeOff =
+        offerings?.current ??
+        Object.values(offerings?.all ?? {})[0] ??
+        null;
+
+      if (!offerings.current && activeOff) {
+        console.warn(
+          "[RC] offerings.current null — will use fallback offering:",
+          activeOff.identifier,
+          "→ Fix: RC Dashboard → Offerings → Set as Current Offering"
+        );
+      }
+
       console.log(
         "Available packages:",
-        offerings?.current?.availablePackages?.map((p) => ({
+        activeOff?.availablePackages?.map((p) => ({
           identifier: p.identifier,
           productId: p.product.identifier,
           priceString: p.product.priceString,
           title: p.product.title,
-        }))
+        })) ?? "none"
       );
 
-      if (!offerings.current) {
-        console.log("No offerings returned from RevenueCat");
-      }
-
-      if (offerings.current) {
-        console.log("Packages:", offerings.current.availablePackages);
+      if (!activeOff) {
+        console.error("[RC] ❌ No offerings found at all — check RC dashboard & API key");
       }
 
       // ── Full diagnostic dump ──
@@ -316,7 +328,22 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     },
   });
 
-  const packages = offeringsQuery.data?.current?.availablePackages ?? [];
+  // Use current offering; if not set as Current in RC dashboard, fall back to
+  // the first available offering (e.g. "Tengri IAP" even if not marked as current).
+  const activeOffering =
+    offeringsQuery.data?.current ??
+    Object.values(offeringsQuery.data?.all ?? {})[0] ??
+    null;
+
+  if (offeringsQuery.data && !offeringsQuery.data.current && activeOffering) {
+    console.warn(
+      "[RC] ⚠️ offerings.current is null — falling back to first offering:",
+      activeOffering.identifier,
+      "| To fix: RC Dashboard → Offerings → Set as Current Offering"
+    );
+  }
+
+  const packages = activeOffering?.availablePackages ?? [];
 
   // offeringsEmpty: query finished (no loading, no error) but packages is still 0
   const offeringsEmpty =
