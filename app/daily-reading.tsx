@@ -367,7 +367,7 @@ export default function DailyReadingScreen() {
             </View>
             <View style={s.aiBadge}>
               <Ionicons name="sparkles" size={9} color="#A78BFA" />
-              <Text style={s.aiBadgeText}>{lang === "tr" ? "YZ Destekli" : "AI POWERED"}</Text>
+              <Text style={s.aiBadgeText}>{lang === "tr" ? "AI DESTEKLİ" : "AI POWERED"}</Text>
             </View>
           </View>
         </Animated.View>
