@@ -1,0 +1,90 @@
+Tengri Astroloji uygulamasında e-posta doğrulama akışını düzelt.
+
+SORUN:
+Kullanıcı kayıt olduktan sonra gelen doğrulama e-postasındaki linke tıklayınca çalışan doğrulama sayfası yerine Replit “Unable To Wake Up” hata sayfası açılıyor.
+
+Görünen problem:
+Doğrulama linki production domain yerine preview / development / temporary Replit URL ile oluşturuluyor olabilir.
+Mailde açılan link yapısı stabil değil ve kullanıcı hesabı güvenilir şekilde doğrulanamıyor.
+
+AMAÇ:
+E-posta doğrulama linki her zaman canlı, kararlı ve kullanıcıya açık çalışan domain üzerinden açılsın.
+Kullanıcı linke tıkladığında doğrulama başarılı şekilde tamamlansın ve hesap “verified” durumuna geçsin.
+
+YAPILACAKLAR:
+
+1) EMAIL VERIFICATION LINK OLUŞTURMA MANTIĞINI KONTROL ET
+- Mail içinde üretilen verification URL’yi bul.
+- Preview / localhost / :5000 / temporary Replit URL kullanılıyorsa kaldır.
+- Bunun yerine yalnızca production base URL kullan.
+- Link üretimi env üzerinden yönetilsin:
+  - APP_BASE_URL
+  - PUBLIC_APP_URL
+  - API_BASE_URL
+  benzeri değişkenler varsa kontrol et ve production domaini kullan.
+
+2) REPLIT PREVIEW URL BAĞIMLILIĞINI KALDIR
+- Mail doğrulama linki asla `*.replit.dev:5000` gibi geçici preview adresine gitmesin.
+- Deploy edilmiş kalıcı domain neyse linkler onun üzerinden üretilsin.
+
+3) DOĞRULAMA ROUTE’UNU SAĞLAMLAŞTIR
+- Link tıklandığında çalışan bir route olsun:
+  örnek:
+  `/verify-email`
+  `/auth/verify`
+  `/confirm-email`
+- Bu route token’ı alsın, backend’de doğrulasın ve kullanıcıyı güvenli şekilde sonuç ekranına yönlendirsin.
+
+4) TOKEN DOĞRULAMA AKIŞINI DÜZELT
+- Linkte gelen token backend’de kontrol edilsin.
+- Token geçerliyse kullanıcının hesabı `emailVerified = true` / `verified = true` olacak şekilde güncellensin.
+- Token geçersiz veya süresi dolmuşsa kullanıcıya düzgün hata mesajı gösterilsin.
+- Aynı link ikinci kez açılırsa sistem kırılmasın; kullanıcıya “hesap zaten doğrulandı” benzeri güvenli mesaj göster.
+
+5) BAŞARILI / HATALI SONUÇ EKRANI EKLE
+- Başarılı doğrulamada kullanıcı boş sayfada kalmasın.
+- Güzel bir sonuç ekranı göster:
+  - “E-posta adresiniz başarıyla doğrulandı.”
+  - “Şimdi uygulamaya dönüp giriş yapabilirsiniz.”
+- Hatalı durumda:
+  - “Doğrulama linki geçersiz veya süresi dolmuş.”
+  - gerekirse “yeniden doğrulama maili gönder” aksiyonu eklenebilir.
+
+6) MOBİL UYUMLU YAP
+- Kullanıcılar linke çoğunlukla iPhone / Android mail uygulamasından tıklayacak.
+- Sayfa mobil uyumlu olsun.
+- Açıldıktan sonra hata vermesin, sonsuz loading olmasın.
+
+7) AUTH DURUMUNU GÜVENİLİR HALE GETİR
+- Kullanıcı doğrulama linkine bastıktan sonra veritabanında verified alanı gerçekten güncellensin.
+- Sadece ekranda başarılı mesaj göstermek yetmez.
+- Sonraki login denemesinde sistem doğrulanmış hesabı doğru algılasın.
+
+8) YANLIŞ DOMAIN / CALLBACK KONTROLÜ YAP
+- Supabase / Firebase / custom auth / backend hangi sistem kullanılıyorsa:
+  - authorized redirect URLs
+  - callback URLs
+  - site URL
+  - email action URL
+  ayarlarını kontrol et.
+- Production domain dışında eski Replit test linkleri kalmışsa temizle.
+
+9) TEST ET
+Aşağıdaki senaryoları test et:
+- yeni kullanıcı kayıt olur → mail gelir → link çalışır → hesap doğrulanır
+- aynı linke tekrar tıklanır → güvenli mesaj gösterir
+- süresi dolmuş link → düzgün hata ekranı gösterir
+- yanlış token → hata ekranı gösterir
+- doğrulanan kullanıcı tekrar giriş yapar → verified olarak devam eder
+
+10) KODU TEMİZ ŞEKİLDE GÜNCELLE
+- URL oluşturma mantığını merkezi hale getir
+- development ve production ayrımını net yap
+- mail template içinde hardcoded preview URL bırakma
+
+İSTEDİĞİM ÇIKTI:
+- Sorunun tam kök nedenini bul
+- Hangi dosyalarda düzeltme yaptığını belirt
+- Yeni doğrulama akışını özetle
+- Gerekli env değişkenlerini söyle
+- Production için güvenli son hali uygula

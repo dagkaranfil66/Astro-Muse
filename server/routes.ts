@@ -56,12 +56,24 @@ async function sendEmail(to: string, subject: string, html: string) {
 }
 
 function getServerBaseUrl(req: Request): string {
+  // 1) Explicit production override — always wins
+  if (process.env.APP_BASE_URL) {
+    return process.env.APP_BASE_URL.replace(/\/$/, "");
+  }
+  // 2) Reverse-proxy sets x-forwarded-host to the real public domain (both dev & prod on Replit)
+  //    Use it directly — no port suffix needed (proxy handles TLS termination)
+  const fwdHost = req.headers["x-forwarded-host"] as string | undefined;
+  const fwdProto = req.headers["x-forwarded-proto"] as string | undefined;
+  if (fwdHost) {
+    const proto = (fwdProto || "https").split(",")[0].trim();
+    const host  = fwdHost.split(",")[0].trim();
+    return `${proto}://${host}`;
+  }
+  // 3) Local fallback (no proxy)
   if (process.env.REPLIT_DEV_DOMAIN) {
     return `https://${process.env.REPLIT_DEV_DOMAIN}:5000`;
   }
-  const proto = req.headers["x-forwarded-proto"] || req.protocol;
-  const host = req.headers["x-forwarded-host"] || req.get("host");
-  return `${proto}://${host}`;
+  return `${req.protocol}://${req.get("host")}`;
 }
 
 async function sendVerificationEmail(email: string, name: string, token: string, baseUrl: string) {
@@ -356,9 +368,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(400).send(verifyPage("Hata", "Geçersiz doğrulama bağlantısı.", false));
     }
     const all = await db.select().from(users).where(eq(users.verifyToken, token)).limit(1);
-    if (all.length === 0) return res.status(404).send(verifyPage("Hata", "Doğrulama bağlantısı geçersiz veya süresi dolmuş.", false));
-    await db.update(users).set({ verified: true }).where(eq(users.verifyToken, token));
-    return res.send(verifyPage("Başarılı ✦", "Hesabınız doğrulandı. Tengri'ye giriş yapabilirsiniz.", true));
+    if (all.length === 0) {
+      // Token not found — check if already verified (link clicked twice)
+      return res.status(404).send(verifyPage(
+        "Bağlantı Geçersiz",
+        "Bu doğrulama bağlantısı daha önce kullanılmış ya da süresi dolmuş.\nHesabınız zaten doğrulanmışsa giriş yapabilirsiniz.",
+        false
+      ));
+    }
+    const user = all[0];
+    if (user.verified) {
+      return res.send(verifyPage("Zaten Doğrulandı ✦", "Hesabınız zaten doğrulanmış. Tengri'ye giriş yapabilirsiniz.", true));
+    }
+    // Mark verified and clear token so link can't be reused
+    await db.update(users).set({ verified: true, verifyToken: "" }).where(eq(users.verifyToken, token));
+    console.log(`[Auth] Email verified: ${user.email}`);
+    return res.send(verifyPage("Başarılı ✦", "E-posta adresiniz başarıyla doğrulandı.\nŞimdi uygulamaya dönüp giriş yapabilirsiniz.", true));
   });
 
   app.post("/api/auth/login", async (req: Request, res: Response) => {
@@ -1043,8 +1068,8 @@ ${lang === "en" ? "IMPORTANT: This is a free preview reading. Write 4-6 sentence
 function verifyPage(title: string, message: string, success: boolean): string {
   const color = success ? "#C8A020" : "#FF6B6B";
   const emoji = success ? "🌟" : "⚠️";
-  const appUrl = process.env.REPLIT_DEV_DOMAIN
-    ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+  const appUrl = process.env.APP_BASE_URL
+    ? process.env.APP_BASE_URL.replace(/\/$/, "")
     : "https://tengristar.com";
   const btnHtml = success
     ? `<a href="${appUrl}" style="display:inline-block;margin-top:28px;background:linear-gradient(90deg,#C8A020,#A07015);color:#06030F;padding:16px 40px;border-radius:14px;text-decoration:none;font-weight:bold;font-size:16px;">✦ &nbsp; Tengri'yi Aç</a>`
