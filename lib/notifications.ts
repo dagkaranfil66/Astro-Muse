@@ -1,8 +1,10 @@
 import { Platform, AppState } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type * as NotificationsType from "expo-notifications";
+import Constants from "expo-constants";
 
 const PENDING_READING_NOTIF_KEY = "tengri_pending_reading_notif";
+const PUSH_TOKEN_CACHE_KEY = "tengri_expo_push_token";
 
 let N: typeof NotificationsType | null = null;
 if (Platform.OS !== "web") {
@@ -37,6 +39,31 @@ export async function requestNotificationPermission(): Promise<boolean> {
     return status === "granted";
   } catch {
     return false;
+  }
+}
+
+// ─── Expo Push Token ────────────────────────────────────────────────────────────
+export async function getExpoPushToken(): Promise<string | null> {
+  if (!N || Platform.OS === "web") return null;
+  try {
+    // Return cached token if available
+    const cached = await AsyncStorage.getItem(PUSH_TOKEN_CACHE_KEY);
+    if (cached) return cached;
+
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId
+      ?? Constants.easConfig?.projectId
+      ?? "e80dcf4a-3033-4691-8e20-9544eacc4101";
+
+    const result = await N.getExpoPushTokenAsync({ projectId });
+    const token = result.data;
+    if (token) {
+      await AsyncStorage.setItem(PUSH_TOKEN_CACHE_KEY, token);
+      console.log("[Push] Token obtained:", token.slice(0, 40) + "…");
+    }
+    return token || null;
+  } catch (e) {
+    console.warn("[Push] getExpoPushToken error:", e);
+    return null;
   }
 }
 

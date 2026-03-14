@@ -18,6 +18,8 @@ export const users = pgTable("users", {
   lastShareTimestamp: bigint("last_share_timestamp", { mode: "number" }),
   lastShareDate:      text("last_share_date"),          // YYYY-MM-DD (TR timezone)
   sharedReadingIds:   text("shared_reading_ids"),        // JSON array of reading IDs
+  // ── Push notifications ────────────────────────────────────────────────────
+  pushToken:          text("push_token"),                 // Expo push token (ExponentPushToken[...])
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({

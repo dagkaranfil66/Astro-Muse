@@ -41,7 +41,7 @@ import * as Clipboard from "expo-clipboard";
 import { Colors } from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
-import { scheduleReadingReadyNotification } from "@/lib/notifications";
+import { scheduleReadingReadyNotification, getExpoPushToken } from "@/lib/notifications";
 import { getApiUrl } from "@/lib/query-client";
 import { SHARE_CONFIG } from "@/constants/shareConfig";
 import InsufficientGoldModal from "@/components/InsufficientGoldModal";
@@ -1079,6 +1079,7 @@ export default function ReadingScreen() {
             userInput.trim(),
           ].filter(Boolean).join(" | ")
         : userInput.trim() || "";
+      const pushToken = await getExpoPushToken().catch(() => null);
       const body: Record<string, any> = {
         service,
         lang,
@@ -1086,6 +1087,7 @@ export default function ReadingScreen() {
         ...(mistikName ? { userName: mistikName } : {}),
         ...(mistikBirthDate ? { birthDate: mistikBirthDate } : {}),
         ...(mistikFocusArea ? { focusArea: mistikFocusArea } : {}),
+        ...(pushToken ? { pushToken } : {}),
       };
       const photosToUse = photosOverride ?? kahvePhotos;
       if (isKahve && photosToUse.length > 0) {

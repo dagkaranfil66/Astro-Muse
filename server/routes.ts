@@ -10,6 +10,42 @@ import { db } from "./db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
+// ─── Expo Push Notification ────────────────────────────────────────────────────
+const READING_PUSH_MESSAGES: Record<string, { tr: { t: string; b: string }; en: { t: string; b: string } }> = {
+  kahve:  { tr: { t: "☕ Falın hazır",             b: "Fincanda beklenmedik bir şey var…" },          en: { t: "☕ Reading is ready",       b: "Something unexpected in your cup…" } },
+  tarot:  { tr: { t: "🃏 Tarot kartın açıldı",      b: "Bugün ilginç bir kart çıktı — bak bakalım."}, en: { t: "🃏 Tarot card revealed",     b: "An interesting card appeared today." } },
+  ask:    { tr: { t: "❤️ Aşk analizi tamamlandı",   b: "Aşk enerjin belli oldu — merak ediyor musun?"}, en: { t: "❤️ Love analysis complete", b: "Your love energy is revealed…" } },
+  el:     { tr: { t: "✋ Avuç içi okundu",           b: "Çizgilerde gizli bir yol görünüyor…" },       en: { t: "✋ Palm reading complete",    b: "Hidden paths in your lines…" } },
+  ruya:   { tr: { t: "🌙 Rüya yorumu hazır",         b: "Bilinçaltın konuşuyor — dinle." },            en: { t: "🌙 Dream analysis ready",    b: "Your subconscious is speaking…" } },
+  numeroloji: { tr: { t: "🔢 Numeroloji hazır",      b: "Sayılar sana bir şey söylüyor." },            en: { t: "🔢 Numerology ready",        b: "Numbers have a message for you." } },
+  astroloji:  { tr: { t: "⭐ Astroloji yorumu hazır", b: "Yıldızlar konuştu." },                       en: { t: "⭐ Astrology reading ready",  b: "The stars have spoken." } },
+  dogum:  { tr: { t: "🌟 Doğum haritası hazır",      b: "Yıldızların altında ne saklı?" },             en: { t: "🌟 Birth chart ready",        b: "What's hidden under your stars?" } },
+  ruh:    { tr: { t: "🦋 Ruh analizi hazır",          b: "İçindeki ses ne söylüyor?" },                en: { t: "🦋 Soul analysis ready",      b: "What is your inner voice saying?" } },
+};
+
+async function sendExpoPush(pushToken: string, serviceId: string, lang: "tr" | "en") {
+  try {
+    if (!pushToken.startsWith("ExponentPushToken[")) return;
+    const msg = READING_PUSH_MESSAGES[serviceId] ?? { tr: { t: "✦ Okuma hazır", b: "Sembolleri görmek ister misin?" }, en: { t: "✦ Reading ready", b: "Want to see the symbols?" } };
+    const { t, b } = lang === "tr" ? msg.tr : msg.en;
+    const body = JSON.stringify({
+      to: pushToken,
+      title: t,
+      body: b,
+      sound: "default",
+      data: { type: "reading_ready", serviceId },
+    });
+    await fetch("https://exp.host/--/api/v2/push/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json", "Accept-Encoding": "gzip, deflate" },
+      body,
+    });
+    console.log(`[Push] Sent to ${pushToken.slice(0, 30)}… service=${serviceId}`);
+  } catch (e) {
+    console.warn("[Push] sendExpoPush error:", e);
+  }
+}
+
 let _testTransport: nodemailer.Transporter | null = null;
 
 async function getTransport(): Promise<nodemailer.Transporter | null> {
@@ -498,6 +534,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ── Push token registration ────────────────────────────────────────────────
+  app.post("/api/notifications/register-token", async (req: Request, res: Response) => {
+    try {
+      const { email, pushToken: token } = req.body as { email?: string; pushToken?: string };
+      if (!email || !token) return res.status(400).json({ error: "email ve pushToken gerekli" });
+      if (!token.startsWith("ExponentPushToken[")) return res.status(400).json({ error: "Geçersiz token formatı" });
+      const found = await db.select().from(users).where(eq(users.email, email.toLowerCase().trim())).limit(1);
+      if (found.length === 0) return res.status(404).json({ error: "Kullanıcı bulunamadı" });
+      await db.update(users).set({ pushToken: token }).where(eq(users.email, email.toLowerCase().trim()));
+      console.log(`[Push] Token registered for ${email}`);
+      return res.json({ ok: true });
+    } catch (e) {
+      console.error("[Push] register-token error:", e);
+      return res.status(500).json({ error: "Token kaydedilemedi" });
+    }
+  });
+
   // ── Coffee cup image validation ───────────────────────────────────────────
   app.post("/api/validate-coffee", async (req: Request, res: Response) => {
     try {
@@ -753,7 +806,7 @@ Return ONLY valid JSON, no markdown, no explanation:
 
   app.post("/api/reading", async (req: Request, res: Response) => {
     try {
-      const { service, lang, userInput, imageBase64, imageType, images, userName, birthDate, focusArea } = req.body;
+      const { service, lang, userInput, imageBase64, imageType, images, userName, birthDate, focusArea, pushToken } = req.body;
       if (!service) return res.status(400).json({ error: "Servis türü gerekli" });
       const validServices = ["astroloji","kahve","el","tarot","samanizm","numeroloji","ruh","dogum","ruya","burclar","ask","compat","crystal"];
       if (!validServices.includes(service)) return res.status(400).json({ error: "Geçersiz servis" });
@@ -811,6 +864,10 @@ Return ONLY valid JSON, no markdown, no explanation:
       }
       res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
       res.end();
+      // Server-side push — fires even when app is backgrounded/closed
+      if (pushToken) {
+        sendExpoPush(pushToken, service, (lang === "en" ? "en" : "tr")).catch(() => {});
+      }
     } catch (error) {
       console.error("Reading error:", error);
       if (res.headersSent) { res.write(`data: ${JSON.stringify({ error: "Okuma yapılamadı" })}\n\n`); res.end(); }

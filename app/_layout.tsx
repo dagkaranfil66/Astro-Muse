@@ -23,7 +23,9 @@ import {
   scheduleReengagementNotifications,
   cancelReengagementNotifications,
   flushPendingReadingNotification,
+  getExpoPushToken,
 } from "@/lib/notifications";
+import { getApiUrl } from "@/lib/query-client";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -34,7 +36,7 @@ let Notifications: typeof NotificationsType | null = null;
 // ── App navigation ─────────────────────────────────────────────────────────
 
 function RootLayoutNav() {
-  const { isLoaded, hasSeenOnboarding, zodiacSign } = useApp();
+  const { isLoaded, hasSeenOnboarding, zodiacSign, userProfile } = useApp();
   const { lang } = useLang();
 
   React.useEffect(() => {
@@ -47,9 +49,20 @@ function RootLayoutNav() {
       const granted = await requestNotificationPermission();
       if (granted) {
         await setupAllDailyNotifications(lang, zodiacSign);
+        // Get Expo push token and register with server
+        const token = await getExpoPushToken();
+        if (token && userProfile?.email) {
+          try {
+            await fetch(new URL("/api/notifications/register-token", getApiUrl()).toString(), {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: userProfile.email, pushToken: token }),
+            });
+          } catch {}
+        }
       }
     })();
-  }, [lang, zodiacSign]);
+  }, [lang, zodiacSign, userProfile?.email]);
 
   useEffect(() => {
     const sub = AppState.addEventListener("change", async (next: AppStateStatus) => {
