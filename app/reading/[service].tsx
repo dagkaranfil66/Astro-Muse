@@ -1274,7 +1274,7 @@ export default function ReadingScreen() {
                 <Ionicons name="sparkles" size={13} color={base.color} />
                 <Text style={[styles.readingHeaderText, { color: base.color }]}>{t.tengriMessage}</Text>
               </View>
-              {(service === "kahve" || service === "el" || service === "numeroloji" || service === "ruya" || service === "dogum" || service === "ruh" || service === "astroloji") && parseKahveSections(readingText).length > 0 ? (
+              {(service === "el" || service === "numeroloji" || service === "ruya" || service === "dogum" || service === "ruh" || service === "astroloji") && parseKahveSections(readingText).length > 0 ? (
                 <View style={{ padding: 12 }}>
                   <SectionedReading text={readingText} color={base.color} isLoading={isLoading} />
                   {isLoading && <ActivityIndicator size="small" color={base.color} style={{ padding: 8 }} />}
