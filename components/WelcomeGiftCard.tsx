@@ -149,7 +149,7 @@ export function WelcomeGiftCard({ onClose, bonusAmount = FREE_START_GOLD, lang =
         {lang === 'tr' ? ' hediye ettik.' : '.'}
         {'\n'}
         <Text style={styles.aiTag}>
-          {lang === 'tr' ? '✦ Yapay Zeka Destekli · Sana Özel' : '✦ AI-Powered · Personalized for You'}
+          {lang === 'tr' ? '✦ AI Destekli · Sana Özel' : '✦ AI-Powered · Personalized for You'}
         </Text>
       </Animated.Text>
 

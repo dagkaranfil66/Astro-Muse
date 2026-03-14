@@ -7,7 +7,7 @@ const translations = {
   tr: {
     appTagline: 'MİSTİK REHBERLİK',
     appDesc: 'Yapay Zekâ ile Kişiselleştirilmiş · Her Yorum Sana Özel\nDinamik olarak üretilir — yalnızca eğlence amaçlıdır.',
-    poweredBy: 'Yapay Zeka Destekli',
+    poweredBy: 'AI Destekli',
     services: 'Hizmetlerimiz',
     trialsLeft: (n: number) => `${n} ücretsiz deneme hakkınız var`,
     trialsExpired: 'Ücretsiz denemeler bitti — Paket satın alın',
