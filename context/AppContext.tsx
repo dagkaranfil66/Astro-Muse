@@ -58,6 +58,8 @@ interface AppContextValue {
   markDailyFreeUsed: () => Promise<void>;
   showWelcomeBonus: boolean;
   dismissWelcomeBonus: () => void;
+  freeCoffeeFortuneUsed: boolean;
+  markFreeCoffeeFortuneUsed: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -73,15 +75,16 @@ const GLOBAL_KEYS = {
 function userKeys(email: string) {
   const safe = email.toLowerCase().replace(/[^a-z0-9]/g, '_');
   return {
-    gold:         `tengri_u_gold_${safe}`,
-    readings:     `tengri_u_readings_${safe}`,
-    profilePhoto: `tengri_u_photo_${safe}`,
-    lastSpin:     `tengri_u_spin_${safe}`,
-    trialCount:   `tengri_u_trials_${safe}`,
-    isPurchased:  `tengri_u_purchased_${safe}`,
-    zodiac:       `tengri_u_zodiac_${safe}`,
-    dailyFree:    `tengri_u_daily_${safe}`,
-    welcomeBonus: `tengri_u_welcome_${safe}`,
+    gold:            `tengri_u_gold_${safe}`,
+    readings:        `tengri_u_readings_${safe}`,
+    profilePhoto:    `tengri_u_photo_${safe}`,
+    lastSpin:        `tengri_u_spin_${safe}`,
+    trialCount:      `tengri_u_trials_${safe}`,
+    isPurchased:     `tengri_u_purchased_${safe}`,
+    zodiac:          `tengri_u_zodiac_${safe}`,
+    dailyFree:       `tengri_u_daily_${safe}`,
+    welcomeBonus:    `tengri_u_welcome_${safe}`,
+    freeCoffeeUsed:  `tengri_u_free_coffee_${safe}`,
   };
 }
 
@@ -102,7 +105,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isPurchased, setIsPurchased]           = useState(false);
   const [zodiacSign, setZodiacState]            = useState<string | null>(null);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
-  const [showWelcomeBonus, setShowWelcomeBonus]   = useState(false);
+  const [showWelcomeBonus, setShowWelcomeBonus]       = useState(false);
+  const [freeCoffeeFortuneUsed, setFreeCoffeeFortuneUsed] = useState(false);
   const [mistikName, setMistikNameState]          = useState<string | null>(null);
   const [mistikBirthDate, setMistikBirthDateState] = useState<string | null>(null);
   const [mistikFocusArea, setMistikFocusAreaState] = useState<string | null>(null);
@@ -126,7 +130,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const k = userKeys(email);
 
     // 1. Load from local cache immediately (fast)
-    const [goldStr, readStr, photoStr, spinStr, tcStr, ipStr, zodStr, dfStr, wbStr] = await Promise.all([
+    const [goldStr, readStr, photoStr, spinStr, tcStr, ipStr, zodStr, dfStr, wbStr, fcStr] = await Promise.all([
       AsyncStorage.getItem(k.gold),
       AsyncStorage.getItem(k.readings),
       AsyncStorage.getItem(k.profilePhoto),
@@ -136,6 +140,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       AsyncStorage.getItem(k.zodiac),
       AsyncStorage.getItem(k.dailyFree),
       AsyncStorage.getItem(k.welcomeBonus),
+      AsyncStorage.getItem(k.freeCoffeeUsed),
     ]);
 
     const isNewLocal = goldStr === null;
@@ -147,6 +152,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (fsData) {
       // Existing Firestore user — prefer cloud values
       startGold = fsData.goldBalance;
+      const fsCoffeeUsed = fsData.freeCoffeeFortuneUsed ?? false;
       await Promise.all([
         AsyncStorage.setItem(k.gold, String(fsData.goldBalance)),
         AsyncStorage.setItem(k.lastSpin, fsData.lastSpinDate ?? ''),
@@ -155,12 +161,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         AsyncStorage.setItem(k.zodiac, fsData.zodiacSign ?? ''),
         AsyncStorage.setItem(k.dailyFree, fsData.lastDailyFreeDate ?? ''),
         AsyncStorage.setItem(k.welcomeBonus, fsData.welcomeBonusGiven ? 'given' : ''),
+        AsyncStorage.setItem(k.freeCoffeeUsed, fsCoffeeUsed ? 'true' : ''),
       ]);
       setLastSpinDate(fsData.lastSpinDate ?? null);
       setTrialCount(fsData.trialCount);
       setIsPurchased(fsData.isPurchased);
       setZodiacState(fsData.zodiacSign ?? null);
       setLastDailyFreeDateState(fsData.lastDailyFreeDate ?? null);
+      setFreeCoffeeFortuneUsed(fsCoffeeUsed);
 
       // Load readings from Firestore subcollection (5s timeout)
       const fsReadings = await withTimeout(fsGetReadings(email), 5000, []);
@@ -183,6 +191,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setIsPurchased(ipStr === 'true');
       setZodiacState(zodStr ?? null);
       setLastDailyFreeDateState(dfStr ?? null);
+      setFreeCoffeeFortuneUsed(fcStr === 'true');
       setReadings(readStr ? JSON.parse(readStr) : []);
 
       // Create Firestore document for this user (fire-and-forget, don't block login)
@@ -398,6 +407,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const dismissWelcomeBonus = () => setShowWelcomeBonus(false);
 
+  // ── First free coffee fortune ──────────────────────────────────────────────
+  const markFreeCoffeeFortuneUsed = async () => {
+    if (freeCoffeeFortuneUsed) return;
+    setFreeCoffeeFortuneUsed(true);
+    const k = uKeys();
+    if (k) await AsyncStorage.setItem(k.freeCoffeeUsed, 'true');
+    if (emailRef.current) fsUpdateUser(emailRef.current, { freeCoffeeFortuneUsed: true });
+  };
+
   const value = useMemo(() => ({
     goldBalance, readings, userProfile, profilePhotoUri,
     setProfilePhoto, isLoaded, hasSeenOnboarding, markOnboardingDone,
@@ -408,11 +426,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     zodiacSign, setZodiacSign, canDailyFree, markDailyFreeUsed,
     showWelcomeBonus, dismissWelcomeBonus,
     mistikName, mistikBirthDate, mistikFocusArea, setMistikProfile,
+    freeCoffeeFortuneUsed, markFreeCoffeeFortuneUsed,
   }), [
     goldBalance, readings, userProfile, profilePhotoUri,
     isLoaded, hasSeenOnboarding, trialCount, isPurchased,
     lastSpinDate, zodiacSign, lastDailyFreeDate, showWelcomeBonus,
-    mistikName, mistikBirthDate, mistikFocusArea,
+    mistikName, mistikBirthDate, mistikFocusArea, freeCoffeeFortuneUsed,
   ]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

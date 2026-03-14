@@ -1,0 +1,93 @@
+Tengri Astroloji uygulamasında ilk kahve falı akışını aşağıdaki stratejiye göre güncelle:
+
+HEDEF:
+İlk kullanıcı deneyimini daha güçlü yapmak, güven oluşturmak, uygulamanın kalitesini ilk kullanımda hissettirmek ve ilk falda altın bariyerini kaldırmak.
+
+YAPILACAK DEĞİŞİKLİKLER:
+
+1) İLK KAHVE FALI TAMAMEN ÜCRETSİZ OLSUN
+- Kullanıcının uygulamadaki ilk kahve falı tamamen ücretsiz olmalı.
+- İlk kahve falının hiçbir aşamasında altın düşülmemeli.
+- “Devamını oku için 6 altın” mantığı ilk kahve falında çalışmamalı.
+- Kullanıcı ilk kahve falının tamamını ücretsiz şekilde okuyabilmeli.
+- Bu hak sadece ilk kahve falı için geçerli olsun.
+
+2) İLK ÜCRETSİZ HAK KONTROLÜ EKLE
+- Kullanıcının ilk kahve falını kullanıp kullanmadığını kontrol eden kalıcı bir alan ekle.
+- Bu bilgi kullanıcı bazlı saklansın.
+- Örnek alan isimleri:
+  - hasUsedFreeFirstCoffeeFortune: true/false
+  veya
+  - freeCoffeeFortuneUsed: true/false
+- Kullanıcı ilk ücretsiz kahve falını tamamladıktan sonra bu alan true olarak güncellensin.
+
+3) SONRAKİ KAHVE FALLARI NORMAL ALTIN SİSTEMİNE DÖNSÜN
+- İlk ücretsiz kahve falı kullanıldıktan sonra sonraki kahve falları mevcut altın sistemi ile çalışsın.
+- Eğer mevcut kahve falı ücreti 6 altın ise, ilk kullanım sonrası tekrar 6 altın kesilsin.
+- Yani ücretsiz hak yalnızca ilk kahve falına özel olsun.
+
+4) ESKİ “DEVAMINI OKU İÇİN 6 ALTIN” AKIŞINI İLK FALDA KALDIR
+- Şu an ilk ücretsiz kahve falı akışında “devamını oku için 6 altın” mantığı tam çalışmıyor.
+- Bu broken akışı tamamen kaldır.
+- İlk falda fal metni parçalanıp yarıda kilitlenmesin.
+- İlk falda tüm içerik baştan sona açık olsun.
+
+5) FAL SONUNDA YENİ DÖNÜŞÜM EKRANI EKLE
+İlk ücretsiz kahve falı tamamlandıktan sonra kullanıcıya bir aksiyon ekranı göster:
+Başlık örneği:
+- “Falın hazır! Devam etmek ister misin?”
+veya
+- “İlk falını tamamladın ✨ Şimdi devam et”
+
+Bu ekranda aşağıdaki seçenekler olsun:
+- Yeni kahve falı → 6 altın
+- Günlük çarkı çevir → altın kazan
+- Paylaş → altın kazan
+
+Buradaki amaç:
+- kullanıcı altın ekonomisini öğrensin
+- ücretsiz ilk deneyimden sonra uygulamada kalmaya devam etsin
+- ödeme baskısı ilk deneyimde değil, değer gördükten sonra gelsin
+
+6) UI METİNLERİNİ GÜNCELLE
+İlk kahve falı butonu veya ilgili bölümde bunu daha görünür hale getir:
+- “İlk kahve falın ücretsiz”
+- “Yeni kullanıcılara özel ilk kahve falı bedava”
+- “İlk kahve falını ücretsiz keşfet”
+
+Bu metin onboarding, ana ekran veya kahve falı giriş ekranında görünür şekilde yer alsın.
+
+7) HATA KONTROLLERİ EKLE
+- İlk ücretsiz fal kullanılmışsa tekrar ücretsiz vermesin.
+- Veri okunamazsa güvenli fallback uygula.
+- Kullanıcı verisi geç gelirse ekran yanlışlıkla hem ücretsiz hem ücretli görünmesin.
+- Çift tıklama / tekrar istek durumunda aynı fal için iki kere state değişmesin.
+- Altın düşümü gereken senaryolarda sadece ilk ücretsiz hak yoksa altın düşsün.
+
+8) FIRESTORE / BACKEND UYUMLU YAP
+Eğer kullanıcı bilgileri Firestore’da tutuluyorsa bu yeni alanı kullanıcı dokümanına ekle.
+Eksik kullanıcı kayıtlarında migration-safe çalışsın:
+- alan yoksa false kabul edilebilir
+- ilk ücretsiz hak kullanıldığında alan oluşturulsun
+
+9) KODU TEMİZ VE NET ŞEKİLDE DÜZENLE
+- İlk ücretsiz kahve falı kontrolü tek bir merkezde yapılsın
+- UI koşulları ile ödeme/altın mantığı birbirinden temiz ayrıştırılsın
+- Gelecekte “ilk tarot ücretsiz” gibi kampanyalar eklenebilecek şekilde yapı kurulursa daha iyi olur
+
+10) TEST SENARYOLARI EKLE
+Lütfen aşağıdaki senaryoları kontrol et:
+- Yeni kullanıcı ilk kahve falını tamamen ücretsiz okuyabiliyor mu?
+- İlk fal sırasında hiç altın düşmüyor mu?
+- İlk fal bitince kullanıcı işaretleniyor mu?
+- İkinci kahve falında altın isteniyor mu?
+- Önceki broken “devamını oku için 6 altın” akışı tamamen kalktı mı?
+- UI’da ilk ücretsiz hak net şekilde görünüyor mu?
+- Günlük çark / paylaş ekranı fal sonrası doğru açılıyor mu?
+
+İSTEDİĞİM ÇIKTI:
+- Gerekli kod değişikliklerini uygula
+- Hangi dosyalarda ne değiştiğini özetle
+- Eğer veri modeli değiştiyse onu belirt
+- Gerekirse örnek state / function isimlerini düzenli ver
+- Uygulama akışını bozmadan production’a uygun şekilde yap

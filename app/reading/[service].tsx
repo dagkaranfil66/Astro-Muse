@@ -13,6 +13,7 @@ import {
   Image,
   Dimensions,
   Alert,
+  Modal,
 } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { router, useLocalSearchParams } from "expo-router";
@@ -357,7 +358,7 @@ function KahvePhotoSection({
             )}
             <Pressable onPress={() => onAdd("gallery")} style={[styles.kahveMainGalleryBtn, { borderColor: color + "60" }]}>
               <Ionicons name="images-outline" size={18} color={color} />
-              <Text style={[styles.kahveMainGalleryBtnText, { color }]}>
+              <Text style={[styles.kahveMainGalleryBtnText, { color }]} numberOfLines={1}>
                 {lang === "tr" ? "Galeriden Yükle" : "Upload"}
               </Text>
             </Pressable>
@@ -750,7 +751,7 @@ function SharePanel({ text, serviceLabel, readingId, service }: { text: string; 
 export default function ReadingScreen() {
   const { service } = useLocalSearchParams<{ service: string }>();
   const insets = useSafeAreaInsets();
-  const { goldBalance, canAfford, spendGold, addReading, getServiceCost, userProfile, mistikName, mistikBirthDate, mistikFocusArea } = useApp();
+  const { goldBalance, canAfford, spendGold, addReading, getServiceCost, userProfile, mistikName, mistikBirthDate, mistikFocusArea, freeCoffeeFortuneUsed, markFreeCoffeeFortuneUsed } = useApp();
   const { t, lang } = useLang();
 
   const base = SERVICE_META_BASE[service] || SERVICE_META_BASE.astroloji;
@@ -813,10 +814,13 @@ export default function ReadingScreen() {
     ? true
     : userInput.trim().length > 0;
 
+  const [showFreeCoffeeConversion, setShowFreeCoffeeConversion] = useState(false);
+
   const sendButtonScale = useSharedValue(1);
   const sendButtonStyle = useAnimatedStyle(() => ({ transform: [{ scale: sendButtonScale.value }] }));
 
-  const canRead = canAfford(service);
+  const isFirstFreeCoffee = isKahve && !freeCoffeeFortuneUsed;
+  const canRead = isFirstFreeCoffee || canAfford(service);
 
   React.useEffect(() => {
     if (!userProfile) {
@@ -907,10 +911,11 @@ export default function ReadingScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     sendButtonScale.value = withSpring(0.9, {}, () => { sendButtonScale.value = withSpring(1); });
 
+    const wasFreeFirstCoffee = isFirstFreeCoffee;
     setIsLoading(true);
     setReadingText("");
     setIsDone(false);
-    spendGold(service);
+    if (!wasFreeFirstCoffee) { spendGold(service); }
 
     try {
       const baseUrl = getApiUrl();
@@ -990,6 +995,10 @@ export default function ReadingScreen() {
               const newId = await addReading({ service, serviceLabel, content: fullText, userInput });
               setReadingId(newId);
               scheduleReadingReadyNotification(lang, service).catch(() => {});
+              if (wasFreeFirstCoffee) {
+                await markFreeCoffeeFortuneUsed();
+                setTimeout(() => setShowFreeCoffeeConversion(true), 1800);
+              }
             }
           } catch {}
         }
@@ -1059,6 +1068,14 @@ export default function ReadingScreen() {
           {/* Kahve: Camera quick-read CTA */}
           {service === "kahve" && !readingText && !isLoading && (
             <Animated.View entering={FadeInDown.delay(150).springify()}>
+              {isFirstFreeCoffee && (
+                <View style={styles.freeCoffeeBanner}>
+                  <Ionicons name="gift" size={14} color="#000" />
+                  <Text style={styles.freeCoffeeBannerText}>
+                    {lang === "tr" ? "İlk kahve falın ücretsiz! ✦" : "Your first coffee reading is free! ✦"}
+                  </Text>
+                </View>
+              )}
               <Pressable
                 onPress={() => {
                   if (!canRead) { setShowGoldModal(true); return; }
@@ -1079,8 +1096,8 @@ export default function ReadingScreen() {
                       : "Point camera at cup, instant read →"}
                   </Text>
                 </View>
-                <View style={[styles.cameraReadBadge, { backgroundColor: base.color }]}>
-                  <Text style={styles.cameraReadBadgeText}>YENİ</Text>
+                <View style={[styles.cameraReadBadge, { backgroundColor: isFirstFreeCoffee ? Colors.gold : base.color }]}>
+                  <Text style={styles.cameraReadBadgeText}>{isFirstFreeCoffee ? "ÜCRETSİZ" : "YENİ"}</Text>
                 </View>
               </Pressable>
 
@@ -1573,6 +1590,45 @@ export default function ReadingScreen() {
         onCapture={handleCameraCapture}
         color={base.color}
       />
+
+      {/* First free coffee conversion modal */}
+      <Modal
+        visible={showFreeCoffeeConversion}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowFreeCoffeeConversion(false)}
+      >
+        <View style={styles.freeCoffeeOverlay}>
+          <Animated.View entering={FadeInUp.springify()} style={styles.freeCoffeeCard}>
+            <LinearGradient colors={["#1a1220", "#0e0c1a"]} style={StyleSheet.absoluteFill} />
+            <Text style={styles.freeCoffeeCardEmoji}>☕</Text>
+            <Text style={styles.freeCoffeeCardTitle}>
+              {lang === "tr" ? "Kahve falını sevdin mi?" : "Enjoyed your reading?"}
+            </Text>
+            <Text style={styles.freeCoffeeCardBody}>
+              {lang === "tr"
+                ? "Daha fazla fal için altın al ya da aboneliğe geç — tüm hizmetlerin kilidini aç!"
+                : "Get more gold or go unlimited with a subscription — unlock all services!"}
+            </Text>
+            <Pressable
+              onPress={() => { setShowFreeCoffeeConversion(false); router.push("/purchase"); }}
+              style={styles.freeCoffeeCardBtn}
+            >
+              <LinearGradient colors={[Colors.gold, "#8B6914"]} style={styles.freeCoffeeCardBtnInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                <Ionicons name="sparkles" size={16} color="#000" />
+                <Text style={styles.freeCoffeeCardBtnText}>
+                  {lang === "tr" ? "Altın Al" : "Get Gold"}
+                </Text>
+              </LinearGradient>
+            </Pressable>
+            <Pressable onPress={() => setShowFreeCoffeeConversion(false)} style={{ marginTop: 12 }}>
+              <Text style={{ color: Colors.textSecondary, fontSize: 13, fontFamily: "Lora_400Regular" }}>
+                {lang === "tr" ? "Şimdi değil" : "Not now"}
+              </Text>
+            </Pressable>
+          </Animated.View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -1761,7 +1817,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 0, marginBottom: 12,
     backgroundColor: Colors.surface,
     borderRadius: 16, borderWidth: 1, borderColor: Colors.cardBorder,
-    padding: 14, gap: 10,
+    padding: 14, gap: 10, overflow: "hidden",
   },
   kahveSectionHeader: { flexDirection: "row", alignItems: "center", gap: 8 },
   kahveSectionTitle: { flex: 1, fontSize: 11, fontFamily: "Lora_700Bold", letterSpacing: 1, textTransform: "uppercase" },
@@ -1877,4 +1933,27 @@ const styles = StyleSheet.create({
   personBadge2: { backgroundColor: "rgba(200,160,32,0.10)", borderColor: "rgba(200,160,32,0.3)" },
   personBadgeIcon: { fontSize: 10, color: "#9B6FBB" },
   personBadgeText: { fontSize: 11, fontFamily: "Lora_400Regular", color: "rgba(255,255,255,0.6)" },
+
+  // Free coffee banner
+  freeCoffeeBanner: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
+    backgroundColor: Colors.gold, borderRadius: 10, paddingVertical: 8, paddingHorizontal: 14,
+    marginBottom: 10,
+  },
+  freeCoffeeBannerText: { fontSize: 13, fontFamily: "Lora_700Bold", color: "#000" },
+
+  // Free coffee conversion modal
+  freeCoffeeOverlay: {
+    flex: 1, backgroundColor: "rgba(0,0,0,0.75)", alignItems: "center", justifyContent: "center", padding: 24,
+  },
+  freeCoffeeCard: {
+    width: "100%", borderRadius: 20, overflow: "hidden", borderWidth: 1, borderColor: Colors.cardBorder,
+    padding: 28, alignItems: "center", gap: 10,
+  },
+  freeCoffeeCardEmoji: { fontSize: 48, marginBottom: 4 },
+  freeCoffeeCardTitle: { fontSize: 20, fontFamily: "Lora_700Bold", color: Colors.text, textAlign: "center" },
+  freeCoffeeCardBody: { fontSize: 14, fontFamily: "Lora_400Regular", color: Colors.textSecondary, textAlign: "center", lineHeight: 22 },
+  freeCoffeeCardBtn: { width: "100%", borderRadius: 12, overflow: "hidden", marginTop: 6 },
+  freeCoffeeCardBtnInner: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 14 },
+  freeCoffeeCardBtnText: { fontSize: 16, fontFamily: "Lora_700Bold", color: "#000" },
 });

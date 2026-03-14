@@ -137,6 +137,7 @@ export interface FSUserData {
   lastDailyFreeDate: string | null;
   trialCount: number;
   welcomeBonusGiven: boolean;
+  freeCoffeeFortuneUsed?: boolean;
   loginProvider?: 'email' | 'apple' | 'google';
   appleUserId?: string;
   updatedAt?: Timestamp;
