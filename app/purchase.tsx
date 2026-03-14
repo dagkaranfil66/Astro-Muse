@@ -187,16 +187,9 @@ function GoldPackageCard({
             </View>
             <View style={{ flexShrink: 1 }}>
               <Text style={styles.pkgLabel}>{display.label}</Text>
-              {display.bonus > 0 && !isThisBought ? (
-                <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]} numberOfLines={1}>
-                  {display.gold} <Text style={styles.pkgGoldUnit}>Altın</Text>
-                  <Text style={styles.pkgGoldBonus}> + {display.bonus} Bonus Altın</Text>
-                </Text>
-              ) : (
-                <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>
-                  {display.gold} <Text style={styles.pkgGoldUnit}>{isThisBought ? "✓ Eklendi" : "Altın"}</Text>
-                </Text>
-              )}
+              <Text style={[styles.pkgGold, isThisBought && { color: Colors.success }]}>
+                {display.gold} <Text style={styles.pkgGoldUnit}>{isThisBought ? "✓ Eklendi" : "Altın"}</Text>
+              </Text>
             </View>
           </View>
           <View style={styles.pkgRight}>
@@ -252,16 +245,9 @@ function UnavailablePackageCard({ pkgId, lang }: { pkgId: string; lang: string }
           </View>
           <View style={{ flexShrink: 1 }}>
             <Text style={styles.pkgLabel}>{display.label}</Text>
-            {display.bonus > 0 ? (
-              <Text style={styles.pkgGold} numberOfLines={1}>
-                {display.gold} <Text style={styles.pkgGoldUnit}>Altın</Text>
-                <Text style={styles.pkgGoldBonus}> + {display.bonus} Bonus</Text>
-              </Text>
-            ) : (
-              <Text style={styles.pkgGold}>
-                {display.gold} <Text style={styles.pkgGoldUnit}>Altın</Text>
-              </Text>
-            )}
+            <Text style={styles.pkgGold}>
+              {display.gold} <Text style={styles.pkgGoldUnit}>Altın</Text>
+            </Text>
           </View>
         </View>
         <View style={styles.pkgRight}>

@@ -115,9 +115,6 @@ export default function InsufficientGoldModal({
                         <Text style={s.miniLabel}>{pkg.label}</Text>
                         <Text style={s.miniGold} numberOfLines={1}>
                           {pkg.gold} Altın
-                          {(pkg as any).bonus > 0 ? (
-                            <Text style={s.miniBonus}> +{(pkg as any).bonus} Bonus</Text>
-                          ) : null}
                         </Text>
                       </View>
                       <View style={s.miniRight}>
