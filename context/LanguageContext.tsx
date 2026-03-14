@@ -6,7 +6,7 @@ type Lang = 'tr' | 'en';
 const translations = {
   tr: {
     appTagline: 'MİSTİK REHBERLİK',
-    appDesc: 'Yapay Zeka Destekli · Sana Özel Yorumlar\nYıldızlar, telveler ve kadim semboller ile kaderinizi keşfedin.',
+    appDesc: 'Yapay Zekâ ile Kişiselleştirilmiş · Her Yorum Sana Özel\nDinamik olarak üretilir — yalnızca eğlence amaçlıdır.',
     poweredBy: 'Yapay Zeka Destekli',
     services: 'Hizmetlerimiz',
     trialsLeft: (n: number) => `${n} ücretsiz deneme hakkınız var`,
@@ -60,7 +60,7 @@ const translations = {
   },
   en: {
     appTagline: 'Mystic Guidance',
-    appDesc: 'AI-Powered · Personalized for You\nStars, coffee grounds and ancient symbols reveal your destiny.',
+    appDesc: 'AI-Generated & Personalized · Each Reading Unique\nDynamically generated — for entertainment purposes only.',
     poweredBy: 'AI Powered',
     services: 'Our Services',
     trialsLeft: (n: number) => `${n} free readings remaining`,

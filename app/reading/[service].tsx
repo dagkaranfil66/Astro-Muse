@@ -1287,20 +1287,20 @@ export default function ReadingScreen() {
             </Animated.View>
           )}
 
-          {/* Share + New reading */}
+          {/* AI Generated Reading disclosure card */}
           {isDone && readingText && (
-            <Animated.View entering={FadeIn.delay(300)} style={styles.personBadgeRow}>
-              <View style={styles.personBadge}>
-                <Text style={styles.personBadgeIcon}>✦</Text>
-                <Text style={styles.personBadgeText}>
-                  {lang === "tr" ? "Kişiselleştirilmiş AI Yorumu" : "Personalized AI Reading"}
+            <Animated.View entering={FadeIn.delay(300)} style={styles.aiDisclosureCard}>
+              <View style={styles.aiDisclosureHeader}>
+                <Ionicons name="sparkles" size={14} color="#00C8FF" />
+                <Text style={styles.aiDisclosureTitle}>
+                  {lang === "tr" ? "Yapay Zekâ Yorumu" : "AI Generated Reading"}
                 </Text>
               </View>
-              <View style={[styles.personBadge, styles.personBadge2]}>
-                <Text style={styles.personBadgeText}>
-                  {lang === "tr" ? "Sana özel oluşturuldu" : "Created just for you"}
-                </Text>
-              </View>
+              <Text style={styles.aiDisclosureBody}>
+                {lang === "tr"
+                  ? "Bu yorum sana özel olarak yapay zekâ tarafından üretilmiştir.\nYalnızca eğlence amaçlıdır."
+                  : "This interpretation is uniquely generated for you by AI.\nFor entertainment purposes only."}
+              </Text>
             </Animated.View>
           )}
           {isDone && readingText && <SharePanel text={readingText} serviceLabel={serviceLabel} readingId={readingId} service={service} />}
@@ -2122,16 +2122,33 @@ const styles = StyleSheet.create({
   },
   purchaseNudge: { alignItems: "center", paddingBottom: 2 },
   purchaseNudgeText: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textDim },
-  personBadgeRow: { flexDirection: "row", gap: 8, marginHorizontal: 16, marginBottom: 8, flexWrap: "wrap" },
-  personBadge: {
-    flexDirection: "row", alignItems: "center", gap: 5,
-    backgroundColor: "rgba(155,111,187,0.12)",
-    borderWidth: 1, borderColor: "rgba(155,111,187,0.3)",
-    borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6,
+  aiDisclosureCard: {
+    marginHorizontal: 16,
+    marginBottom: 10,
+    backgroundColor: "rgba(0,200,255,0.06)",
+    borderWidth: 1,
+    borderColor: "rgba(0,200,255,0.22)",
+    borderRadius: 14,
+    padding: 14,
   },
-  personBadge2: { backgroundColor: "rgba(200,160,32,0.10)", borderColor: "rgba(200,160,32,0.3)" },
-  personBadgeIcon: { fontSize: 10, color: "#9B6FBB" },
-  personBadgeText: { fontSize: 11, fontFamily: "Lora_400Regular", color: "rgba(255,255,255,0.6)" },
+  aiDisclosureHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+    marginBottom: 6,
+  },
+  aiDisclosureTitle: {
+    fontSize: 12,
+    fontFamily: "Lora_700Bold",
+    color: "#00C8FF",
+    letterSpacing: 0.5,
+  },
+  aiDisclosureBody: {
+    fontSize: 12,
+    fontFamily: "Lora_400Regular_Italic",
+    color: "rgba(0,200,255,0.75)",
+    lineHeight: 18,
+  },
 
   // El falı: palm tips row in intro
   palmTipsRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12, justifyContent: "center" },
