@@ -493,6 +493,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ── Coffee cup image validation ───────────────────────────────────────────
+  app.post("/api/validate-coffee", async (req: Request, res: Response) => {
+    try {
+      const { images, lang } = req.body as {
+        images: { base64: string; type?: string }[];
+        lang?: string;
+      };
+      if (!images || images.length === 0) {
+        return res.status(400).json({ valid: false, reason: "no_image" });
+      }
+
+      const openai = getOpenAIClient();
+      const isTR = lang !== "en";
+
+      const validationPrompt = `You are a strict coffee cup fortune-telling image validator. Your ONLY job is to inspect the provided image(s) and return a JSON object — nothing else.
+
+Evaluate the image(s) against ALL of the following criteria:
+1. isCoffeeCupDetected — Is there a coffee cup/mug visible?
+2. isCupInteriorVisible — Is the inside/interior of the cup clearly visible (top-down or angled view showing the cup interior)?
+3. isGroundsVisible — Are coffee grounds, residue, or telve visible inside the cup?
+4. confidenceScore — How confident are you this is suitable for coffee fortune reading? (0-100)
+5. blurScore — How blurry are the image(s)? (0=sharp, 100=very blurry)
+6. brightnessScore — How well-lit? (0=very dark, 100=perfectly lit)
+7. validationFailureReason — If validation fails, one of: "no_cup_detected", "cup_interior_not_visible", "no_grounds_visible", "image_too_blurry", "image_too_dark", "irrelevant_image". Otherwise null.
+
+Validation PASSES only if ALL of these are true:
+- isCoffeeCupDetected = true
+- isCupInteriorVisible = true
+- isGroundsVisible = true
+- confidenceScore >= 65
+- blurScore <= 70
+- brightnessScore >= 25
+
+Return ONLY valid JSON, no markdown, no explanation:
+{
+  "isCoffeeCupDetected": boolean,
+  "isCupInteriorVisible": boolean,
+  "isGroundsVisible": boolean,
+  "confidenceScore": number,
+  "blurScore": number,
+  "brightnessScore": number,
+  "validationFailureReason": string | null,
+  "valid": boolean
+}`;
+
+      let result: {
+        valid: boolean;
+        isCoffeeCupDetected?: boolean;
+        isCupInteriorVisible?: boolean;
+        isGroundsVisible?: boolean;
+        confidenceScore?: number;
+        blurScore?: number;
+        brightnessScore?: number;
+        validationFailureReason?: string | null;
+      };
+
+      try {
+        const imageContent: OpenAI.Chat.Completions.ChatCompletionContentPart[] = images.map((img) => ({
+          type: "image_url" as const,
+          image_url: {
+            url: `data:${img.type || "image/jpeg"};base64,${img.base64}`,
+            detail: "low" as const,
+          },
+        }));
+
+        const response = await openai.chat.completions.create({
+          model: "gpt-5.2",
+          max_completion_tokens: 200,
+          messages: [
+            {
+              role: "user",
+              content: [...imageContent, { type: "text" as const, text: validationPrompt }],
+            },
+          ],
+        });
+
+        const raw = response.choices[0]?.message?.content?.trim() ?? "";
+        const cleaned = raw.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+        result = JSON.parse(cleaned);
+        if (typeof result.valid !== "boolean") {
+          result.valid =
+            !!result.isCoffeeCupDetected &&
+            !!result.isCupInteriorVisible &&
+            !!result.isGroundsVisible &&
+            (result.confidenceScore ?? 0) >= 65 &&
+            (result.blurScore ?? 100) <= 70 &&
+            (result.brightnessScore ?? 0) >= 25;
+        }
+      } catch {
+        return res.json({ valid: false, reason: isTR ? "Görsel doğrulanamadı. Lütfen tekrar dene." : "Image could not be validated. Please try again." });
+      }
+
+      let reason: string | null = null;
+      if (!result.valid) {
+        const failReason = result.validationFailureReason ?? "no_cup_detected";
+        if (failReason === "no_cup_detected" || !result.isCoffeeCupDetected) {
+          reason = isTR
+            ? "Bu görselde kahve fincanı tespit edemedik. Fincanın net göründüğü bir fotoğraf yükle."
+            : "We couldn't detect a coffee cup in this image. Please upload a clear photo of your cup.";
+        } else if (failReason === "cup_interior_not_visible" || !result.isCupInteriorVisible) {
+          reason = isTR
+            ? "Fincanın iç kısmı görünmüyor. Fincanı yukarıdan çekerek içini net göster."
+            : "The cup interior is not visible. Take a top-down photo showing the inside of the cup.";
+        } else if (failReason === "no_grounds_visible" || !result.isGroundsVisible) {
+          reason = isTR
+            ? "Telve / kahve izi görünmüyor. Kahve içildikten sonra fincandaki telvenin göründüğü fotoğrafı yükle."
+            : "Coffee grounds are not visible. Upload a photo of the cup after drinking, showing the grounds inside.";
+        } else if (failReason === "image_too_blurry") {
+          reason = isTR
+            ? "Fotoğraf çok bulanık. Lütfen daha net bir fotoğraf çek veya yükle."
+            : "The image is too blurry. Please take or upload a sharper photo.";
+        } else if (failReason === "image_too_dark") {
+          reason = isTR
+            ? "Fotoğraf çok karanlık. İyi ışıkta tekrar dene."
+            : "The image is too dark. Please try again in better lighting.";
+        } else {
+          reason = isTR
+            ? "Kahve falı için telvenin göründüğü, yukarıdan çekilmiş net bir fincan fotoğrafı gerekli."
+            : "A clear top-down photo of the cup interior with coffee grounds is required for a reading.";
+        }
+      }
+
+      return res.json({ valid: result.valid, reason });
+    } catch (err) {
+      console.error("Coffee validation error:", err);
+      return res.json({ valid: false, reason: "validation_error" });
+    }
+  });
+
   // ── Palm image validation ──────────────────────────────────────────────────
   app.post("/api/validate-palm", async (req: Request, res: Response) => {
     try {

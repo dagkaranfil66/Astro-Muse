@@ -1,0 +1,110 @@
+Tengri Astroloji uygulamasındaki kahve falı görsel yükleme ve yorum akışını düzelt.
+
+SORUN:
+Şu anda kullanıcı kahve falı için rastgele bir fotoğraf yüklese bile sistem yorum üretmeye devam ediyor. Yani fotoğrafta gerçekten kahve fincanı, fincan içi veya telve olmasa bile kahve falı açılıyor. Bu güven problemi oluşturuyor.
+
+HEDEF:
+Kahve falı yorumu başlamadan önce yüklenen görselin gerçekten kahve falına uygun olup olmadığını doğrula. Geçersiz görsellerde yorum üretme, kullanıcıya net uyarı göster.
+
+YAPILACAKLAR:
+
+1) GÖRSEL DOĞRULAMA KATMANI EKLE
+Kahve falı yorumundan önce ayrı bir validation step oluştur.
+Sistem önce şu kontrolleri yapsın:
+- Fotoğrafta gerçekten kahve fincanı var mı?
+- Fincanın iç kısmı görünüyor mu?
+- Telve / kahve izi görünür mü?
+- Görüntü çok bulanık mı?
+- Görüntü çok karanlık mı?
+- Kadraj kahve falı için uygun mu?
+- Rastgele nesne / alakasız görsel mi?
+
+2) GEÇERLİLİK KURALI
+Yalnızca gerçekten kahve falına uygun görsel tespit edilirse yorum üret.
+Aksi durumda yorumu hiç başlatma.
+
+Önerilen alanlar:
+- isCoffeeCupDetected: boolean
+- isCupInteriorVisible: boolean
+- isGroundsVisible: boolean
+- confidenceScore: number
+- blurScore: number
+- brightnessScore: number
+- validationFailureReason: string | null
+
+Önerilen mantık:
+- isCoffeeCupDetected = true olmalı
+- isCupInteriorVisible = true olmalı
+- isGroundsVisible = true olmalı
+- confidenceScore belirli eşik üstünde olmalı (ör. 0.75 veya 75)
+- blur çok yüksek olmamalı
+- brightness minimum eşik üstünde olmalı
+
+3) GEÇERSİZ GÖRSELDE YORUM AÇMA
+Eğer görsel uygun değilse kahve falı sonucu üretme.
+Bunun yerine kullanıcıya hata/uyarı göster.
+
+Örnek mesajlar:
+- “Bu görselde kahve falına uygun bir fincan içi tespit edemedik.”
+- “Lütfen fincanın iç kısmının net göründüğü bir fotoğraf yükle.”
+- “Kahve falı için telvenin göründüğü, yukarıdan çekilmiş net bir fincan fotoğrafı gerekli.”
+
+4) AI PROMPT / BACKEND GÜNCELLE
+Kahve falı üreten prompt veya backend akışında şu kural olsun:
+- Validation başarılı olmadan yorum üretme
+- Rastgele fotoğraf gelirse fal metni dönme
+- Uygun olmayan görseller için structured invalid response dön
+
+Örnek response mantığı:
+{
+  "valid": false,
+  "reason": "Coffee cup interior not detected"
+}
+
+veya
+
+{
+  "valid": true,
+  "reason": null
+}
+
+Sadece valid=true ise coffee reading oluşturulsun.
+
+5) UI YÖNLENDİRME EKLE
+Kahve falı yükleme ekranında kullanıcıya şu yönlendirmeleri göster:
+- “Fincanın içini yukarıdan çek”
+- “Telve net görünsün”
+- “Tek fincan yükle”
+- “İyi ışıkta çek”
+- “Bulanık fotoğraf kullanma”
+
+6) ÖRNEK GÖRSEL / REHBER KUTUSU EKLE
+Mümkünse yükleme alanında mini rehber veya örnek görsel kartı göster:
+- doğru örnek
+- yanlış örnek
+
+7) GÜVENLİ FALLBACK EKLE
+Validation servisi hata verirse sistem varsayılan olarak yorum üretmesin.
+Fail-open değil fail-safe çalışsın.
+Yani kontrol başarısızsa yorumu açmak yerine kullanıcıdan tekrar fotoğraf istesin.
+
+8) TEST SENARYOLARI
+Şunları test et:
+- Rastgele masa fotoğrafı yüklenince yorum açılıyor mu? Açılmamalı.
+- Selfie veya yüz fotoğrafı yüklenince yorum açılıyor mu? Açılmamalı.
+- Boş / siyah görsel yüklenince yorum açılıyor mu? Açılmamalı.
+- Çok bulanık fincan fotoğrafında uyarı veriyor mu?
+- Gerçek, net, telveli fincan fotoğrafında yorum açılıyor mu?
+- Validation başarısız olduğunda sistem yanlışlıkla yine fal metni üretmiyor mu?
+
+9) KOD YAPISI
+Validation ve reading generation mantığını birbirinden ayır.
+Önerilen akış:
+upload image -> validate coffee fortune image -> if valid then generate coffee reading -> else show retry UI
+
+10) ÇIKTI
+- Gerekli dosya değişikliklerini yap
+- Hangi dosyalarda ne değiştiğini özetle
+- Validation mantığını açıkla
+- Kullanılan eşikleri belirt
+- Production için güvenli olacak şekilde düzenle

@@ -134,8 +134,22 @@ function Star({ top, left, dur, init }: { top: number; left: number; dur: number
 }
 
 // ────────── Service-specific Intro Animations ──────────
+const KAHVE_TIPS_TR = [
+  { icon: "sunny-outline" as const,      label: "İyi ışıkta çek" },
+  { icon: "cafe-outline" as const,       label: "İçini yukarıdan" },
+  { icon: "water-outline" as const,      label: "Telve görünsün" },
+  { icon: "eye-outline" as const,        label: "Net fotoğraf" },
+];
+const KAHVE_TIPS_EN = [
+  { icon: "sunny-outline" as const,      label: "Good lighting" },
+  { icon: "cafe-outline" as const,       label: "Top-down view" },
+  { icon: "water-outline" as const,      label: "Grounds visible" },
+  { icon: "eye-outline" as const,        label: "Sharp photo" },
+];
+
 function KahveIntro({ color }: { color: string }) {
   const { t, lang } = useLang();
+  const tips = lang === "tr" ? KAHVE_TIPS_TR : KAHVE_TIPS_EN;
   return (
     <View style={styles.serviceIntro}>
       <ServiceHeroBanner serviceId="kahve" color={color} />
@@ -145,6 +159,14 @@ function KahveIntro({ color }: { color: string }) {
           ? "Fincanınızın fotoğrafını yükleyin\nveya gördüğünüz sembolleri yazın."
           : "Upload a photo of your cup\nor describe the symbols you see."}
       </Text>
+      <View style={styles.palmTipsRow}>
+        {tips.map((tip) => (
+          <View key={tip.label} style={[styles.palmTip, { borderColor: color + "30" }]}>
+            <Ionicons name={tip.icon} size={16} color={color} />
+            <Text style={[styles.palmTipText, { color: color + "CC" }]}>{tip.label}</Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
@@ -842,6 +864,10 @@ export default function ReadingScreen() {
   const [palmValidationStatus, setPalmValidationStatus] = useState<"idle" | "checking" | "invalid" | "valid">("idle");
   const [palmValidationReason, setPalmValidationReason] = useState<string | null>(null);
 
+  // Coffee validation state (kahve only)
+  const [coffeeValidationStatus, setCoffeeValidationStatus] = useState<"idle" | "checking" | "invalid" | "valid">("idle");
+  const [coffeeValidationReason, setCoffeeValidationReason] = useState<string | null>(null);
+
   const sendButtonScale = useSharedValue(1);
   const sendButtonStyle = useAnimatedStyle(() => ({ transform: [{ scale: sendButtonScale.value }] }));
 
@@ -907,7 +933,12 @@ export default function ReadingScreen() {
     if (kahvePhotos.length >= 3) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const img = source === "camera" ? await pickFromCamera() : await pickFromGallery();
-    if (img) { setKahvePhotos((prev) => [...prev, img]); setInputError(false); }
+    if (img) {
+      setKahvePhotos((prev) => [...prev, img]);
+      setInputError(false);
+      setCoffeeValidationStatus("idle");
+      setCoffeeValidationReason(null);
+    }
   };
 
   const handleElPhoto = async (source: "gallery" | "camera") => {
@@ -928,6 +959,42 @@ export default function ReadingScreen() {
 
   const handleRead = async (photosOverride?: { uri: string; base64: string; type: string }[]) => {
     if (!canRead) { setShowGoldModal(true); return; }
+
+    // Coffee image validation gate (kahve only — runs when photos are present)
+    const photosForValidation = photosOverride ?? kahvePhotos;
+    if (isKahve && photosForValidation.length > 0) {
+      setCoffeeValidationStatus("checking");
+      setCoffeeValidationReason(null);
+      try {
+        const baseUrl = getApiUrl();
+        const validationUrl = new URL("/api/validate-coffee", baseUrl).toString();
+        const vRes = await fetch(validationUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            images: photosForValidation.map((p) => ({ base64: p.base64, type: p.type })),
+            lang,
+          }),
+        });
+        const vData = await vRes.json();
+        if (!vData.valid) {
+          setCoffeeValidationStatus("invalid");
+          setCoffeeValidationReason(vData.reason ?? (lang === "tr"
+            ? "Bu görselde kahve falına uygun fincan içi tespit edemedik."
+            : "We couldn't detect a valid coffee cup interior in this image."));
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          return;
+        }
+        setCoffeeValidationStatus("valid");
+      } catch {
+        setCoffeeValidationStatus("invalid");
+        setCoffeeValidationReason(lang === "tr"
+          ? "Görsel doğrulanamadı. Lütfen tekrar dene."
+          : "Image could not be validated. Please try again.");
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        return;
+      }
+    }
 
     // Palm image validation gate (el falı only)
     if (isEl && photo) {
@@ -1180,7 +1247,7 @@ export default function ReadingScreen() {
             <KahvePhotoSection
               photos={kahvePhotos}
               onAdd={handleAddKahvePhoto}
-              onRemove={(idx) => setKahvePhotos((prev) => prev.filter((_, i) => i !== idx))}
+              onRemove={(idx) => { setKahvePhotos((prev) => prev.filter((_, i) => i !== idx)); setCoffeeValidationStatus("idle"); setCoffeeValidationReason(null); }}
               color={base.color}
               lang={lang}
             />
@@ -1330,6 +1397,40 @@ export default function ReadingScreen() {
                     setPhoto(null);
                     setPalmValidationStatus("idle");
                     setPalmValidationReason(null);
+                  }}
+                  style={styles.palmRetryBtn}
+                >
+                  <Text style={styles.palmRetryText}>
+                    {lang === "tr" ? "Yenile" : "Retry"}
+                  </Text>
+                </Pressable>
+              </Animated.View>
+            )}
+
+            {/* Kahve — coffee validation feedback */}
+            {isKahve && coffeeValidationStatus === "checking" && (
+              <Animated.View entering={FadeIn.duration(250)} style={styles.palmValidatingBanner}>
+                <ActivityIndicator size="small" color={base.color} />
+                <Text style={[styles.palmValidatingText, { color: base.color }]}>
+                  {lang === "tr" ? "Fotoğraf doğrulanıyor…" : "Validating photo…"}
+                </Text>
+              </Animated.View>
+            )}
+
+            {isKahve && coffeeValidationStatus === "invalid" && (
+              <Animated.View entering={FadeInDown.springify()} style={styles.palmInvalidCard}>
+                <Ionicons name="warning" size={18} color="#FF6B6B" />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.palmInvalidTitle}>
+                    {lang === "tr" ? "Geçersiz Görsel" : "Invalid Image"}
+                  </Text>
+                  <Text style={styles.palmInvalidReason}>{coffeeValidationReason}</Text>
+                </View>
+                <Pressable
+                  onPress={() => {
+                    setKahvePhotos([]);
+                    setCoffeeValidationStatus("idle");
+                    setCoffeeValidationReason(null);
                   }}
                   style={styles.palmRetryBtn}
                 >
@@ -1645,13 +1746,13 @@ export default function ReadingScreen() {
               <Animated.View style={sendButtonStyle}>
                 <Pressable
                   onPress={() => handleRead()}
-                  disabled={isLoading || palmValidationStatus === "checking"}
+                  disabled={isLoading || palmValidationStatus === "checking" || coffeeValidationStatus === "checking"}
                   style={[
                     styles.sendBtn,
                     { backgroundColor: !canRead ? Colors.textDim : hasValidInput ? base.color : base.color + "50" }
                   ]}
                 >
-                  {(isLoading || palmValidationStatus === "checking") ? (
+                  {(isLoading || palmValidationStatus === "checking" || coffeeValidationStatus === "checking") ? (
                     <ActivityIndicator size="small" color={Colors.background} />
                   ) : (
                     <Ionicons name={!canRead ? "lock-closed" : "sparkles"} size={20} color={Colors.background} />
