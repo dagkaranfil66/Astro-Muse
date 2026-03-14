@@ -76,11 +76,13 @@ export default function InsufficientGoldModal({
               </View>
 
               {/* Title */}
-              <Text style={s.title}>{lang === "tr" ? "Altın Yetersiz" : "Insufficient Gold"}</Text>
+              <Text style={s.title}>
+                {lang === "tr" ? "Yorumun Hazır…" : "Your Reading Is Ready…"}
+              </Text>
               <Text style={s.subtitle}>
                 {lang === "tr"
-                  ? `${serviceLabel} için ${goldCost}✦ gerekiyor`
-                  : `${serviceLabel} requires ${goldCost}✦`}
+                  ? "Tamamını görmek için altın gerekiyor."
+                  : "You need gold to unlock the full reading."}
               </Text>
 
               {/* Balance Row */}
@@ -131,17 +133,20 @@ export default function InsufficientGoldModal({
               {/* All Packages Button */}
               <Pressable onPress={handlePackagePress} style={s.allPkgBtn}>
                 <LinearGradient
-                  colors={["#C8A020", "#8B6914"]}
+                  colors={["#C8A020", "#7B4FBB"]}
                   style={s.allPkgBtnInner}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                 >
-                  <Ionicons name="diamond-outline" size={15} color="#000" />
+                  <Ionicons name="diamond-outline" size={15} color="#fff" />
                   <Text style={s.allPkgBtnText}>
-                    {lang === "tr" ? "✨ Altın Satın Al" : "✨ Buy Gold"}
+                    {lang === "tr" ? "Altın Paketi Al" : "Get Gold Package"}
                   </Text>
                 </LinearGradient>
               </Pressable>
+              <Text style={s.pkgPriceHint}>
+                {lang === "tr" ? "49,99₺'den başlayan paketler" : "Packages starting from ₺49.99"}
+              </Text>
             </LinearGradient>
           </Pressable>
         </Animated.View>
@@ -316,6 +321,13 @@ const s = StyleSheet.create({
   allPkgBtnText: {
     fontSize: 15,
     fontFamily: "Lora_700Bold",
-    color: "#000",
+    color: "#fff",
+  },
+  pkgPriceHint: {
+    fontSize: 11,
+    fontFamily: "Lora_400Regular",
+    color: Colors.textDim,
+    textAlign: "center",
+    marginTop: 6,
   },
 });

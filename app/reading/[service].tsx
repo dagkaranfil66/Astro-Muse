@@ -1808,14 +1808,29 @@ export default function ReadingScreen() {
               </Animated.View>
             </View>
             {!canRead && (
-              <Pressable onPress={() => setShowGoldModal(true)} style={styles.purchaseNudge}>
-                <Text style={styles.purchaseNudgeText}>
+              <View style={styles.purchaseNudge}>
+                <Text style={styles.purchaseNudgeMsg}>
                   {lang === "tr"
-                    ? `${goldCost}✦ gerekiyor • `
-                    : `${goldCost}✦ required • `}
-                  <Text style={{ color: Colors.gold }}>{lang === "tr" ? "Altın Satın Al" : "Buy Gold"}</Text>
+                    ? "Yorumun hazır… Ama tamamını görmek için altın gerekiyor."
+                    : "Your reading is ready… but you need gold to unlock it."}
                 </Text>
-              </Pressable>
+                <Pressable onPress={() => setShowGoldModal(true)} style={styles.purchaseNudgeBtn}>
+                  <LinearGradient
+                    colors={["#C8A020", "#7B4FBB"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.purchaseNudgeBtnInner}
+                  >
+                    <Ionicons name="diamond-outline" size={15} color="#fff" />
+                    <Text style={styles.purchaseNudgeBtnText}>
+                      {lang === "tr" ? "Altın Paketi Al" : "Get Gold Package"}
+                    </Text>
+                  </LinearGradient>
+                </Pressable>
+                <Text style={styles.purchaseNudgeHint}>
+                  {lang === "tr" ? "49,99₺'den başlayan paketler" : "Packages starting from ₺49.99"}
+                </Text>
+              </View>
             )}
           </View>
         )}
@@ -2167,8 +2182,38 @@ const styles = StyleSheet.create({
     color: "#FF6B6B",
     flex: 1,
   },
-  purchaseNudge: { alignItems: "center", paddingBottom: 2 },
-  purchaseNudgeText: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textDim },
+  purchaseNudge: { alignItems: "center", paddingTop: 14, paddingBottom: 6, gap: 12 },
+  purchaseNudgeMsg: {
+    fontSize: 13,
+    fontFamily: "Lora_400Regular_Italic",
+    color: Colors.textSecondary,
+    textAlign: "center",
+    lineHeight: 20,
+    paddingHorizontal: 8,
+  },
+  purchaseNudgeBtn: {
+    width: "100%",
+    borderRadius: 14,
+    overflow: "hidden",
+  },
+  purchaseNudgeBtnInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 14,
+  },
+  purchaseNudgeBtnText: {
+    fontSize: 15,
+    fontFamily: "Lora_700Bold",
+    color: "#fff",
+  },
+  purchaseNudgeHint: {
+    fontSize: 11,
+    fontFamily: "Lora_400Regular",
+    color: Colors.textDim,
+    textAlign: "center",
+  },
   aiDisclosureCard: {
     marginHorizontal: 16,
     marginBottom: 10,
