@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Modal,
   Pressable,
-  ScrollView,
 } from "react-native";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -15,6 +14,7 @@ import Animated, { FadeIn, SlideInDown } from "react-native-reanimated";
 import { Colors } from "@/constants/colors";
 import { GOLD_PACKAGES } from "@/constants/serviceConfig";
 import { useLang } from "@/context/LanguageContext";
+import PremiumGoldButton from "@/components/PremiumGoldButton";
 
 interface Props {
   visible: boolean;
@@ -131,22 +131,11 @@ export default function InsufficientGoldModal({
               })}
 
               {/* All Packages Button */}
-              <Pressable onPress={handlePackagePress} style={s.allPkgBtn}>
-                <LinearGradient
-                  colors={["#C8A020", "#7B4FBB"]}
-                  style={s.allPkgBtnInner}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                >
-                  <Ionicons name="diamond-outline" size={15} color="#fff" />
-                  <Text style={s.allPkgBtnText}>
-                    {lang === "tr" ? "Altın Paketi Al" : "Get Gold Package"}
-                  </Text>
-                </LinearGradient>
-              </Pressable>
-              <Text style={s.pkgPriceHint}>
-                {lang === "tr" ? "49,99₺'den başlayan paketler" : "Packages starting from ₺49.99"}
-              </Text>
+              <PremiumGoldButton
+                onPress={handlePackagePress}
+                label={lang === "tr" ? "Altın Paketi Al" : "Get Gold Package"}
+                hint={lang === "tr" ? "49,99₺'den başlayan paketler" : "Packages starting from ₺49.99"}
+              />
             </LinearGradient>
           </Pressable>
         </Animated.View>
@@ -304,30 +293,5 @@ const s = StyleSheet.create({
     fontSize: 11,
     fontFamily: "Lora_700Bold",
     color: "#000",
-  },
-  allPkgBtn: {
-    width: "100%",
-    borderRadius: 14,
-    overflow: "hidden",
-    marginTop: 4,
-  },
-  allPkgBtnInner: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 14,
-    gap: 8,
-  },
-  allPkgBtnText: {
-    fontSize: 15,
-    fontFamily: "Lora_700Bold",
-    color: "#fff",
-  },
-  pkgPriceHint: {
-    fontSize: 11,
-    fontFamily: "Lora_400Regular",
-    color: Colors.textDim,
-    textAlign: "center",
-    marginTop: 6,
   },
 });

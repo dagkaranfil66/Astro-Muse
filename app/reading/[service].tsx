@@ -45,6 +45,7 @@ import { scheduleReadingReadyNotification } from "@/lib/notifications";
 import { getApiUrl } from "@/lib/query-client";
 import { SHARE_CONFIG } from "@/constants/shareConfig";
 import InsufficientGoldModal from "@/components/InsufficientGoldModal";
+import PremiumGoldButton from "@/components/PremiumGoldButton";
 import CameraKahveModal from "@/components/CameraKahveModal";
 import { SectionedReading, parseKahveSections } from "@/components/SectionedReading";
 
@@ -1814,22 +1815,11 @@ export default function ReadingScreen() {
                     ? "Yorumun hazır… Ama tamamını görmek için altın gerekiyor."
                     : "Your reading is ready… but you need gold to unlock it."}
                 </Text>
-                <Pressable onPress={() => setShowGoldModal(true)} style={styles.purchaseNudgeBtn}>
-                  <LinearGradient
-                    colors={["#C8A020", "#7B4FBB"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.purchaseNudgeBtnInner}
-                  >
-                    <Ionicons name="diamond-outline" size={15} color="#fff" />
-                    <Text style={styles.purchaseNudgeBtnText}>
-                      {lang === "tr" ? "Altın Paketi Al" : "Get Gold Package"}
-                    </Text>
-                  </LinearGradient>
-                </Pressable>
-                <Text style={styles.purchaseNudgeHint}>
-                  {lang === "tr" ? "49,99₺'den başlayan paketler" : "Packages starting from ₺49.99"}
-                </Text>
+                <PremiumGoldButton
+                  onPress={() => setShowGoldModal(true)}
+                  label={lang === "tr" ? "Altın Paketi Al" : "Get Gold Package"}
+                  hint={lang === "tr" ? "49,99₺'den başlayan paketler" : "Packages starting from ₺49.99"}
+                />
               </View>
             )}
           </View>
@@ -2190,29 +2180,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 20,
     paddingHorizontal: 8,
-  },
-  purchaseNudgeBtn: {
-    width: "100%",
-    borderRadius: 14,
-    overflow: "hidden",
-  },
-  purchaseNudgeBtnInner: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 14,
-  },
-  purchaseNudgeBtnText: {
-    fontSize: 15,
-    fontFamily: "Lora_700Bold",
-    color: "#fff",
-  },
-  purchaseNudgeHint: {
-    fontSize: 11,
-    fontFamily: "Lora_400Regular",
-    color: Colors.textDim,
-    textAlign: "center",
   },
   aiDisclosureCard: {
     marginHorizontal: 16,
