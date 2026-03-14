@@ -155,7 +155,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (fsData) {
       // Existing Firestore user — prefer cloud values
       startGold = fsData.goldBalance;
-      const fsCoffeeUsed = fsData.freeCoffeeFortuneUsed ?? false;
+      // "Truthy wins": if either local cache or Firestore says the free coffee was used,
+      // treat it as used. Never let Firestore's missing field clear a local true value.
+      const localFcUsed = fcStr === 'true';
+      const fsCoffeeUsed = (fsData.freeCoffeeFortuneUsed === true) || localFcUsed;
       await Promise.all([
         AsyncStorage.setItem(k.gold, String(fsData.goldBalance)),
         AsyncStorage.setItem(k.lastSpin, fsData.lastSpinDate ?? ''),
@@ -166,6 +169,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         AsyncStorage.setItem(k.welcomeBonus, fsData.welcomeBonusGiven ? 'given' : ''),
         AsyncStorage.setItem(k.freeCoffeeUsed, fsCoffeeUsed ? 'true' : ''),
       ]);
+      // Backfill Firestore if local had it but Firestore didn't
+      if (fsCoffeeUsed && !fsData.freeCoffeeFortuneUsed) {
+        fsUpdateUser(email, { freeCoffeeFortuneUsed: true }).catch(() => {});
+      }
       setLastSpinDate(fsData.lastSpinDate ?? null);
       setTrialCount(fsData.trialCount);
       setIsPurchased(fsData.isPurchased);
