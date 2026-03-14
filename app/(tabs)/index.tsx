@@ -881,7 +881,7 @@ export default function HomeScreen() {
         <SpinCountdownBtn />
         <Pressable onPress={() => {}} style={styles.aiBadge}>
           <Ionicons name="sparkles" size={11} color="#00C8FF" />
-          <Text style={styles.aiBadgeText}>{lang === "tr" ? "YZ Destekli" : "AI Powered"}</Text>
+          <Text style={styles.aiBadgeText}>{lang === "tr" ? "AI Destekli" : "AI Powered"}</Text>
         </Pressable>
         <Pressable onPress={toggleLang} style={styles.langToggle}>
           <Text style={[styles.langOpt, lang === "tr" && styles.langActive]}>TR</Text>
