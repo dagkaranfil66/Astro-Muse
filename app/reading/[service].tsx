@@ -149,8 +149,22 @@ function KahveIntro({ color }: { color: string }) {
   );
 }
 
+const PALM_TIPS_TR = [
+  { icon: "sunny-outline" as const,       label: "İyi ışıkta çek" },
+  { icon: "hand-left-outline" as const,   label: "Avuç içini aç" },
+  { icon: "scan-outline" as const,        label: "Eli büyük tut" },
+  { icon: "eye-outline" as const,         label: "Net fotoğraf" },
+];
+const PALM_TIPS_EN = [
+  { icon: "sunny-outline" as const,       label: "Good lighting" },
+  { icon: "hand-left-outline" as const,   label: "Open palm" },
+  { icon: "scan-outline" as const,        label: "Fill the frame" },
+  { icon: "eye-outline" as const,         label: "Sharp photo" },
+];
+
 function ElIntro({ color }: { color: string }) {
   const { t, lang } = useLang();
+  const tips = lang === "tr" ? PALM_TIPS_TR : PALM_TIPS_EN;
   return (
     <View style={styles.serviceIntro}>
       <ServiceHeroBanner serviceId="el" color={color} />
@@ -160,6 +174,14 @@ function ElIntro({ color }: { color: string }) {
           ? "Avucunuzun fotoğrafını yükleyin ya da çizgilerinizi anlatın. Kader haritanız okunacak."
           : "Upload a photo of your palm or describe your lines. Your destiny map will be revealed."}
       </Text>
+      <View style={styles.palmTipsRow}>
+        {tips.map((tip) => (
+          <View key={tip.label} style={[styles.palmTip, { borderColor: color + "30" }]}>
+            <Ionicons name={tip.icon} size={16} color={color} />
+            <Text style={[styles.palmTipText, { color: color + "CC" }]}>{tip.label}</Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
@@ -816,6 +838,10 @@ export default function ReadingScreen() {
 
   const [showFreeCoffeeConversion, setShowFreeCoffeeConversion] = useState(false);
 
+  // Palm validation state (el falı only)
+  const [palmValidationStatus, setPalmValidationStatus] = useState<"idle" | "checking" | "invalid" | "valid">("idle");
+  const [palmValidationReason, setPalmValidationReason] = useState<string | null>(null);
+
   const sendButtonScale = useSharedValue(1);
   const sendButtonStyle = useAnimatedStyle(() => ({ transform: [{ scale: sendButtonScale.value }] }));
 
@@ -887,7 +913,12 @@ export default function ReadingScreen() {
   const handleElPhoto = async (source: "gallery" | "camera") => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const img = source === "camera" ? await pickFromCamera() : await pickFromGallery();
-    if (img) { setPhoto(img); setInputError(false); }
+    if (img) {
+      setPhoto(img);
+      setInputError(false);
+      setPalmValidationStatus("idle");
+      setPalmValidationReason(null);
+    }
   };
 
   const handleCameraCapture = (capturedPhoto: { uri: string; base64: string; type: string }) => {
@@ -897,6 +928,39 @@ export default function ReadingScreen() {
 
   const handleRead = async (photosOverride?: { uri: string; base64: string; type: string }[]) => {
     if (!canRead) { setShowGoldModal(true); return; }
+
+    // Palm image validation gate (el falı only)
+    if (isEl && photo) {
+      setPalmValidationStatus("checking");
+      setPalmValidationReason(null);
+      try {
+        const baseUrl = getApiUrl();
+        const validationUrl = new URL("/api/validate-palm", baseUrl).toString();
+        const vRes = await fetch(validationUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageBase64: photo.base64, imageType: photo.type, lang }),
+        });
+        const vData = await vRes.json();
+        if (!vData.valid) {
+          setPalmValidationStatus("invalid");
+          setPalmValidationReason(vData.reason ?? (lang === "tr"
+            ? "Bu görselde net bir avuç içi tespit edemedik."
+            : "We couldn't detect a clear palm in this image."));
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          return;
+        }
+        setPalmValidationStatus("valid");
+      } catch {
+        // Fail-safe: network/parse error → block reading
+        setPalmValidationStatus("invalid");
+        setPalmValidationReason(lang === "tr"
+          ? "Görsel doğrulanamadı. Lütfen tekrar dene."
+          : "Image could not be validated. Please try again.");
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        return;
+      }
+    }
 
     const hasPhotosOverride = photosOverride && photosOverride.length > 0;
     const isValid = hasPhotosOverride || hasValidInput;
@@ -1242,6 +1306,40 @@ export default function ReadingScreen() {
               </View>
             )}
 
+            {/* El falı — palm validation feedback */}
+            {isEl && palmValidationStatus === "checking" && (
+              <Animated.View entering={FadeIn.duration(250)} style={styles.palmValidatingBanner}>
+                <ActivityIndicator size="small" color={base.color} />
+                <Text style={[styles.palmValidatingText, { color: base.color }]}>
+                  {lang === "tr" ? "Görsel doğrulanıyor…" : "Validating image…"}
+                </Text>
+              </Animated.View>
+            )}
+
+            {isEl && palmValidationStatus === "invalid" && (
+              <Animated.View entering={FadeInDown.springify()} style={styles.palmInvalidCard}>
+                <Ionicons name="warning" size={18} color="#FF6B6B" />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.palmInvalidTitle}>
+                    {lang === "tr" ? "Geçersiz Görsel" : "Invalid Image"}
+                  </Text>
+                  <Text style={styles.palmInvalidReason}>{palmValidationReason}</Text>
+                </View>
+                <Pressable
+                  onPress={() => {
+                    setPhoto(null);
+                    setPalmValidationStatus("idle");
+                    setPalmValidationReason(null);
+                  }}
+                  style={styles.palmRetryBtn}
+                >
+                  <Text style={styles.palmRetryText}>
+                    {lang === "tr" ? "Yenile" : "Retry"}
+                  </Text>
+                </Pressable>
+              </Animated.View>
+            )}
+
             {/* Kahve — camera + gallery buttons in input bar */}
             {isKahve && (
               <View style={styles.kahveInputStatus}>
@@ -1547,13 +1645,13 @@ export default function ReadingScreen() {
               <Animated.View style={sendButtonStyle}>
                 <Pressable
                   onPress={() => handleRead()}
-                  disabled={isLoading}
+                  disabled={isLoading || palmValidationStatus === "checking"}
                   style={[
                     styles.sendBtn,
                     { backgroundColor: !canRead ? Colors.textDim : hasValidInput ? base.color : base.color + "50" }
                   ]}
                 >
-                  {isLoading ? (
+                  {(isLoading || palmValidationStatus === "checking") ? (
                     <ActivityIndicator size="small" color={Colors.background} />
                   ) : (
                     <Ionicons name={!canRead ? "lock-closed" : "sparkles"} size={20} color={Colors.background} />
@@ -1933,6 +2031,37 @@ const styles = StyleSheet.create({
   personBadge2: { backgroundColor: "rgba(200,160,32,0.10)", borderColor: "rgba(200,160,32,0.3)" },
   personBadgeIcon: { fontSize: 10, color: "#9B6FBB" },
   personBadgeText: { fontSize: 11, fontFamily: "Lora_400Regular", color: "rgba(255,255,255,0.6)" },
+
+  // El falı: palm tips row in intro
+  palmTipsRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12, justifyContent: "center" },
+  palmTip: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    borderWidth: 1, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5,
+    backgroundColor: "rgba(255,255,255,0.04)",
+  },
+  palmTipText: { fontSize: 11, fontFamily: "Lora_400Regular" },
+
+  // Palm validation feedback
+  palmValidatingBanner: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    backgroundColor: "rgba(26,191,184,0.10)", borderRadius: 10, borderWidth: 1,
+    borderColor: "rgba(26,191,184,0.25)", paddingHorizontal: 12, paddingVertical: 8,
+    marginBottom: 6,
+  },
+  palmValidatingText: { fontSize: 13, fontFamily: "Lora_400Regular" },
+  palmInvalidCard: {
+    flexDirection: "row", alignItems: "flex-start", gap: 10,
+    backgroundColor: "rgba(255,107,107,0.10)", borderRadius: 10, borderWidth: 1,
+    borderColor: "rgba(255,107,107,0.30)", paddingHorizontal: 12, paddingVertical: 10,
+    marginBottom: 6,
+  },
+  palmInvalidTitle: { fontSize: 12, fontFamily: "Lora_700Bold", color: "#FF6B6B", marginBottom: 2 },
+  palmInvalidReason: { fontSize: 11, fontFamily: "Lora_400Regular", color: Colors.textSecondary, lineHeight: 17 },
+  palmRetryBtn: {
+    backgroundColor: "rgba(255,107,107,0.18)", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6,
+    alignSelf: "flex-start", marginTop: 2,
+  },
+  palmRetryText: { fontSize: 11, fontFamily: "Lora_700Bold", color: "#FF6B6B" },
 
   // Free coffee banner
   freeCoffeeBanner: {

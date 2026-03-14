@@ -493,6 +493,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ── Palm image validation ──────────────────────────────────────────────────
+  app.post("/api/validate-palm", async (req: Request, res: Response) => {
+    try {
+      const { imageBase64, imageType, lang } = req.body as {
+        imageBase64: string;
+        imageType?: string;
+        lang?: string;
+      };
+      if (!imageBase64) return res.status(400).json({ valid: false, reason: "no_image" });
+
+      const openai = getOpenAIClient();
+
+      const validationPrompt = `You are a strict palm image validator. Your ONLY job is to inspect the provided image and return a JSON object — nothing else.
+
+Evaluate the image against ALL of the following criteria:
+1. isPalmDetected — Is there a human hand with a visible palm/inner surface in the image?
+2. confidenceScore — How confident are you that this is a palm? (0-100)
+3. blurScore — How blurry is the image? (0=sharp, 100=very blurry)
+4. brightnessScore — How well-lit is the image? (0=very dark, 100=perfectly lit)
+5. handCoverageRatio — What fraction of the image does the hand occupy? (0.0 to 1.0)
+6. validationFailureReason — If validation fails, one of: "no_palm_detected", "image_too_blurry", "image_too_dark", "hand_too_small", "irrelevant_image". Otherwise null.
+
+Validation PASSES only if ALL of these are true:
+- isPalmDetected = true
+- confidenceScore >= 70
+- blurScore <= 65
+- brightnessScore >= 30
+- handCoverageRatio >= 0.20
+
+Return ONLY valid JSON, no markdown, no explanation:
+{
+  "isPalmDetected": boolean,
+  "confidenceScore": number,
+  "blurScore": number,
+  "brightnessScore": number,
+  "handCoverageRatio": number,
+  "validationFailureReason": string | null,
+  "valid": boolean
+}`;
+
+      let result: {
+        valid: boolean;
+        isPalmDetected?: boolean;
+        confidenceScore?: number;
+        blurScore?: number;
+        brightnessScore?: number;
+        handCoverageRatio?: number;
+        validationFailureReason?: string | null;
+      };
+
+      try {
+        const response = await openai.chat.completions.create({
+          model: "gpt-5.2",
+          max_completion_tokens: 200,
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: `data:${imageType || "image/jpeg"};base64,${imageBase64}`,
+                    detail: "low",
+                  },
+                },
+                { type: "text", text: validationPrompt },
+              ],
+            },
+          ],
+        });
+
+        const raw = response.choices[0]?.message?.content?.trim() ?? "";
+        // Strip any markdown code fences just in case
+        const cleaned = raw.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+        result = JSON.parse(cleaned);
+        // Enforce fail-safe: if valid field is missing or parsing partially succeeds, recompute
+        if (typeof result.valid !== "boolean") {
+          result.valid =
+            !!result.isPalmDetected &&
+            (result.confidenceScore ?? 0) >= 70 &&
+            (result.blurScore ?? 100) <= 65 &&
+            (result.brightnessScore ?? 0) >= 30 &&
+            (result.handCoverageRatio ?? 0) >= 0.20;
+        }
+      } catch {
+        // Fail-safe: validation service error → reject
+        return res.json({ valid: false, reason: "validation_error" });
+      }
+
+      const isTR = lang !== "en";
+      let reason: string | null = null;
+      if (!result.valid) {
+        const failReason = result.validationFailureReason ?? "no_palm_detected";
+        if (failReason === "no_palm_detected" || !result.isPalmDetected) {
+          reason = isTR
+            ? "Bu görselde net bir avuç içi tespit edemedik. Lütfen avuç içinin açıkça göründüğü bir fotoğraf yükle."
+            : "We couldn't detect a clear palm in this image. Please upload a photo showing your open palm clearly.";
+        } else if (failReason === "image_too_blurry") {
+          reason = isTR
+            ? "Fotoğraf çok bulanık. Lütfen daha net bir fotoğraf çek veya yükle."
+            : "The image is too blurry. Please take or upload a sharper photo.";
+        } else if (failReason === "image_too_dark") {
+          reason = isTR
+            ? "Fotoğraf çok karanlık. İyi ışıkta tekrar dene."
+            : "The image is too dark. Please try again in better lighting.";
+        } else if (failReason === "hand_too_small") {
+          reason = isTR
+            ? "Elin kadrajda çok küçük. Elin ekranın büyük kısmını kaplasın."
+            : "Your hand is too small in the frame. Fill most of the frame with your palm.";
+        } else {
+          reason = isTR
+            ? "El falı için yalnızca avuç içini gösteren bir fotoğraf kullanılabilir."
+            : "Only a photo showing your palm can be used for a palm reading.";
+        }
+      }
+
+      return res.json({ valid: result.valid, reason });
+    } catch (err) {
+      console.error("Palm validation error:", err);
+      // Fail-safe: unexpected error → reject
+      return res.json({ valid: false, reason: "validation_error" });
+    }
+  });
+
   app.post("/api/reading", async (req: Request, res: Response) => {
     try {
       const { service, lang, userInput, imageBase64, imageType, images, userName, birthDate, focusArea } = req.body;
