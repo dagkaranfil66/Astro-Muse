@@ -823,6 +823,8 @@ export default function ReadingScreen() {
   const [birthDay, setBirthDay] = useState("");
   const [birthMonth, setBirthMonth] = useState("");
   const [birthYear, setBirthYear] = useState("");
+  const numBirthMonthRef = useRef<TextInput>(null);
+  const numBirthYearRef  = useRef<TextInput>(null);
   const isNumeroloji = service === "numeroloji";
   const isRuya = service === "ruya";
   const isDogum = service === "dogum";
@@ -836,6 +838,10 @@ export default function ReadingScreen() {
   const [dogumYear, setDogumYear] = useState("");
   const [dogumTime, setDogumTime] = useState("");
   const [dogumPlace, setDogumPlace] = useState("");
+  const dogumMonthRef = useRef<TextInput>(null);
+  const dogumYearRef  = useRef<TextInput>(null);
+  const dogumTimeRef  = useRef<TextInput>(null);
+  const dogumPlaceRef = useRef<TextInput>(null);
 
   // Ruh Okuma state
   const [ruhAd, setRuhAd] = useState("");
@@ -1540,22 +1546,36 @@ export default function ReadingScreen() {
                     placeholder={lang === "tr" ? "GG" : "DD"}
                     placeholderTextColor={Colors.textDim}
                     value={birthDay}
-                    onChangeText={(v) => setBirthDay(v.replace(/\D/g, "").slice(0, 2))}
+                    onChangeText={(v) => {
+                      const cleaned = v.replace(/\D/g, "").slice(0, 2);
+                      setBirthDay(cleaned);
+                      if (cleaned.length === 2) numBirthMonthRef.current?.focus();
+                    }}
                     keyboardType="numeric"
                     maxLength={2}
+                    returnKeyType="next"
+                    onSubmitEditing={() => numBirthMonthRef.current?.focus()}
                   />
                   <Text style={{ color: Colors.textDim, fontSize: 18 }}>/</Text>
                   <TextInput
+                    ref={numBirthMonthRef}
                     style={[styles.birthDateField, { borderColor: birthMonth ? base.color + "60" : Colors.cardBorder, color: Colors.text }]}
                     placeholder={lang === "tr" ? "AA" : "MM"}
                     placeholderTextColor={Colors.textDim}
                     value={birthMonth}
-                    onChangeText={(v) => setBirthMonth(v.replace(/\D/g, "").slice(0, 2))}
+                    onChangeText={(v) => {
+                      const cleaned = v.replace(/\D/g, "").slice(0, 2);
+                      setBirthMonth(cleaned);
+                      if (cleaned.length === 2) numBirthYearRef.current?.focus();
+                    }}
                     keyboardType="numeric"
                     maxLength={2}
+                    returnKeyType="next"
+                    onSubmitEditing={() => numBirthYearRef.current?.focus()}
                   />
                   <Text style={{ color: Colors.textDim, fontSize: 18 }}>/</Text>
                   <TextInput
+                    ref={numBirthYearRef}
                     style={[styles.birthDateField, styles.birthYearField, { borderColor: birthYear ? base.color + "60" : Colors.cardBorder, color: Colors.text }]}
                     placeholder="YYYY"
                     placeholderTextColor={Colors.textDim}
@@ -1563,6 +1583,7 @@ export default function ReadingScreen() {
                     onChangeText={(v) => setBirthYear(v.replace(/\D/g, "").slice(0, 4))}
                     keyboardType="numeric"
                     maxLength={4}
+                    returnKeyType="done"
                   />
                 </View>
               </View>
@@ -1611,35 +1632,56 @@ export default function ReadingScreen() {
                     placeholder={lang === "tr" ? "GG" : "DD"}
                     placeholderTextColor={Colors.textDim}
                     value={dogumDay}
-                    onChangeText={(v) => setDogumDay(v.replace(/\D/g, "").slice(0, 2))}
+                    onChangeText={(v) => {
+                      const cleaned = v.replace(/\D/g, "").slice(0, 2);
+                      setDogumDay(cleaned);
+                      if (cleaned.length === 2) dogumMonthRef.current?.focus();
+                    }}
                     keyboardType="numeric"
                     maxLength={2}
+                    returnKeyType="next"
+                    onSubmitEditing={() => dogumMonthRef.current?.focus()}
                   />
                   <Text style={{ color: Colors.textDim, fontSize: 18 }}>/</Text>
                   <TextInput
+                    ref={dogumMonthRef}
                     style={[styles.birthDateField, { borderColor: dogumMonth ? base.color + "60" : Colors.cardBorder, color: Colors.text }]}
                     placeholder={lang === "tr" ? "AA" : "MM"}
                     placeholderTextColor={Colors.textDim}
                     value={dogumMonth}
-                    onChangeText={(v) => setDogumMonth(v.replace(/\D/g, "").slice(0, 2))}
+                    onChangeText={(v) => {
+                      const cleaned = v.replace(/\D/g, "").slice(0, 2);
+                      setDogumMonth(cleaned);
+                      if (cleaned.length === 2) dogumYearRef.current?.focus();
+                    }}
                     keyboardType="numeric"
                     maxLength={2}
+                    returnKeyType="next"
+                    onSubmitEditing={() => dogumYearRef.current?.focus()}
                   />
                   <Text style={{ color: Colors.textDim, fontSize: 18 }}>/</Text>
                   <TextInput
+                    ref={dogumYearRef}
                     style={[styles.birthDateField, styles.birthYearField, { borderColor: dogumYear ? base.color + "60" : Colors.cardBorder, color: Colors.text }]}
                     placeholder="YYYY"
                     placeholderTextColor={Colors.textDim}
                     value={dogumYear}
-                    onChangeText={(v) => setDogumYear(v.replace(/\D/g, "").slice(0, 4))}
+                    onChangeText={(v) => {
+                      const cleaned = v.replace(/\D/g, "").slice(0, 4);
+                      setDogumYear(cleaned);
+                      if (cleaned.length === 4) dogumTimeRef.current?.focus();
+                    }}
                     keyboardType="numeric"
                     maxLength={4}
+                    returnKeyType="next"
+                    onSubmitEditing={() => dogumTimeRef.current?.focus()}
                   />
                 </View>
                 <Text style={[styles.tarotSelectorLabel, { color: base.color, marginTop: 10 }]}>
                   {lang === "tr" ? "Doğum Saati (isteğe bağlı)" : "Birth Time (optional)"}
                 </Text>
                 <TextInput
+                  ref={dogumTimeRef}
                   style={[styles.birthDateField, styles.birthYearField, { borderColor: dogumTime ? base.color + "60" : Colors.cardBorder, color: Colors.text, width: "40%" }]}
                   placeholder="SS:DD"
                   placeholderTextColor={Colors.textDim}
@@ -1647,20 +1689,25 @@ export default function ReadingScreen() {
                   onChangeText={(v) => {
                     const cleaned = v.replace(/[^\d:]/g, "").slice(0, 5);
                     setDogumTime(cleaned);
+                    if (cleaned.length === 5) dogumPlaceRef.current?.focus();
                   }}
                   keyboardType="numbers-and-punctuation"
                   maxLength={5}
+                  returnKeyType="next"
+                  onSubmitEditing={() => dogumPlaceRef.current?.focus()}
                 />
                 <Text style={[styles.tarotSelectorLabel, { color: base.color, marginTop: 10 }]}>
                   {lang === "tr" ? "Doğum Yeri (isteğe bağlı)" : "Birth Place (optional)"}
                 </Text>
                 <TextInput
+                  ref={dogumPlaceRef}
                   style={[styles.input, { borderColor: dogumPlace ? base.color + "60" : Colors.cardBorder, color: Colors.text, minHeight: 40 }]}
                   placeholder={lang === "tr" ? "Şehir, Ülke" : "City, Country"}
                   placeholderTextColor={Colors.textDim}
                   value={dogumPlace}
                   onChangeText={setDogumPlace}
                   maxLength={80}
+                  returnKeyType="done"
                 />
               </View>
             )}
