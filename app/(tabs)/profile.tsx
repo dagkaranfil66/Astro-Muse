@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Alert,
   ActionSheetIOS,
   TextInput,
+  KeyboardAvoidingView,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -47,6 +48,29 @@ function genderLabel(gender: string | null, lang: string): string {
   return lang === "tr" ? opt.labelTR : opt.labelEN;
 }
 
+function parseBirthDate(raw: string): { day: string; month: string; year: string } {
+  if (!raw) return { day: "", month: "", year: "" };
+  // YYYY-MM-DD
+  const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (iso) return { year: iso[1], month: iso[2], day: iso[3] };
+  // DD.MM.YYYY or DD/MM/YYYY
+  const dmy = raw.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})$/);
+  if (dmy) return { day: dmy[1].padStart(2, "0"), month: dmy[2].padStart(2, "0"), year: dmy[3] };
+  return { day: "", month: "", year: "" };
+}
+
+function validateDate(day: string, month: string, year: string): boolean {
+  const d = parseInt(day, 10);
+  const m = parseInt(month, 10);
+  const y = parseInt(year, 10);
+  if (!d || !m || !y) return false;
+  if (m < 1 || m > 12) return false;
+  if (d < 1 || d > 31) return false;
+  if (y < 1900 || y > new Date().getFullYear()) return false;
+  const date = new Date(y, m - 1, d);
+  return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
+}
+
 function EditProfileModal({
   visible, lang, initialName, initialGender, initialBirthDate,
   onCancel, onSave,
@@ -59,32 +83,67 @@ function EditProfileModal({
   onCancel: () => void;
   onSave: (data: { name: string; gender: string; birthDate: string }) => Promise<void>;
 }) {
+  const insets = useSafeAreaInsets();
+  const parsed = parseBirthDate(initialBirthDate);
   const [name, setName] = useState(initialName);
   const [gender, setGender] = useState(initialGender || "unspecified");
-  const [birthDate, setBirthDate] = useState(initialBirthDate);
+  const [birthDay, setBirthDay] = useState(parsed.day);
+  const [birthMonth, setBirthMonth] = useState(parsed.month);
+  const [birthYear, setBirthYear] = useState(parsed.year);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
+  const monthRef = useRef<TextInput>(null);
+  const yearRef = useRef<TextInput>(null);
+
   React.useEffect(() => {
     if (visible) {
+      const p = parseBirthDate(initialBirthDate);
       setName(initialName);
       setGender(initialGender || "unspecified");
-      setBirthDate(initialBirthDate);
+      setBirthDay(p.day);
+      setBirthMonth(p.month);
+      setBirthYear(p.year);
       setSuccess(false);
       setError("");
     }
   }, [visible, initialName, initialGender, initialBirthDate]);
+
+  const handleDayChange = (val: string) => {
+    const digits = val.replace(/\D/g, "").slice(0, 2);
+    setBirthDay(digits);
+    if (digits.length === 2) monthRef.current?.focus();
+  };
+
+  const handleMonthChange = (val: string) => {
+    const digits = val.replace(/\D/g, "").slice(0, 2);
+    setBirthMonth(digits);
+    if (digits.length === 2) yearRef.current?.focus();
+  };
+
+  const handleYearChange = (val: string) => {
+    const digits = val.replace(/\D/g, "").slice(0, 4);
+    setBirthYear(digits);
+  };
 
   const handleSave = async () => {
     if (!name.trim()) {
       setError(lang === "tr" ? "Görünen ad boş bırakılamaz." : "Display name cannot be empty.");
       return;
     }
+    let birthDate = "";
+    if (birthDay || birthMonth || birthYear) {
+      if (!validateDate(birthDay, birthMonth, birthYear)) {
+        setError(lang === "tr" ? "Geçersiz doğum tarihi. Gün/Ay/Yıl formatını kontrol edin." : "Invalid birth date. Please check Day/Month/Year.");
+        return;
+      }
+      birthDate = `${birthYear}-${birthMonth.padStart(2, "0")}-${birthDay.padStart(2, "0")}`;
+    }
     setSaving(true);
     setError("");
     try {
-      await onSave({ name: name.trim(), gender, birthDate: birthDate.trim() });
+      await onSave({ name: name.trim(), gender, birthDate });
       setSuccess(true);
       setTimeout(() => { setSuccess(false); onCancel(); }, 1200);
     } catch {
@@ -96,86 +155,135 @@ function EditProfileModal({
 
   return (
     <Modal transparent visible={visible} animationType="slide" onRequestClose={onCancel}>
-      <View style={editModal.overlay}>
-        <View style={editModal.card}>
-          <View style={editModal.titleRow}>
-            <Ionicons name="person-outline" size={20} color={Colors.gold} />
-            <Text style={editModal.title}>{lang === "tr" ? "Profili Düzenle" : "Edit Profile"}</Text>
-          </View>
-
-          <View style={editModal.field}>
-            <Text style={editModal.label}>{lang === "tr" ? "Görünen Ad" : "Display Name"}</Text>
-            <TextInput
-              style={editModal.input}
-              value={name}
-              onChangeText={setName}
-              placeholder={lang === "tr" ? "Adınızı girin" : "Enter your name"}
-              placeholderTextColor="#5A4E7A"
-              editable={!saving}
-              maxLength={40}
-            />
-          </View>
-
-          <View style={editModal.field}>
-            <Text style={editModal.label}>{lang === "tr" ? "Cinsiyet" : "Gender"}</Text>
-            <View style={editModal.genderRow}>
-              {GENDER_OPTIONS.map(opt => (
-                <Pressable
-                  key={opt.value}
-                  onPress={() => !saving && setGender(opt.value)}
-                  style={[editModal.genderBtn, gender === opt.value && editModal.genderBtnActive]}
-                >
-                  <Text style={[editModal.genderBtnText, gender === opt.value && editModal.genderBtnTextActive]}>
-                    {lang === "tr" ? opt.labelTR : opt.labelEN}
-                  </Text>
-                </Pressable>
-              ))}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={0}
+      >
+        <Pressable style={editModal.overlay} onPress={onCancel}>
+          <Pressable style={[editModal.card, { paddingBottom: Math.max(insets.bottom, 24) + 16 }]} onPress={e => e.stopPropagation()}>
+            <View style={editModal.titleRow}>
+              <Ionicons name="person-outline" size={20} color={Colors.gold} />
+              <Text style={editModal.title}>{lang === "tr" ? "Profili Düzenle" : "Edit Profile"}</Text>
             </View>
-          </View>
 
-          <View style={editModal.field}>
-            <Text style={editModal.label}>{lang === "tr" ? "Doğum Tarihi" : "Birth Date"}</Text>
-            <TextInput
-              style={editModal.input}
-              value={birthDate}
-              onChangeText={setBirthDate}
-              placeholder="1990-01-15"
-              placeholderTextColor="#5A4E7A"
-              editable={!saving}
-              keyboardType="numbers-and-punctuation"
-              maxLength={10}
-            />
-            <Text style={editModal.hint}>YYYY-MM-DD</Text>
-          </View>
-
-          {error ? <Text style={editModal.errorText}>{error}</Text> : null}
-          {success ? (
-            <View style={editModal.successBanner}>
-              <Ionicons name="checkmark-circle-outline" size={16} color="#4CAF7A" />
-              <Text style={editModal.successText}>{lang === "tr" ? "Kaydedildi!" : "Saved!"}</Text>
+            <View style={editModal.field}>
+              <Text style={editModal.label}>{lang === "tr" ? "Görünen Ad" : "Display Name"}</Text>
+              <TextInput
+                style={editModal.input}
+                value={name}
+                onChangeText={setName}
+                placeholder={lang === "tr" ? "Adınızı girin" : "Enter your name"}
+                placeholderTextColor="#5A4E7A"
+                editable={!saving}
+                maxLength={40}
+                returnKeyType="next"
+              />
             </View>
-          ) : null}
 
-          <View style={editModal.btnRow}>
-            <Pressable onPress={onCancel} style={editModal.cancelBtn} disabled={saving}>
-              <Text style={editModal.cancelText}>{lang === "tr" ? "İptal" : "Cancel"}</Text>
-            </Pressable>
-            <Pressable
-              onPress={handleSave}
-              style={[editModal.saveBtn, saving && { opacity: 0.5 }]}
-              disabled={saving}
-            >
-              {saving
-                ? <Text style={editModal.saveBtnText}>…</Text>
-                : <>
-                    <Ionicons name="checkmark" size={15} color={Colors.background} />
-                    <Text style={editModal.saveBtnText}>{lang === "tr" ? "Kaydet" : "Save"}</Text>
-                  </>
-              }
-            </Pressable>
-          </View>
-        </View>
-      </View>
+            <View style={editModal.field}>
+              <Text style={editModal.label}>{lang === "tr" ? "Cinsiyet" : "Gender"}</Text>
+              <View style={editModal.genderRow}>
+                {GENDER_OPTIONS.map(opt => (
+                  <Pressable
+                    key={opt.value}
+                    onPress={() => !saving && setGender(opt.value)}
+                    style={[editModal.genderBtn, gender === opt.value && editModal.genderBtnActive]}
+                  >
+                    <Text style={[editModal.genderBtnText, gender === opt.value && editModal.genderBtnTextActive]}>
+                      {lang === "tr" ? opt.labelTR : opt.labelEN}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            <View style={editModal.field}>
+              <Text style={editModal.label}>{lang === "tr" ? "Doğum Tarihi" : "Birth Date"}</Text>
+              <View style={editModal.dateRow}>
+                <View style={editModal.dateFieldWrap}>
+                  <TextInput
+                    style={editModal.dateInput}
+                    value={birthDay}
+                    onChangeText={handleDayChange}
+                    placeholder="GG"
+                    placeholderTextColor="#5A4E7A"
+                    keyboardType="number-pad"
+                    maxLength={2}
+                    editable={!saving}
+                    returnKeyType="next"
+                    onSubmitEditing={() => monthRef.current?.focus()}
+                    textAlign="center"
+                  />
+                  <Text style={editModal.dateFieldLabel}>{lang === "tr" ? "Gün" : "Day"}</Text>
+                </View>
+                <Text style={editModal.dateSep}>/</Text>
+                <View style={editModal.dateFieldWrap}>
+                  <TextInput
+                    ref={monthRef}
+                    style={editModal.dateInput}
+                    value={birthMonth}
+                    onChangeText={handleMonthChange}
+                    placeholder="AA"
+                    placeholderTextColor="#5A4E7A"
+                    keyboardType="number-pad"
+                    maxLength={2}
+                    editable={!saving}
+                    returnKeyType="next"
+                    onSubmitEditing={() => yearRef.current?.focus()}
+                    textAlign="center"
+                  />
+                  <Text style={editModal.dateFieldLabel}>{lang === "tr" ? "Ay" : "Month"}</Text>
+                </View>
+                <Text style={editModal.dateSep}>/</Text>
+                <View style={[editModal.dateFieldWrap, { flex: 2 }]}>
+                  <TextInput
+                    ref={yearRef}
+                    style={editModal.dateInput}
+                    value={birthYear}
+                    onChangeText={handleYearChange}
+                    placeholder="YYYY"
+                    placeholderTextColor="#5A4E7A"
+                    keyboardType="number-pad"
+                    maxLength={4}
+                    editable={!saving}
+                    returnKeyType="done"
+                    textAlign="center"
+                  />
+                  <Text style={editModal.dateFieldLabel}>{lang === "tr" ? "Yıl" : "Year"}</Text>
+                </View>
+              </View>
+            </View>
+
+            {error ? <Text style={editModal.errorText}>{error}</Text> : null}
+            {success ? (
+              <View style={editModal.successBanner}>
+                <Ionicons name="checkmark-circle-outline" size={16} color="#4CAF7A" />
+                <Text style={editModal.successText}>{lang === "tr" ? "Kaydedildi!" : "Saved!"}</Text>
+              </View>
+            ) : null}
+
+            <View style={editModal.btnRow}>
+              <Pressable onPress={onCancel} style={editModal.cancelBtn} disabled={saving}>
+                <Text style={editModal.cancelText}>{lang === "tr" ? "İptal" : "Cancel"}</Text>
+              </Pressable>
+              <Pressable
+                onPress={handleSave}
+                style={[editModal.saveBtn, saving && { opacity: 0.5 }]}
+                disabled={saving}
+              >
+                {saving
+                  ? <Text style={editModal.saveBtnText}>…</Text>
+                  : <>
+                      <Ionicons name="checkmark" size={15} color={Colors.background} />
+                      <Text style={editModal.saveBtnText}>{lang === "tr" ? "Kaydet" : "Save"}</Text>
+                    </>
+                }
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -990,7 +1098,6 @@ const editModal = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.gold + "30",
     padding: 28,
-    paddingBottom: 40,
     gap: 18,
   },
   titleRow: { flexDirection: "row", alignItems: "center", gap: 10 },
@@ -1024,6 +1131,21 @@ const editModal = StyleSheet.create({
   },
   genderBtnText: { fontSize: 12, fontFamily: "Lora_400Regular", color: Colors.textSecondary },
   genderBtnTextActive: { fontFamily: "Lora_700Bold", color: Colors.gold },
+  dateRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  dateFieldWrap: { flex: 1, gap: 4 },
+  dateInput: {
+    backgroundColor: "#1A1435",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#3A2F5A",
+    paddingHorizontal: 8,
+    paddingVertical: 13,
+    fontSize: 16,
+    fontFamily: "Lora_700Bold",
+    color: Colors.text,
+  },
+  dateFieldLabel: { fontSize: 10, fontFamily: "Lora_400Regular", color: Colors.textDim, textAlign: "center" },
+  dateSep: { fontSize: 20, fontFamily: "Lora_700Bold", color: Colors.textDim, paddingBottom: 16 },
   errorText: { fontSize: 12, fontFamily: "Lora_400Regular", color: "#FF6666", textAlign: "center" },
   successBanner: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "#4CAF7A18", borderRadius: 10, borderWidth: 1, borderColor: "#4CAF7A40", paddingVertical: 10, paddingHorizontal: 14 },
   successText: { fontSize: 13, fontFamily: "Lora_700Bold", color: "#4CAF7A" },
