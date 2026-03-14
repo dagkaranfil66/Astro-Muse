@@ -387,28 +387,9 @@ function KahvePhotoSection({
           </Text>
         </Animated.View>
       ) : (
-        <>
-          <Text style={styles.kahveSlotHint}>
-            {lang === "tr" ? "3 farklı açıdan fotoğraf çekin veya yükleyin" : "Take or upload from 3 different angles"}
-          </Text>
-          {/* Prominent action buttons */}
-          <View style={styles.kahveMainBtns}>
-            {Platform.OS !== "web" && (
-              <Pressable onPress={() => onAdd("camera")} style={[styles.kahveMainCameraBtn, { borderColor: color, backgroundColor: color + "20" }]}>
-                <Ionicons name="camera" size={22} color={color} />
-                <Text style={[styles.kahveMainCameraBtnText, { color }]}>
-                  {lang === "tr" ? "Fotoğraf Çek" : "Take Photo"}
-                </Text>
-              </Pressable>
-            )}
-            <Pressable onPress={() => onAdd("gallery")} style={[styles.kahveMainGalleryBtn, { borderColor: color + "60" }]}>
-              <Ionicons name="images-outline" size={18} color={color} />
-              <Text style={[styles.kahveMainGalleryBtnText, { color }]} numberOfLines={1}>
-                {lang === "tr" ? "Galeriden Yükle" : "Upload"}
-              </Text>
-            </Pressable>
-          </View>
-        </>
+        <Text style={styles.kahveSlotHint}>
+          {lang === "tr" ? "3 farklı açıdan fotoğraf çekin veya yükleyin" : "Take or upload from 3 different angles"}
+        </Text>
       )}
 
       <View style={styles.kahveSlotsRow}>
@@ -1446,15 +1427,39 @@ export default function ReadingScreen() {
               </Animated.View>
             )}
 
-            {/* Kahve — ready status badge in input bar */}
-            {isKahve && kahvePhotos.length >= 3 && (
+            {/* Kahve — camera + gallery buttons in input bar */}
+            {isKahve && (
               <View style={styles.kahveInputStatus}>
-                <View style={[styles.kahveStatusBadge, { borderColor: "#4CAF7A50", backgroundColor: "#4CAF7A10" }]}>
-                  <Ionicons name="checkmark-circle" size={14} color="#4CAF7A" />
-                  <Text style={[styles.kahveStatusText, { color: "#4CAF7A" }]}>
-                    {lang === "tr" ? "3 fotoğraf hazır ✓" : "3 photos ready ✓"}
-                  </Text>
-                </View>
+                {kahvePhotos.length >= 3 ? (
+                  <View style={[styles.kahveStatusBadge, { borderColor: "#4CAF7A50", backgroundColor: "#4CAF7A10" }]}>
+                    <Ionicons name="checkmark-circle" size={14} color="#4CAF7A" />
+                    <Text style={[styles.kahveStatusText, { color: "#4CAF7A" }]}>
+                      {lang === "tr" ? "3 fotoğraf hazır ✓" : "3 photos ready ✓"}
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.photoSection}>
+                    <Text style={[styles.photoSectionLabel, { color: base.color }]}>
+                      {lang === "tr" ? `Fincan fotoğrafı ${kahvePhotos.length}/3` : `Cup photo ${kahvePhotos.length}/3`}
+                    </Text>
+                    <View style={styles.photoSourceRow}>
+                      {Platform.OS !== "web" && (
+                        <Pressable onPress={() => handleAddKahvePhoto("camera")} style={[styles.photoSourceBtn, { borderColor: base.color + "50" }]}>
+                          <Ionicons name="camera" size={22} color={base.color} />
+                          <Text style={[styles.photoSourceLabel, { color: base.color }]}>
+                            {lang === "tr" ? "Fotoğraf Çek" : "Camera"}
+                          </Text>
+                        </Pressable>
+                      )}
+                      <Pressable onPress={() => handleAddKahvePhoto("gallery")} style={[styles.photoSourceBtn, { borderColor: base.color + "50" }]}>
+                        <Ionicons name="images-outline" size={22} color={base.color} />
+                        <Text style={[styles.photoSourceLabel, { color: base.color }]}>
+                          {lang === "tr" ? "Galeriden Yükle" : "Gallery"}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                )}
               </View>
             )}
 
