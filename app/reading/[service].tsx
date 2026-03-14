@@ -363,8 +363,8 @@ function KahvePhotoSection({
   lang: string;
 }) {
   const SLOT_LABELS = lang === "tr"
-    ? ["İçeriden", "Yandan", "Altından"]
-    : ["Inside", "From Side", "Bottom"];
+    ? ["İçeriden", "Yandan", "Kahve Fincan Tabağı"]
+    : ["Inside", "From Side", "Saucer"];
   const allDone = photos.length >= 3;
 
   return (
@@ -434,11 +434,9 @@ function KahvePhotoSection({
                     <View style={styles.kahveSlotBtns}>
                       <Pressable onPress={() => onAdd("camera")} style={[styles.kahveSlotBtn, { backgroundColor: color + "20", borderColor: color + "40" }]}>
                         <Ionicons name="camera" size={16} color={color} />
-                        <Text style={[styles.kahveSlotBtnText, { color }]}>{lang === "tr" ? "Çek" : "Take"}</Text>
                       </Pressable>
                       <Pressable onPress={() => onAdd("gallery")} style={[styles.kahveSlotBtn, { backgroundColor: color + "20", borderColor: color + "40" }]}>
                         <Ionicons name="images-outline" size={16} color={color} />
-                        <Text style={[styles.kahveSlotBtnText, { color }]}>{lang === "tr" ? "Yükle" : "Upload"}</Text>
                       </Pressable>
                     </View>
                   )}
@@ -1448,37 +1446,15 @@ export default function ReadingScreen() {
               </Animated.View>
             )}
 
-            {/* Kahve — camera + gallery buttons in input bar */}
-            {isKahve && (
+            {/* Kahve — ready status badge in input bar */}
+            {isKahve && kahvePhotos.length >= 3 && (
               <View style={styles.kahveInputStatus}>
-                {kahvePhotos.length >= 3 ? (
-                  <View style={[styles.kahveStatusBadge, { borderColor: "#4CAF7A50", backgroundColor: "#4CAF7A10" }]}>
-                    <Ionicons name="checkmark-circle" size={14} color="#4CAF7A" />
-                    <Text style={[styles.kahveStatusText, { color: "#4CAF7A" }]}>
-                      {lang === "tr" ? "3 fotoğraf hazır ✓" : "3 photos ready ✓"}
-                    </Text>
-                  </View>
-                ) : (
-                  <View style={styles.photoSection}>
-                    <Text style={[styles.photoSectionLabel, { color: base.color }]}>
-                      {lang === "tr" ? `Fincan fotoğrafı ${kahvePhotos.length}/3` : `Cup photo ${kahvePhotos.length}/3`}
-                    </Text>
-                    <View style={styles.photoSourceRow}>
-                      <Pressable onPress={() => handleAddKahvePhoto("camera")} style={[styles.photoSourceBtn, { borderColor: base.color + "50" }]}>
-                        <Ionicons name="camera" size={22} color={base.color} />
-                        <Text style={[styles.photoSourceLabel, { color: base.color }]}>
-                          {lang === "tr" ? "Kamera" : "Camera"}
-                        </Text>
-                      </Pressable>
-                      <Pressable onPress={() => handleAddKahvePhoto("gallery")} style={[styles.photoSourceBtn, { borderColor: base.color + "50" }]}>
-                        <Ionicons name="images-outline" size={22} color={base.color} />
-                        <Text style={[styles.photoSourceLabel, { color: base.color }]}>
-                          {lang === "tr" ? "Galeri" : "Gallery"}
-                        </Text>
-                      </Pressable>
-                    </View>
-                  </View>
-                )}
+                <View style={[styles.kahveStatusBadge, { borderColor: "#4CAF7A50", backgroundColor: "#4CAF7A10" }]}>
+                  <Ionicons name="checkmark-circle" size={14} color="#4CAF7A" />
+                  <Text style={[styles.kahveStatusText, { color: "#4CAF7A" }]}>
+                    {lang === "tr" ? "3 fotoğraf hazır ✓" : "3 photos ready ✓"}
+                  </Text>
+                </View>
               </View>
             )}
 
