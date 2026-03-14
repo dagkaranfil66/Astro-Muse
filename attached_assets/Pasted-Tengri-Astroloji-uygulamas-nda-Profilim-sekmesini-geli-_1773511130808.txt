@@ -1,0 +1,66 @@
+Tengri Astroloji uygulamasında Profilim sekmesini geliştir.
+
+AMAÇ:
+Profil ekranını daha kullanışlı, daha premium ve daha kişiselleştirilmiş hale getirmek. Kullanıcının temel bilgilerini görüntüleyebileceği ve düzenleyebileceği bir yapı kur.
+
+YAPILACAKLAR:
+
+1) Profil ekranına yeni bir “Kişisel Bilgiler” bölümü ekle.
+Bu bölümde şu alanlar gösterilsin:
+- Görünen Ad
+- Giriş E-postası
+- Cinsiyet
+- Doğum Tarihi
+
+2) Profil ekranında bu alanlar kart yapısında düzenli ve okunabilir görünsün.
+Mevcut premium tasarım dili korunsun:
+- koyu arka plan
+- altın / mor vurgu
+- yuvarlatılmış kartlar
+- dengeli spacing
+
+3) “Profili Düzenle” butonu ekle.
+Bu butona basınca ayrı bir düzenleme ekranı veya modal açılsın.
+
+4) Düzenleme ekranında kullanıcı sadece şu alanları güncelleyebilsin:
+- Görünen Ad
+- Cinsiyet
+- Doğum Tarihi
+
+5) E-posta alanı düzenlenebilir olmasın.
+Kullanıcının giriş yaptığı e-posta adresi sadece profil ekranında görüntülensin.
+Profili düzenle ekranında e-posta inputu bulunmasın.
+
+6) E-posta alanının altında küçük bir açıklama göster:
+“Giriş için kullanılan e-posta adresi değiştirilemez.”
+
+7) Cinsiyet alanı seçimli olsun:
+- Kadın
+- Erkek
+- Belirtmek istemiyorum
+
+8) Verileri Firestore / mevcut kullanıcı profil yapısında sakla.
+Kullanıcı tekrar giriş yaptığında bilgiler korunmalı.
+
+9) Form UX:
+- boş alan kontrolü
+- kaydet butonu
+- başarılı kayıt sonrası toast veya küçük başarı mesajı
+- loading state
+- hata durumunda kullanıcı dostu mesaj
+
+10) Tasarım:
+- mobil uyumlu
+- küçük ekranlarda taşma olmasın
+- input alanları premium ve temiz görünsün
+- mevcut Profilim ekranıyla görsel uyum korunsun
+
+11) Hesap mantığı:
+- Apple Sign-In / Google / Email login ile gelen ana hesap e-postası değiştirilmeye çalışılmasın
+- bu alan sadece bilgi amaçlı gösterilsin
+- kullanıcı hesabı ile profil alanları birbirine karışmasın
+
+12) Kod çıktısı:
+Sadece öneri verme, ilgili ekranları ve state yönetimini doğrudan uygula.
+Gerekirse yeni ProfileEditScreen / modal oluştur.
+Localization varsa TR/EN destekli metinleri ekle.

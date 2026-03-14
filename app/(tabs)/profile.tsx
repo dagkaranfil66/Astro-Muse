@@ -34,6 +34,152 @@ import { useLang } from "@/context/LanguageContext";
 import { SERVICE_GOLD_COST } from "@/constants/serviceConfig";
 import { getApiUrl } from "@/lib/query-client";
 
+const GENDER_OPTIONS = [
+  { value: "female",      labelTR: "Kadın",                 labelEN: "Female" },
+  { value: "male",        labelTR: "Erkek",                 labelEN: "Male" },
+  { value: "unspecified", labelTR: "Belirtmek istemiyorum", labelEN: "Prefer not to say" },
+];
+
+function genderLabel(gender: string | null, lang: string): string {
+  if (!gender) return "";
+  const opt = GENDER_OPTIONS.find(o => o.value === gender);
+  if (!opt) return "";
+  return lang === "tr" ? opt.labelTR : opt.labelEN;
+}
+
+function EditProfileModal({
+  visible, lang, initialName, initialGender, initialBirthDate,
+  onCancel, onSave,
+}: {
+  visible: boolean;
+  lang: string;
+  initialName: string;
+  initialGender: string;
+  initialBirthDate: string;
+  onCancel: () => void;
+  onSave: (data: { name: string; gender: string; birthDate: string }) => Promise<void>;
+}) {
+  const [name, setName] = useState(initialName);
+  const [gender, setGender] = useState(initialGender || "unspecified");
+  const [birthDate, setBirthDate] = useState(initialBirthDate);
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+
+  React.useEffect(() => {
+    if (visible) {
+      setName(initialName);
+      setGender(initialGender || "unspecified");
+      setBirthDate(initialBirthDate);
+      setSuccess(false);
+      setError("");
+    }
+  }, [visible, initialName, initialGender, initialBirthDate]);
+
+  const handleSave = async () => {
+    if (!name.trim()) {
+      setError(lang === "tr" ? "Görünen ad boş bırakılamaz." : "Display name cannot be empty.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      await onSave({ name: name.trim(), gender, birthDate: birthDate.trim() });
+      setSuccess(true);
+      setTimeout(() => { setSuccess(false); onCancel(); }, 1200);
+    } catch {
+      setError(lang === "tr" ? "Kaydedilemedi. Tekrar deneyin." : "Could not save. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal transparent visible={visible} animationType="slide" onRequestClose={onCancel}>
+      <View style={editModal.overlay}>
+        <View style={editModal.card}>
+          <View style={editModal.titleRow}>
+            <Ionicons name="person-outline" size={20} color={Colors.gold} />
+            <Text style={editModal.title}>{lang === "tr" ? "Profili Düzenle" : "Edit Profile"}</Text>
+          </View>
+
+          <View style={editModal.field}>
+            <Text style={editModal.label}>{lang === "tr" ? "Görünen Ad" : "Display Name"}</Text>
+            <TextInput
+              style={editModal.input}
+              value={name}
+              onChangeText={setName}
+              placeholder={lang === "tr" ? "Adınızı girin" : "Enter your name"}
+              placeholderTextColor="#5A4E7A"
+              editable={!saving}
+              maxLength={40}
+            />
+          </View>
+
+          <View style={editModal.field}>
+            <Text style={editModal.label}>{lang === "tr" ? "Cinsiyet" : "Gender"}</Text>
+            <View style={editModal.genderRow}>
+              {GENDER_OPTIONS.map(opt => (
+                <Pressable
+                  key={opt.value}
+                  onPress={() => !saving && setGender(opt.value)}
+                  style={[editModal.genderBtn, gender === opt.value && editModal.genderBtnActive]}
+                >
+                  <Text style={[editModal.genderBtnText, gender === opt.value && editModal.genderBtnTextActive]}>
+                    {lang === "tr" ? opt.labelTR : opt.labelEN}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          <View style={editModal.field}>
+            <Text style={editModal.label}>{lang === "tr" ? "Doğum Tarihi" : "Birth Date"}</Text>
+            <TextInput
+              style={editModal.input}
+              value={birthDate}
+              onChangeText={setBirthDate}
+              placeholder="1990-01-15"
+              placeholderTextColor="#5A4E7A"
+              editable={!saving}
+              keyboardType="numbers-and-punctuation"
+              maxLength={10}
+            />
+            <Text style={editModal.hint}>YYYY-MM-DD</Text>
+          </View>
+
+          {error ? <Text style={editModal.errorText}>{error}</Text> : null}
+          {success ? (
+            <View style={editModal.successBanner}>
+              <Ionicons name="checkmark-circle-outline" size={16} color="#4CAF7A" />
+              <Text style={editModal.successText}>{lang === "tr" ? "Kaydedildi!" : "Saved!"}</Text>
+            </View>
+          ) : null}
+
+          <View style={editModal.btnRow}>
+            <Pressable onPress={onCancel} style={editModal.cancelBtn} disabled={saving}>
+              <Text style={editModal.cancelText}>{lang === "tr" ? "İptal" : "Cancel"}</Text>
+            </Pressable>
+            <Pressable
+              onPress={handleSave}
+              style={[editModal.saveBtn, saving && { opacity: 0.5 }]}
+              disabled={saving}
+            >
+              {saving
+                ? <Text style={editModal.saveBtnText}>…</Text>
+                : <>
+                    <Ionicons name="checkmark" size={15} color={Colors.background} />
+                    <Text style={editModal.saveBtnText}>{lang === "tr" ? "Kaydet" : "Save"}</Text>
+                  </>
+              }
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 const SERVICE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   astroloji: "moon-outline", kahve: "cafe-outline", el: "hand-left-outline",
   tarot: "layers-outline", samanizm: "leaf-outline", numeroloji: "star-outline",
@@ -140,12 +286,17 @@ function DeleteConfirmModal({
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const { goldBalance, readings, userProfile, clearUserProfile, totalSpent, profilePhotoUri, setProfilePhoto } = useApp();
+  const {
+    goldBalance, readings, userProfile, clearUserProfile, totalSpent,
+    profilePhotoUri, setProfilePhoto,
+    mistikName, mistikBirthDate, mistikGender, updatePersonalInfo,
+  } = useApp();
   const { t, lang } = useLang();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [photoLoading, setPhotoLoading] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -321,6 +472,16 @@ export default function ProfileScreen() {
         loading={deleting}
       />
 
+      <EditProfileModal
+        visible={showEditModal}
+        lang={lang}
+        initialName={mistikName ?? userProfile?.name ?? ""}
+        initialGender={mistikGender ?? ""}
+        initialBirthDate={mistikBirthDate ?? ""}
+        onCancel={() => setShowEditModal(false)}
+        onSave={updatePersonalInfo}
+      />
+
       <ScrollView
         contentContainerStyle={[styles.content, { paddingTop: topPad + 16, paddingBottom: botPad + 100 }]}
         showsVerticalScrollIndicator={false}
@@ -391,6 +552,72 @@ export default function ProfileScreen() {
             </View>
           </LinearGradient>
         </Animated.View>
+
+        {/* Personal Info Card */}
+        {userProfile && (
+          <Animated.View entering={FadeInDown.delay(130).springify()}>
+            <LinearGradient colors={["#100C28", "#0A1020"]} style={styles.personalInfoCard}>
+              <View style={styles.personalInfoHeader}>
+                <Text style={styles.sectionTitle}>{lang === "tr" ? "✦ Kişisel Bilgiler" : "✦ Personal Info"}</Text>
+                <Pressable
+                  onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setShowEditModal(true); }}
+                  style={styles.editProfileBtn}
+                  testID="edit-profile-btn"
+                >
+                  <Ionicons name="pencil-outline" size={13} color={Colors.gold} />
+                  <Text style={styles.editProfileBtnText}>{lang === "tr" ? "Düzenle" : "Edit"}</Text>
+                </Pressable>
+              </View>
+
+              <View style={styles.infoFieldRow}>
+                <Ionicons name="person-outline" size={14} color={Colors.textDim} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.infoFieldLabel}>{lang === "tr" ? "Görünen Ad" : "Display Name"}</Text>
+                  <Text style={styles.infoFieldValue}>
+                    {mistikName || userProfile.name || (lang === "tr" ? "—" : "—")}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.infoFieldDivider} />
+
+              <View style={styles.infoFieldRow}>
+                <Ionicons name="mail-outline" size={14} color={Colors.textDim} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.infoFieldLabel}>{lang === "tr" ? "Giriş E-postası" : "Login Email"}</Text>
+                  <Text style={styles.infoFieldValue} numberOfLines={1}>{userProfile.email}</Text>
+                  <Text style={styles.infoFieldHint}>
+                    {lang === "tr" ? "Giriş için kullanılan e-posta adresi değiştirilemez." : "The login email address cannot be changed."}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.infoFieldDivider} />
+
+              <View style={styles.infoFieldRow}>
+                <Ionicons name="male-female-outline" size={14} color={Colors.textDim} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.infoFieldLabel}>{lang === "tr" ? "Cinsiyet" : "Gender"}</Text>
+                  <Text style={styles.infoFieldValue}>
+                    {genderLabel(mistikGender, lang) || (lang === "tr" ? "—" : "—")}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.infoFieldDivider} />
+
+              <View style={styles.infoFieldRow}>
+                <Ionicons name="calendar-outline" size={14} color={Colors.textDim} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.infoFieldLabel}>{lang === "tr" ? "Doğum Tarihi" : "Birth Date"}</Text>
+                  <Text style={styles.infoFieldValue}>
+                    {mistikBirthDate || (lang === "tr" ? "—" : "—")}
+                  </Text>
+                </View>
+              </View>
+            </LinearGradient>
+          </Animated.View>
+        )}
 
         {/* Gold Balance */}
         <Animated.View entering={FadeInDown.delay(150).springify()} style={styles.goldCard}>
@@ -678,6 +905,64 @@ const styles = StyleSheet.create({
   logoutText: { fontSize: 14, fontFamily: "Lora_700Bold", color: Colors.error },
   deleteAccBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1, borderColor: "#FF444420", backgroundColor: "transparent" },
   deleteBtnText: { fontSize: 12, fontFamily: "Lora_400Regular", color: "#FF4444" },
+
+  personalInfoCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    padding: 18,
+    gap: 12,
+  },
+  personalInfoHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  editProfileBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.gold + "40",
+    backgroundColor: Colors.gold + "12",
+  },
+  editProfileBtnText: {
+    fontSize: 11,
+    fontFamily: "Lora_700Bold",
+    color: Colors.gold,
+  },
+  infoFieldRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  infoFieldLabel: {
+    fontSize: 11,
+    fontFamily: "Lora_400Regular",
+    color: Colors.textDim,
+    marginBottom: 2,
+  },
+  infoFieldValue: {
+    fontSize: 14,
+    fontFamily: "Lora_700Bold",
+    color: Colors.text,
+  },
+  infoFieldHint: {
+    fontSize: 10,
+    fontFamily: "Lora_400Regular_Italic",
+    color: Colors.textDim,
+    marginTop: 3,
+    lineHeight: 14,
+  },
+  infoFieldDivider: {
+    height: 1,
+    backgroundColor: Colors.cardBorder,
+    marginVertical: 2,
+  },
 });
 
 const modal = StyleSheet.create({
@@ -694,4 +979,57 @@ const modal = StyleSheet.create({
   cancelText: { fontSize: 14, fontFamily: "Lora_700Bold", color: Colors.text },
   deleteBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 13, borderRadius: 12, backgroundColor: "#CC2222" },
   deleteText: { fontSize: 14, fontFamily: "Lora_700Bold", color: "#fff" },
+});
+
+const editModal = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.80)", justifyContent: "flex-end" },
+  card: {
+    backgroundColor: "#0F0B22",
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderWidth: 1,
+    borderColor: Colors.gold + "30",
+    padding: 28,
+    paddingBottom: 40,
+    gap: 18,
+  },
+  titleRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  title: { fontSize: 18, fontFamily: "Lora_700Bold", color: Colors.text },
+  field: { gap: 8 },
+  label: { fontSize: 12, fontFamily: "Lora_700Bold", color: Colors.gold, letterSpacing: 0.5 },
+  input: {
+    backgroundColor: "#1A1435",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#3A2F5A",
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    fontSize: 14,
+    fontFamily: "Lora_400Regular",
+    color: Colors.text,
+  },
+  hint: { fontSize: 10, fontFamily: "Lora_400Regular_Italic", color: Colors.textDim },
+  genderRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  genderBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#3A2F5A",
+    backgroundColor: "#1A1435",
+  },
+  genderBtnActive: {
+    borderColor: Colors.gold + "80",
+    backgroundColor: Colors.gold + "18",
+  },
+  genderBtnText: { fontSize: 12, fontFamily: "Lora_400Regular", color: Colors.textSecondary },
+  genderBtnTextActive: { fontFamily: "Lora_700Bold", color: Colors.gold },
+  errorText: { fontSize: 12, fontFamily: "Lora_400Regular", color: "#FF6666", textAlign: "center" },
+  successBanner: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "#4CAF7A18", borderRadius: 10, borderWidth: 1, borderColor: "#4CAF7A40", paddingVertical: 10, paddingHorizontal: 14 },
+  successText: { fontSize: 13, fontFamily: "Lora_700Bold", color: "#4CAF7A" },
+  btnRow: { flexDirection: "row", gap: 12, marginTop: 4 },
+  cancelBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, borderWidth: 1, borderColor: Colors.cardBorder, backgroundColor: Colors.surface, alignItems: "center" },
+  cancelText: { fontSize: 14, fontFamily: "Lora_700Bold", color: Colors.text },
+  saveBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 14, borderRadius: 12, backgroundColor: Colors.gold },
+  saveBtnText: { fontSize: 14, fontFamily: "Lora_700Bold", color: Colors.background },
 });

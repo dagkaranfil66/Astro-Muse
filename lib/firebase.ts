@@ -141,6 +141,9 @@ export interface FSUserData {
   loginProvider?: 'email' | 'apple' | 'google';
   appleUserId?: string;
   updatedAt?: Timestamp;
+  displayName?: string;
+  gender?: 'female' | 'male' | 'unspecified';
+  birthDate?: string;
 }
 
 export interface FSReading {

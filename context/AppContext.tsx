@@ -36,7 +36,9 @@ interface AppContextValue {
   mistikName: string | null;
   mistikBirthDate: string | null;
   mistikFocusArea: string | null;
+  mistikGender: string | null;
   setMistikProfile: (data: { name: string; birthDate: string; focusArea: string }) => Promise<void>;
+  updatePersonalInfo: (data: { name: string; gender: string; birthDate: string }) => Promise<void>;
   canAfford: (service: string) => boolean;
   spendGold: (service: string) => boolean;
   addGold: (amount: number) => void;
@@ -110,6 +112,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [mistikName, setMistikNameState]          = useState<string | null>(null);
   const [mistikBirthDate, setMistikBirthDateState] = useState<string | null>(null);
   const [mistikFocusArea, setMistikFocusAreaState] = useState<string | null>(null);
+  const [mistikGender, setMistikGenderState]      = useState<string | null>(null);
 
   const emailRef = useRef<string | null>(null);
 
@@ -231,6 +234,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             if (mp.name) setMistikNameState(mp.name);
             if (mp.birthDate) setMistikBirthDateState(mp.birthDate);
             if (mp.focusArea) setMistikFocusAreaState(mp.focusArea);
+            if (mp.gender) setMistikGenderState(mp.gender);
           } catch {}
         }
         if (profStr) {
@@ -400,7 +404,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (data.name) setMistikNameState(data.name);
     if (data.birthDate) setMistikBirthDateState(data.birthDate);
     if (data.focusArea) setMistikFocusAreaState(data.focusArea);
-    await AsyncStorage.setItem(GLOBAL_KEYS.mistikProfile, JSON.stringify(data));
+    const existing = await AsyncStorage.getItem(GLOBAL_KEYS.mistikProfile);
+    const current = existing ? JSON.parse(existing) : {};
+    await AsyncStorage.setItem(GLOBAL_KEYS.mistikProfile, JSON.stringify({ ...current, ...data }));
+  };
+
+  const updatePersonalInfo = async (data: { name: string; gender: string; birthDate: string }) => {
+    if (data.name) setMistikNameState(data.name);
+    if (data.gender) setMistikGenderState(data.gender);
+    if (data.birthDate) setMistikBirthDateState(data.birthDate);
+    const existing = await AsyncStorage.getItem(GLOBAL_KEYS.mistikProfile);
+    const current = existing ? JSON.parse(existing) : {};
+    await AsyncStorage.setItem(GLOBAL_KEYS.mistikProfile, JSON.stringify({ ...current, ...data }));
+    if (emailRef.current) {
+      fsUpdateUser(emailRef.current, {
+        displayName: data.name,
+        gender: data.gender as 'female' | 'male' | 'unspecified',
+        birthDate: data.birthDate,
+      }).catch(() => {});
+    }
   };
 
   const remainingReadings = isPurchased ? 30 : Math.max(0, 5 - trialCount);
@@ -425,13 +447,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     remainingReadings, consumeTrial, purchase,
     zodiacSign, setZodiacSign, canDailyFree, markDailyFreeUsed,
     showWelcomeBonus, dismissWelcomeBonus,
-    mistikName, mistikBirthDate, mistikFocusArea, setMistikProfile,
+    mistikName, mistikBirthDate, mistikFocusArea, mistikGender,
+    setMistikProfile, updatePersonalInfo,
     freeCoffeeFortuneUsed, markFreeCoffeeFortuneUsed,
   }), [
     goldBalance, readings, userProfile, profilePhotoUri,
     isLoaded, hasSeenOnboarding, trialCount, isPurchased,
     lastSpinDate, zodiacSign, lastDailyFreeDate, showWelcomeBonus,
-    mistikName, mistikBirthDate, mistikFocusArea, freeCoffeeFortuneUsed,
+    mistikName, mistikBirthDate, mistikFocusArea, mistikGender, freeCoffeeFortuneUsed,
   ]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
