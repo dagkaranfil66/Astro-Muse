@@ -1,0 +1,77 @@
+Tengri Astroloji uygulamasındaki “Önemli Bilgilendirme” ekranını aşağıdaki şekilde güncelle.
+
+AMAÇ:
+Bu ekran hem Apple App Review açısından güvenli olsun hem de mevcut premium tasarım korunarak daha okunabilir, daha dengeli ve daha profesyonel görünsün.
+
+İSTENEN DÜZENLEMELER:
+
+1) METNİ GÜNCELLE
+Mevcut metni aşağıdaki içerikle değiştir:
+
+Başlık:
+Önemli Bilgilendirme
+
+Gövde metni:
+Bu uygulamada sunulan yorumlar yalnızca eğlence ve kişisel keşif amaçlıdır. Sunulan içerikler geleceğe dair kesin sonuç veya profesyonel tavsiye niteliği taşımaz.
+
+Ek metin:
+Uygulamayı kullanarak aşağıdaki koşulları kabul etmiş sayılırsınız:
+
+Linkler:
+Gizlilik Politikası
+Kullanım Koşulları
+
+NOT:
+Metin sade, net ve Apple review açısından güvenli kalsın.
+“Kesin sonuç” ve “profesyonel tavsiye değildir” vurgusu mutlaka korunsun.
+
+2) TASARIMI İYİLEŞTİR
+Mevcut ekranın genel görsel dili korunacak:
+- koyu lacivert / mor arka plan
+- yıldızlı premium atmosfer
+- ortadaki bilgilendirme kartı
+- altın tonlu devam butonu
+
+Ama aşağıdaki görsel düzenlemeleri yap:
+
+- Kart içindeki yazıları biraz daha okunabilir hale getir.
+- Başlık ile gövde metni arasındaki boşluğu daha dengeli yap.
+- Gövde metninin satır aralığını artır.
+- Metni yatayda biraz daha rahat nefes alacak şekilde hizala.
+- Alt kısımdaki “Gizlilik Politikası” ve “Kullanım Koşulları” linklerini daha temiz ve daha düzenli göster.
+- Link satırının kartın altına fazla yapışık görünmesini engelle.
+- Kartın iç padding değerlerini artırarak daha premium görünüm sağla.
+- Mobil ekranda taşma, sıkışma veya gereksiz boşluk olmasın.
+- TR ve EN dil seçici mevcut yerinde kalabilir ama ekranla daha uyumlu görünmesi için spacing kontrol edilsin.
+
+3) BUTON DÜZENİ
+Alttaki buton metni:
+Anladım, Devam Et →
+
+Buton için:
+- mevcut altın tonlu görünüm korunsun
+- buton çok kalın / kaba görünüyorsa biraz daha zarif hale getir
+- yazı ortalaması kusursuz olsun
+- alt safe area ile çakışmasın
+- iPhone ekranlarında rahat tıklanabilir kalsın
+
+4) TEKNİK / UX DETAYLARI
+- Dark mode mantığı mevcut tasarımla uyumlu devam etsin
+- Türkçe ve İngilizce metinlerde satır kırılması bozulmasın
+- Uzun metinlerde küçük ekranlarda da düzen korunmalı
+- Tıklanabilir link alanları yeterince geniş olsun
+- Butona basınca bir sonraki onboarding/login adımına sorunsuz geçsin
+- Ekran ilk açılışta akıcı görünsün, render zıplaması olmasın
+
+5) APPLE REVIEW UYUMLULUĞU
+Bu ekran:
+- fal/astroloji içeriğinin eğlence amaçlı olduğunu açıkça belirtmeli
+- profesyonel yönlendirme sunmadığını net göstermeli
+- hukuki metin linklerini görünür şekilde sunmalı
+- scam, yanıltıcı vaat veya garanti hissi vermemeli
+
+6) KOD ÇIKTISI
+Lütfen sadece öneri verme; ilgili ekran componentini doğrudan güncelle.
+Kullanılan stil dosyalarını / styled component / inline style yapısını da düzenle.
+Türkçe ve İngilizce içerikleri localization yapısına uygun şekilde güncelle.
+Gerekirse spacing, font size, line height, card padding ve button height değerlerini optimize et.

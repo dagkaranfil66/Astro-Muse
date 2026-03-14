@@ -497,35 +497,36 @@ export default function OnboardingScreen() {
               <View style={styles.disclaimerDivider} />
               <Text style={[styles.disclaimerText, { fontFamily: "Lora_400Regular_Italic" }]}>
                 {tr
-                  ? "Bu uygulamada sunulan yorumlar yalnızca eğlence ve kişisel keşif amaçlıdır. Geleceğe dair kesin sonuç veya profesyonel tavsiye sunmaz."
+                  ? "Bu uygulamada sunulan yorumlar yalnızca eğlence ve kişisel keşif amaçlıdır. Sunulan içerikler geleceğe dair kesin sonuç veya profesyonel tavsiye niteliği taşımaz."
                   : "All readings in this app are for entertainment and personal exploration only. They do not provide definitive predictions or professional advice."}
               </Text>
+              <View style={styles.disclaimerSeparator} />
               <Text style={[styles.disclaimerTextSmall, { fontFamily: "Lora_400Regular" }]}>
                 {tr
                   ? "Uygulamayı kullanarak aşağıdaki koşulları kabul etmiş sayılırsınız:"
                   : "By using this app you agree to the following:"}
               </Text>
-              <View style={styles.disclaimerLinksRow}>
+              <View style={styles.disclaimerLinksCol}>
                 <TouchableOpacity
                   onPress={() => {
                     try { router.push("/legal?doc=privacy" as any); }
                     catch { router.push("/privacy"); }
                   }}
                   activeOpacity={0.7}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  style={styles.disclaimerLinkBtn}
                 >
                   <Text style={[styles.disclaimerLink, { fontFamily: "Lora_700Bold" }]}>
                     {tr ? "Gizlilik Politikası" : "Privacy Policy"}
                   </Text>
                 </TouchableOpacity>
-                <Text style={[styles.disclaimerLinkSep, { fontFamily: "Lora_400Regular" }]}>·</Text>
+                <View style={styles.disclaimerLinkDivider} />
                 <TouchableOpacity
                   onPress={() => {
                     try { router.push("/legal?doc=terms" as any); }
                     catch { router.push("/terms"); }
                   }}
                   activeOpacity={0.7}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  style={styles.disclaimerLinkBtn}
                 >
                   <Text style={[styles.disclaimerLink, { fontFamily: "Lora_700Bold" }]}>
                     {tr ? "Kullanım Koşulları" : "Terms of Use"}
@@ -836,63 +837,84 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
+    paddingHorizontal: 4,
   },
   disclaimerIconRow: {
-    marginBottom: 28,
+    marginBottom: 24,
   },
   disclaimerIcon: {
-    fontSize: 36,
+    fontSize: 38,
     color: "#C25A6A",
     textAlign: "center",
   },
   disclaimerBox: {
     width: "100%",
     borderWidth: 1,
-    borderColor: "#C25A6A40",
-    borderRadius: 20,
-    padding: 28,
-    backgroundColor: "rgba(194,90,106,0.06)",
+    borderColor: "#C25A6A45",
+    borderRadius: 22,
+    paddingHorizontal: 28,
+    paddingTop: 30,
+    paddingBottom: 10,
+    backgroundColor: "rgba(194,90,106,0.07)",
   },
   disclaimerTitle: {
-    fontSize: 20,
-    color: "#E8B4BC",
+    fontSize: 19,
+    color: "#ECC0C8",
     textAlign: "center",
-    marginBottom: 16,
-    letterSpacing: 1,
+    marginBottom: 14,
+    letterSpacing: 1.2,
   },
   disclaimerDivider: {
     height: 1,
-    backgroundColor: "#C25A6A40",
-    marginBottom: 20,
+    backgroundColor: "#C25A6A35",
+    marginBottom: 22,
   },
   disclaimerText: {
-    fontSize: 16,
-    color: "#D4909A",
+    fontSize: 15,
+    color: "#CFA0A8",
     textAlign: "center",
-    lineHeight: 26,
-    marginBottom: 20,
+    lineHeight: 28,
+    marginBottom: 0,
+    paddingHorizontal: 4,
   },
-  disclaimerLinksRow: {
-    flexDirection: "row",
+  disclaimerSeparator: {
+    height: 1,
+    backgroundColor: "#C25A6A25",
+    marginVertical: 20,
+  },
+  disclaimerTextSmall: {
+    fontSize: 12,
+    color: "#8A6065",
+    textAlign: "center",
+    lineHeight: 19,
+    marginBottom: 12,
+  },
+  disclaimerLinksCol: {
+    borderWidth: 1,
+    borderColor: "#C25A6A30",
+    borderRadius: 14,
+    overflow: "hidden",
+    marginBottom: 8,
+  },
+  disclaimerLinkBtn: {
+    paddingVertical: 13,
+    paddingHorizontal: 16,
     alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    marginTop: 14,
+  },
+  disclaimerLinkDivider: {
+    height: 1,
+    backgroundColor: "#C25A6A25",
   },
   disclaimerLink: {
-    fontSize: 13,
-    color: "#E8B4BC",
+    fontSize: 14,
+    color: "#EAB8C0",
     textDecorationLine: "underline",
+    textDecorationColor: "#C25A6A60",
+    letterSpacing: 0.3,
   },
   disclaimerLinkSep: {
     fontSize: 13,
     color: "#8A5560",
-  },
-  disclaimerTextSmall: {
-    fontSize: 13,
-    color: "#8A5560",
-    textAlign: "center",
-    lineHeight: 20,
   },
 
   // ── Logo ──
@@ -964,8 +986,8 @@ const styles = StyleSheet.create({
     alignItems: "center", gap: 12,
   },
   primaryBtn: { width: "100%", borderRadius: 16, overflow: "hidden" },
-  primaryBtnInner: { paddingVertical: 18, alignItems: "center", gap: 4 },
-  primaryBtnText: { fontSize: 17, color: "#08051A", letterSpacing: 0.5 },
+  primaryBtnInner: { paddingVertical: 16, alignItems: "center", justifyContent: "center", gap: 4 },
+  primaryBtnText: { fontSize: 16, color: "#08051A", letterSpacing: 0.6 },
   primaryBtnBadge: { fontSize: 12, color: "#08051Aaa", letterSpacing: 0.3 },
   secondaryBtn: {
     width: "100%", paddingVertical: 15, borderRadius: 16,
