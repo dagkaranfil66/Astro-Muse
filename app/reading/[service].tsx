@@ -1029,10 +1029,26 @@ export default function ReadingScreen() {
     sendButtonScale.value = withSpring(0.9, {}, () => { sendButtonScale.value = withSpring(1); });
 
     const wasFreeFirstCoffee = isFirstFreeCoffee;
+
+    // Mark free coffee flag BEFORE api call so it persists even if reading is interrupted
+    if (wasFreeFirstCoffee) {
+      await markFreeCoffeeFortuneUsed();
+    } else {
+      // Double-guard: re-check affordability right before spending
+      if (!canAfford(service)) {
+        setShowGoldModal(true);
+        return;
+      }
+      const spent = spendGold(service);
+      if (!spent) {
+        setShowGoldModal(true);
+        return;
+      }
+    }
+
     setIsLoading(true);
     setReadingText("");
     setIsDone(false);
-    if (!wasFreeFirstCoffee) { spendGold(service); }
 
     try {
       const baseUrl = getApiUrl();
@@ -1113,7 +1129,6 @@ export default function ReadingScreen() {
               setReadingId(newId);
               scheduleReadingReadyNotification(lang, service).catch(() => {});
               if (wasFreeFirstCoffee) {
-                await markFreeCoffeeFortuneUsed();
                 setTimeout(() => setShowFreeCoffeeConversion(true), 1800);
               }
             }
