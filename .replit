@@ -82,7 +82,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "EXPO_PUBLIC_DOMAIN=$REPLIT_DEV_DOMAIN:5000 CI=1 npx expo start --localhost"
+args = "EXPO_TOKEN= EXPO_PUBLIC_DOMAIN=$REPLIT_DEV_DOMAIN:5000 npx expo start --tunnel"
 waitForPort = 8081
 
 [userenv]
