@@ -22,6 +22,7 @@ import {
   setupAllDailyNotifications,
   scheduleReengagementNotifications,
   cancelReengagementNotifications,
+  flushPendingReadingNotification,
 } from "@/lib/notifications";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -55,6 +56,7 @@ function RootLayoutNav() {
       const prev = appState.current;
       appState.current = next;
       if (prev === "active" && next === "background") {
+        await flushPendingReadingNotification();
         await scheduleReengagementNotifications(lang);
       } else if (prev !== "active" && next === "active") {
         await cancelReengagementNotifications();

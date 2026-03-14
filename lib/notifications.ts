@@ -1,5 +1,8 @@
-import { Platform } from "react-native";
+import { Platform, AppState } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import type * as NotificationsType from "expo-notifications";
+
+const PENDING_READING_NOTIF_KEY = "tengri_pending_reading_notif";
 
 let N: typeof NotificationsType | null = null;
 if (Platform.OS !== "web") {
@@ -199,25 +202,52 @@ const READING_MESSAGES: Record<string, { tr: { t: string; b: string }; en: { t: 
 export async function scheduleReadingReadyNotification(lang: "tr" | "en", serviceId: string) {
   if (!N || Platform.OS === "web") return;
   try {
-    const msg = READING_MESSAGES[serviceId] ?? READING_MESSAGES.default;
-    const { t, b } = lang === "tr" ? msg.tr : msg.en;
-
-    await N.scheduleNotificationAsync({
-      content: {
-        title: t,
-        body: b,
-        sound: true,
-        data: { type: "reading_ready", serviceId },
-        ...(Platform.OS === "android" && { channelId: "tengri-reading" }),
-      },
-      trigger: {
-        type: N.SchedulableTriggerInputTypes.TIME_INTERVAL,
-        seconds: 3,
-        repeats: false,
-      },
-    });
+    if (AppState.currentState === "active") {
+      await AsyncStorage.setItem(
+        PENDING_READING_NOTIF_KEY,
+        JSON.stringify({ lang, serviceId })
+      );
+      return;
+    }
+    await _fireReadingNotification(N, lang, serviceId);
   } catch (e) {
     console.warn("[notifications] scheduleReadingReadyNotification error:", e);
+  }
+}
+
+async function _fireReadingNotification(
+  notif: typeof NotificationsType,
+  lang: "tr" | "en",
+  serviceId: string
+) {
+  const msg = READING_MESSAGES[serviceId] ?? READING_MESSAGES.default;
+  const { t, b } = lang === "tr" ? msg.tr : msg.en;
+  await notif.scheduleNotificationAsync({
+    content: {
+      title: t,
+      body: b,
+      sound: true,
+      data: { type: "reading_ready", serviceId },
+      ...(Platform.OS === "android" && { channelId: "tengri-reading" }),
+    },
+    trigger: {
+      type: notif.SchedulableTriggerInputTypes.TIME_INTERVAL,
+      seconds: 2,
+      repeats: false,
+    },
+  });
+}
+
+export async function flushPendingReadingNotification() {
+  if (!N || Platform.OS === "web") return;
+  try {
+    const raw = await AsyncStorage.getItem(PENDING_READING_NOTIF_KEY);
+    if (!raw) return;
+    await AsyncStorage.removeItem(PENDING_READING_NOTIF_KEY);
+    const { lang, serviceId } = JSON.parse(raw) as { lang: "tr" | "en"; serviceId: string };
+    await _fireReadingNotification(N, lang, serviceId);
+  } catch (e) {
+    console.warn("[notifications] flushPendingReadingNotification error:", e);
   }
 }
 
