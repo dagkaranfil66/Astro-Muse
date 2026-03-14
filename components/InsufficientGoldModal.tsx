@@ -133,8 +133,7 @@ export default function InsufficientGoldModal({
               {/* All Packages Button */}
               <PremiumGoldButton
                 onPress={handlePackagePress}
-                label={lang === "tr" ? "Altın Paketi Al" : "Get Gold Package"}
-                hint={lang === "tr" ? "49,99₺'den başlayan paketler" : "Packages starting from ₺49.99"}
+                label={lang === "tr" ? "Altın tükendi — Satın Al" : "Out of Gold — Buy Now"}
               />
             </LinearGradient>
           </Pressable>
