@@ -30,11 +30,9 @@ import Animated, {
   ZoomIn,
   Easing,
 } from "react-native-reanimated";
-import Svg, { Circle, Line, Path } from "react-native-svg";
 import { Colors } from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
-import { SERVICE_GOLD_COST } from "@/constants/serviceConfig";
 import WelcomeBonusModal from "@/components/WelcomeBonusModal";
 
 const { width, height } = Dimensions.get("window");
@@ -402,54 +400,13 @@ const SERVICE_IMAGES: Record<string, any> = {
   ask:       require("@/assets/images/services/ask.png"),
 };
 
-const ALL_SERVICES = [
-  "kahve", "tarot", "ask", "burclar", "ruya",
-  "el", "numeroloji", "dogum", "astroloji", "ruh", "samanizm",
+// Ordered 7 services shown on home (doğum+el are inside astroloji-select)
+const HOME_SERVICES_ORDERED = [
+  "kahve", "tarot", "astroloji", "numeroloji", "ruya", "ask", "samanizm",
 ];
-const POPULAR_SERVICE  = "kahve";
+const POPULAR_SERVICE = "kahve";
 
 const ANIM_TYPES = ["rotate", "pulse", "bounce", "flip", "slide", "spin", "glow", "rotate", "pulse", "bounce", "flip"];
-
-function MysticalWheelIcon({ size = 22, active = false }: { size?: number; active?: boolean }) {
-  const R = size / 2;
-  const outerR = R - 0.8;
-  const innerR = R * 0.28;
-  const midR = R * 0.65;
-  const gold = active ? "#C9A84C" : "#6A5A3A";
-  const goldFaint = active ? "#C9A84C50" : "#6A5A3A40";
-
-  const spokes = Array.from({ length: 8 }, (_, i) => {
-    const a = (i * Math.PI) / 4;
-    return {
-      x1: R + innerR * Math.cos(a), y1: R + innerR * Math.sin(a),
-      x2: R + outerR * Math.cos(a), y2: R + outerR * Math.sin(a),
-    };
-  });
-
-  const diamonds = Array.from({ length: 8 }, (_, i) => {
-    const a = (i * Math.PI) / 4 + Math.PI / 8;
-    const cx = R + midR * Math.cos(a);
-    const cy = R + midR * Math.sin(a);
-    const s = size * 0.055;
-    return `M ${cx} ${cy - s} L ${cx + s} ${cy} L ${cx} ${cy + s} L ${cx - s} ${cy} Z`;
-  });
-
-  return (
-    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <Circle cx={R} cy={R} r={outerR} fill="none" stroke={gold} strokeWidth={0.8} opacity={0.8} />
-      <Circle cx={R} cy={R} r={innerR + 1} fill={goldFaint} stroke={gold} strokeWidth={0.7} />
-      {spokes.map((l, i) => (
-        <Line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2}
-          stroke={gold} strokeWidth={i % 2 === 0 ? 1.3 : 0.7} opacity={i % 2 === 0 ? 1 : 0.5} />
-      ))}
-      {diamonds.map((d, i) => (
-        <Path key={i} d={d} fill={gold} opacity={0.85} />
-      ))}
-      <Circle cx={R} cy={R} r={1.6} fill={gold} />
-    </Svg>
-  );
-}
-
 
 function ServiceCard({ serviceId, index, label, desc, onPress }: {
   serviceId: string; index: number; label: string; desc: string; onPress: () => void;
@@ -533,14 +490,8 @@ function ServiceCard({ serviceId, index, label, desc, onPress }: {
             <View style={styles.cardContent}>
               <Text style={styles.cardTitle}>{label}</Text>
               <Text style={styles.cardDesc} numberOfLines={2}>{desc}</Text>
-
             </View>
-            <View style={styles.cardRight}>
-              <View style={[styles.goldBadge, { borderColor: color + "40", backgroundColor: color + "15" }]}>
-                <Text style={[styles.goldBadgeText, { color }]}>{SERVICE_GOLD_COST[serviceId] ?? 2}✦</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={15} color={Colors.textDim} />
-            </View>
+            <Ionicons name="chevron-forward" size={16} color={color + "80"} />
           </LinearGradient>
         </Animated.View>
       </Pressable>
@@ -708,66 +659,9 @@ function DailyHoroscopeCard() {
               </Text>
             </View>
           </View>
-          <View style={[styles.dailyBadge, { borderColor: color + "40", backgroundColor: color + "15" }]}>
-            <Text style={[styles.dailyBadgeText, { color }]}>3✦</Text>
-          </View>
+          <Ionicons name="chevron-forward" size={16} color={color + "80"} />
         </LinearGradient>
       </Pressable>
-    </Animated.View>
-  );
-}
-
-// ────────── Categories ──────────
-const CATEGORIES = [
-  { id: "tumu",      label: "Tümü",      emoji: "✦",  labelEn: "All"      },
-  { id: "fal",       label: "Analiz",    emoji: "☕",  labelEn: "Analysis" },
-  { id: "tarot",     label: "Tarot",     emoji: "🔮", labelEn: "Tarot"    },
-  { id: "astroloji", label: "Astroloji", emoji: "🌙", labelEn: "Astrology" },
-  { id: "enerji",    label: "Enerji",    emoji: "✨",  labelEn: "Energy"   },
-  { id: "ask",       label: "Uyum",      emoji: "💖", labelEn: "Love"     },
-] as const;
-
-type CategoryId = typeof CATEGORIES[number]["id"];
-
-const CATEGORY_SERVICES: Record<CategoryId, string[]> = {
-  tumu:      ["kahve", "tarot", "ask", "burclar", "ruya", "el", "numeroloji", "dogum", "astroloji", "ruh", "samanizm"],
-  fal:       ["kahve", "el"],
-  tarot:     ["tarot", "ruh"],
-  astroloji: ["astroloji", "burclar", "dogum"],
-  enerji:    ["samanizm", "numeroloji", "ruya"],
-  ask:       ["ask"],
-};
-
-// ────────── Category Slider ──────────
-function CategorySlider({ selected, onSelect, lang }: {
-  selected: CategoryId;
-  onSelect: (id: CategoryId) => void;
-  lang: string;
-}) {
-  return (
-    <Animated.View entering={FadeInDown.delay(310).springify()}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.catSliderContent}
-        style={styles.catSlider}
-      >
-        {CATEGORIES.map((cat) => {
-          const active = selected === cat.id;
-          return (
-            <Pressable
-              key={cat.id}
-              onPress={() => onSelect(cat.id)}
-              style={[styles.catChip, active && styles.catChipActive]}
-            >
-              <Text style={styles.catChipEmoji}>{cat.emoji}</Text>
-              <Text style={[styles.catChipLabel, active && styles.catChipLabelActive]}>
-                {lang === "tr" ? cat.label : cat.labelEn}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
     </Animated.View>
   );
 }
@@ -825,14 +719,43 @@ function SpinCountdownBtn() {
   );
 }
 
+// ────────── AI Identity Banner ──────────
+function AIIdentityBanner({ lang }: { lang: string }) {
+  const pulse = useSharedValue(0.7);
+  React.useEffect(() => {
+    pulse.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 2200, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0.7, { duration: 2200, easing: Easing.inOut(Easing.sin) }),
+      ), -1, false
+    );
+  }, []);
+  const glowStyle = useAnimatedStyle(() => ({ opacity: pulse.value }));
+
+  return (
+    <Animated.View entering={FadeInDown.delay(170).springify()} style={styles.aiBanner}>
+      <Animated.View style={[styles.aiBannerGlow, glowStyle]} />
+      <View style={styles.aiBannerRow}>
+        <Ionicons name="sparkles" size={16} color="#00C8FF" />
+        <Text style={styles.aiBannerTitle}>
+          {lang === "tr" ? "✨ AI Destekli Mistik Analiz" : "✨ AI-Powered Mystic Analysis"}
+        </Text>
+      </View>
+      <Text style={styles.aiBannerDesc}>
+        {lang === "tr"
+          ? "Yapay zeka sana özel mistik yorumlar üretir."
+          : "AI generates personalized mystic insights just for you."}
+      </Text>
+    </Animated.View>
+  );
+}
+
 // ────────── Main Screen ──────────
 export default function HomeScreen() {
-  console.log('HOME_SCREEN_RENDER');
   const insets = useSafeAreaInsets();
-  const { goldBalance, userProfile, canSpin, showWelcomeBonus, dismissWelcomeBonus } = useApp();
+  const { userProfile, canSpin, showWelcomeBonus, dismissWelcomeBonus } = useApp();
   const { lang, t, toggleLang } = useLang();
   const scrollY = useSharedValue(0);
-  const [selectedCategory, setSelectedCategory] = useState<CategoryId>("tumu");
 
   const scrollHandler = useAnimatedScrollHandler((e) => { scrollY.value = e.contentOffset.y; });
   const headerFade = useAnimatedStyle(() => ({
@@ -855,10 +778,12 @@ export default function HomeScreen() {
       router.push("/love-compat" as any);
       return;
     }
+    if (serviceId === "astroloji") {
+      router.push("/astroloji-select" as any);
+      return;
+    }
     router.push(`/reading/${serviceId}`);
   };
-
-  const filteredServices = CATEGORY_SERVICES[selectedCategory];
 
   return (
     <View style={styles.container}>
@@ -879,10 +804,6 @@ export default function HomeScreen() {
           </Text>
         </Pressable>
         <SpinCountdownBtn />
-        <Pressable onPress={() => {}} style={styles.aiBadge}>
-          <Ionicons name="sparkles" size={11} color="#00C8FF" />
-          <Text style={styles.aiBadgeText}>{lang === "tr" ? "AI Destekli" : "AI Powered"}</Text>
-        </Pressable>
         <Pressable onPress={toggleLang} style={styles.langToggle}>
           <Text style={[styles.langOpt, lang === "tr" && styles.langActive]}>TR</Text>
           <Text style={styles.langSep}>|</Text>
@@ -909,60 +830,27 @@ export default function HomeScreen() {
           </Animated.Text>
         </Animated.View>
 
-        {/* AI Identity Strip */}
-        <Animated.View entering={FadeInDown.delay(160).springify()} style={styles.aiStrip}>
-          <Ionicons name="sparkles" size={12} color="#00C8FF" />
+        {/* AI Identity Banner */}
+        <AIIdentityBanner lang={lang} />
+
+        {/* AI Disclaimer Strip */}
+        <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.aiStrip}>
+          <Ionicons name="information-circle-outline" size={12} color="#00C8FF" />
           <Text style={styles.aiStripText}>
             {lang === "tr"
-              ? "Bu uygulamadaki yorumlar seçtiğiniz analiz türüne ve sağladığınız bilgilere göre yapay zeka tarafından oluşturulur"
-              : "Readings in this app are generated by AI based on your selected analysis type and the information you provide"}
+              ? "Tüm analizler yapay zeka tarafından, seçilen analiz türü ve sağlanan bilgilere göre kişisel olarak oluşturulur."
+              : "All analyses are personally generated by AI based on the selected type and provided information."}
           </Text>
         </Animated.View>
-
-        {/* Gold Balance Bar */}
-        <Animated.View entering={FadeInDown.delay(200).springify()}>
-          <Pressable onPress={() => router.push("/purchase")} style={styles.trialsBar}>
-            <LinearGradient colors={["#241800", "#1A1205", "#0E0C20"]} style={styles.trialsBarInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              <View style={styles.goldCoinIcon}>
-                <Text style={{ fontSize: 14, color: "#1A0A00" }}>✦</Text>
-              </View>
-              <Text style={styles.trialsText}>
-                {goldBalance > 0
-                  ? (lang === "tr" ? "Altın Bakiyeniz" : "Gold Balance")
-                  : (lang === "tr" ? "Altın tükendi — Satın alın" : "Gold depleted — Buy more")}
-              </Text>
-              {goldBalance > 0 && <Text style={styles.trialsGoldCount}>{goldBalance} ✦</Text>}
-              <Ionicons name="chevron-forward" size={14} color={Colors.gold} />
-            </LinearGradient>
-          </Pressable>
-        </Animated.View>
-
-        {/* Purchase CTA when gold low */}
-        {goldBalance < 2 && (
-          <Animated.View entering={FadeInDown.delay(250)}>
-            <Pressable onPress={() => router.push("/purchase")} style={styles.purchaseCta}>
-              <LinearGradient colors={["#8B5CF6", "#6B4FBB"]} style={styles.purchaseCtaInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                <Text style={{ fontSize: 16 }}>✦</Text>
-                <Text style={styles.purchaseCtaText}>{lang === "tr" ? "Altın Satın Al — 49,99 ₺'den başlar" : "Buy Gold — from ₺49.99"}</Text>
-              </LinearGradient>
-            </Pressable>
-          </Animated.View>
-        )}
-
-        <CategorySlider
-          selected={selectedCategory}
-          onSelect={setSelectedCategory}
-          lang={lang}
-        />
 
         <DailyFreeCard />
         <DailyHoroscopeCard />
 
         <Animated.Text entering={FadeInDown.delay(360)} style={styles.sectionTitle}>
-          {t.services}
+          {lang === "tr" ? "ANALİZ KATEGORİLERİ" : "ANALYSIS CATEGORIES"}
         </Animated.Text>
 
-        {filteredServices.map((id, index) => (
+        {HOME_SERVICES_ORDERED.map((id, index) => (
           <ServiceCard
             key={id}
             serviceId={id}
@@ -1107,24 +995,56 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     marginTop: 0,
   },
-  aiStrip: {
+  aiBanner: {
+    marginBottom: 14,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: "rgba(0,200,255,0.30)",
+    backgroundColor: "rgba(0,200,255,0.07)",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    overflow: "hidden",
+  },
+  aiBannerGlow: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderRadius: 16,
+    backgroundColor: "rgba(0,200,255,0.04)",
+  },
+  aiBannerRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    gap: 8,
+    marginBottom: 5,
+  },
+  aiBannerTitle: {
+    fontSize: 14,
+    fontFamily: "Lora_700Bold",
+    color: "#00C8FF",
+    letterSpacing: 0.4,
+  },
+  aiBannerDesc: {
+    fontSize: 12,
+    fontFamily: "Lora_400Regular_Italic",
+    color: "rgba(0,200,255,0.75)",
+    lineHeight: 18,
+  },
+  aiStrip: {
+    flexDirection: "row",
+    alignItems: "flex-start",
     gap: 6,
-    backgroundColor: "rgba(0,200,255,0.06)",
+    backgroundColor: "rgba(0,200,255,0.04)",
     borderWidth: 1,
-    borderColor: "rgba(0,200,255,0.18)",
+    borderColor: "rgba(0,200,255,0.12)",
     borderRadius: 10,
-    paddingVertical: 7,
+    paddingVertical: 8,
     paddingHorizontal: 12,
     marginBottom: 12,
   },
   aiStripText: {
     fontSize: 10,
-    color: "rgba(0,200,255,0.80)",
+    color: "rgba(0,200,255,0.65)",
     fontFamily: "Lora_400Regular_Italic",
-    textAlign: "center",
     flex: 1,
     lineHeight: 15,
   },

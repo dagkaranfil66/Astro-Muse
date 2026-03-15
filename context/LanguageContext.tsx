@@ -30,7 +30,7 @@ const translations = {
     buyPackage: 'Paket satın al',
     connectionError: 'Bağlantı hatası oluştu. Lütfen tekrar deneyin.',
     services_list: {
-      astroloji: { label: 'Astroloji Analizi', desc: 'Gezegen konumlarına göre kişisel mistik yorum oluşturur' },
+      astroloji: { label: 'Astroloji Analizi', desc: 'Doğum haritası, el çizgisi ve gezegen yorumları — 3 analiz bir arada' },
       kahve: { label: 'AI Kahve Analizi', desc: 'Fincanınızdaki sembolleri yapay zeka yorumlar' },
       el: { label: 'El Çizgisi Analizi', desc: 'El çizgilerinizdeki sembolleri AI ile keşfedin' },
       tarot: { label: 'AI Tarot Analizi', desc: 'Kart enerjilerini analiz ederek kişisel içgörüler üretir' },
@@ -84,7 +84,7 @@ const translations = {
     buyPackage: 'Buy package',
     connectionError: 'Connection error. Please try again.',
     services_list: {
-      astroloji: { label: 'Astrology Analysis', desc: 'AI generates personalized insights based on planetary positions' },
+      astroloji: { label: 'Astrology Analysis', desc: 'Birth chart, palm lines & planetary readings — 3 analyses in one' },
       kahve: { label: 'AI Coffee Analysis', desc: 'Artificial intelligence interprets the symbols in your cup' },
       el: { label: 'Palm Line Analysis', desc: 'Discover the symbols in your palm lines with AI' },
       tarot: { label: 'AI Tarot Analysis', desc: 'Analyzes card energies to generate personal insights' },

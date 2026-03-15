@@ -1,0 +1,113 @@
+Tengri Astroloji uygulamasının ana ekranını App Store Guideline 4.3(b) - Design - Spam riskini azaltacak şekilde yeniden düzenle.
+
+AMAÇ:
+Ana ekran klasik bir “fal uygulaması” gibi değil, “AI destekli kişisel mistik analiz uygulaması” gibi görünmeli.
+
+ÇOK ÖNEMLİ KURALLAR:
+- Ana ekranda “fal” kelimesi kullanılmasın
+- Ana ekranda altın / coin / fiyat / satın alma vurgusu görünmesin
+- İlk bakışta uygulamanın AI ile kişisel analiz ürettiği net anlaşılsın
+- Premium / mistik tasarım dili korunsun
+
+YAPILACAKLAR:
+
+1) ANA EKRAN ÜST ALANI
+Ana ekranın en üstüne güçlü ama sade bir başlık alanı ekle.
+
+Başlık:
+“✨ AI Destekli Mistik Analiz”
+
+Alt açıklama:
+“Yapay zeka sana özel mistik yorumlar üretir.”
+
+Bu alan premium görünmeli, ama çok büyük ve karmaşık olmamalı.
+Amaç: kullanıcı ve App Review ekibi uygulamanın AI tabanlı bir analiz deneyimi sunduğunu ilk saniyede anlamalı.
+
+2) ANA KATEGORİ LİSTESİ
+Ana ekranda yalnızca şu 7 kategori görünsün ve sıralama tam olarak şu şekilde olsun:
+
+1. AI Kahve Analizi
+Açıklama: “Kupandaki sembolleri yapay zeka yorumlar.”
+
+2. AI Tarot Analizi
+Açıklama: “Kart enerjilerini analiz ederek içgörüler üretir.”
+
+3. Astroloji Analizi
+Açıklama: “Gezegen konumlarına göre kişisel yorumlar oluşturur.”
+
+4. Numeroloji Analizi
+Açıklama: “Sayı enerjilerine göre kişisel analiz üretir.”
+
+5. Rüya Analizi
+Açıklama: “Rüyandaki sembolleri keşfet ve yorumla.”
+
+6. Uyum Analizi
+Açıklama: “Aşk ve ilişki uyumunu analiz et.”
+
+7. Şamanik Rehberlik
+Açıklama: “Kadim şaman bilgeliği ile içgörüler keşfet.”
+
+3) KATEGORİ KART TASARIMI
+- Kartlar premium ve temiz görünsün
+- Başlıklar net ve kısa olsun
+- Açıklamalar tek satır veya kısa iki satır olsun
+- Görsel hiyerarşi önce kategori adı, sonra açıklama şeklinde olsun
+- Her kart kolay tıklanabilir olsun
+- Mevcut mistik / mor / premium stil korunabilir
+
+4) “EN POPÜLER” ETİKETİ
+Sadece “AI Kahve Analizi” kartında küçük bir etiket göster:
+
+“⭐ En Popüler”
+
+Bu etiket sade ve premium dursun, abartılı görünmesin.
+
+5) ANA EKRANDAN KALDIRILACAKLAR
+Ana ekranda şunlar görünmemeli:
+- Altın bakiyesi
+- “Altın Satın Al”
+- fiyat bilgisi
+- 49,99₺ gibi paket fiyatları
+- altın tükendi uyarısı
+- kategori kartlarının üzerinde belirgin coin maliyeti
+
+Amaç:
+Ana ekran ilk bakışta monetization değil, deneyim ve analiz odaklı görünsün.
+
+6) ALTIN SİSTEMİ
+Altın sistemi ana ekrandan kaldırılıp Profil ekranına taşınmalı.
+Ana ekranda altın / coin ile ilgili agresif CTA olmasın.
+
+7) ASTROLOJİ KATEGORİSİ İÇİ
+Aşağıdaki iki özellik artık ayrı kart olmasın:
+- Doğum Haritası Analizi
+- El Çizgisi Analizi
+
+Bunlar “Astroloji Analizi” kategorisinin içine alt özellik / alt seçenek olarak taşınsın.
+
+Yani ana ekranda ayrı kategori olarak görünmesinler.
+
+8) ALT NAVİGASYON
+Alt menü sade ve temiz kalsın.
+Önerilen sekmeler:
+- Keşfet
+- Geçmiş
+- Profil
+
+9) GENEL KONUMLANDIRMA
+Ana ekranın tamamı şu hissi vermeli:
+“AI destekli kişisel mistik analiz platformu”
+
+Şu hissi vermemeli:
+“Coin ile çalışan klasik fal uygulaması”
+
+10) SON HEDEF
+App Review ekibi ana ekranı açtığında şunu net görmeli:
+- AI vurgusu var
+- kişisel analiz var
+- kategori yapısı düzenli
+- monetization ilk planda değil
+- uygulama sıradan template fal uygulaması gibi görünmüyor
+
+Lütfen mevcut tasarımı tamamen bozma.
+Mevcut premium görünümü koru ama metinleri, sıralamayı ve görsel önceliği bu yeni yapıya göre düzenle.
