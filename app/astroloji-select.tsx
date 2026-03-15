@@ -11,7 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { Image } from "react-native";
+import { Image, Platform } from "react-native";
 import { Colors } from "@/constants/colors";
 import { useLang } from "@/context/LanguageContext";
 
@@ -66,7 +66,7 @@ export default function AstrolojiSelectScreen() {
         style={StyleSheet.absoluteFill}
       />
 
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+      <View style={[styles.header, { paddingTop: (Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top) + 8 }]}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={22} color={Colors.gold} />
         </Pressable>
@@ -82,7 +82,7 @@ export default function AstrolojiSelectScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]}
+        contentContainerStyle={[styles.scroll, { paddingBottom: (Platform.OS === "web" ? Math.max(insets.bottom, 34) : insets.bottom) + 40 }]}
         showsVerticalScrollIndicator={false}
       >
         <Animated.View entering={FadeInDown.delay(60).springify()} style={styles.descBox}>
