@@ -43,7 +43,7 @@ export default function TermsScreen() {
         </Section>
 
         <Section title="2. Hizmet Tanımı">
-          Tengri; kahve falı, tarot, astroloji, numeroloji, rüya yorumu ve diğer mistik okuma hizmetlerini yapay zekâ teknolojisi aracılığıyla sunan bir eğlence uygulamasıdır.
+          Tengri; kahve analizi, tarot, astroloji, numeroloji, rüya yorumu ve diğer mistik analiz hizmetlerini yapay zekâ teknolojisi aracılığıyla sunan bir eğlence uygulamasıdır.
         </Section>
 
         <Section title="3. Eğlence Amaçlı Kullanım">

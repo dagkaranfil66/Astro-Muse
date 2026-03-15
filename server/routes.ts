@@ -668,8 +668,8 @@ Return ONLY valid JSON, no markdown, no explanation:
             : "The image is too dark. Please try again in better lighting.";
         } else {
           reason = isTR
-            ? "Kahve falı için telvenin göründüğü, yukarıdan çekilmiş net bir fincan fotoğrafı gerekli."
-            : "A clear top-down photo of the cup interior with coffee grounds is required for a reading.";
+            ? "Kahve analizi için telvenin göründüğü, yukarıdan çekilmiş net bir fincan fotoğrafı gerekli."
+            : "A clear top-down photo of the cup interior with coffee grounds is required for the analysis.";
         }
       }
 
@@ -791,8 +791,8 @@ Return ONLY valid JSON, no markdown, no explanation:
             : "Your hand is too small in the frame. Fill most of the frame with your palm.";
         } else {
           reason = isTR
-            ? "El falı için yalnızca avuç içini gösteren bir fotoğraf kullanılabilir."
-            : "Only a photo showing your palm can be used for a palm reading.";
+            ? "El çizgisi analizi için yalnızca avuç içini gösteren bir fotoğraf kullanılabilir."
+            : "Only a photo showing your palm can be used for the palm line analysis.";
         }
       }
 

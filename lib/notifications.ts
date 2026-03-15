@@ -15,9 +15,9 @@ if (Platform.OS !== "web") {
 async function ensureChannels() {
   if (!N || Platform.OS !== "android") return;
   const channels = [
-    { id: "tengri-daily",   name: "Günlük Fallar",        importance: N.AndroidImportance.HIGH },
+    { id: "tengri-daily",   name: "Günlük Analizler",      importance: N.AndroidImportance.HIGH },
     { id: "tengri-spin",    name: "Çark Hatırlatıcısı",   importance: N.AndroidImportance.HIGH },
-    { id: "tengri-reading", name: "Fal Sonucu",           importance: N.AndroidImportance.MAX  },
+    { id: "tengri-reading", name: "Analiz Sonucu",         importance: N.AndroidImportance.MAX  },
     { id: "tengri-love",    name: "Aşk Uyumu",            importance: N.AndroidImportance.HIGH },
     { id: "tengri-engage",  name: "Geri Dönüş",           importance: N.AndroidImportance.DEFAULT },
   ];
@@ -70,7 +70,7 @@ export async function getExpoPushToken(): Promise<string | null> {
 // ─── Rotating coffee messages ───────────────────────────────────────────────────
 const COFFEE_TR = [
   { title: "☕ Fincanda kalp görünüyor…",    body: "Bugünün gizemi içinde — açmak ister misin?" },
-  { title: "☕ Fincan sana bir şey söylüyor…", body: "Sabah falı hazır. Merakını yener misin?" },
+  { title: "☕ Fincan sana bir şey söylüyor…", body: "Sabah analizi hazır. Merakını yener misin?" },
   { title: "☕ Bugün özel bir işaret var",     body: "Fincandaki semboller seni bekliyor." },
   { title: "☕ Kahve soğumadan bak…",          body: "İçindeki sır bir an önce okunmayı bekliyor." },
 ];

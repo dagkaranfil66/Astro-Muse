@@ -1,0 +1,120 @@
+Tengri Astroloji uygulamasını App Store Guideline 4.3(b) - Design - Spam reddini aşacak şekilde güncelle.
+
+ÇOK ÖNEMLİ:
+Uygulamada “fal” kelimesi tamamen kaldırılmalı. Hiçbir ekranda, kart başlığında veya açıklamada “fal” kelimesi kullanılmamalı.
+
+Uygulama klasik bir fal uygulaması gibi değil, “AI destekli kişisel mistik analiz uygulaması” gibi görünmeli.
+
+GENEL STRATEJİ
+- Fal kelimesini tamamen kaldır
+- AI, analiz, yorum, içgörü dilini güçlendir
+- Coin ve satın alma vurgusunu ilk ekranda azalt
+- Uygulamanın AI ile kişisel yorum ürettiği net görünsün
+
+1) ANA BAŞLIK
+
+Ana ekranda güçlü bir AI konumlandırması olsun.
+
+Başlık önerisi:
+AI Destekli Mistik Analiz
+
+Alt metin:
+Yapay zeka sana özel mistik yorumlar üretir.
+
+veya
+
+AI Kişisel Rehber
+Kişisel verilerine göre analizler oluşturur.
+
+2) KATEGORİ İSİMLERİNİ GÜNCELLE
+
+Tüm kategori isimleri analiz dili kullanmalı.
+
+Eski → Yeni
+
+Kahve Falı → AI Kahve Analizi  
+Tarot → AI Tarot Analizi  
+Burçlar → Astroloji Analizi  
+Numeroloji → Numeroloji Analizi  
+El Falı → El Çizgisi Analizi  
+Rüya Yorumu → Rüya Analizi  
+Ruh Okuma → Enerji Analizi  
+Aşk Uyumu → Uyum Analizi  
+Doğum Haritası → Doğum Haritası Analizi  
+
+ÖNEMLİ:
+Uygulamada hiçbir yerde “fal” kelimesi kullanılmamalı.
+
+3) KART AÇIKLAMALARINI GÜNCELLE
+
+AI Kahve Analizi
+Kupandaki sembolleri yapay zeka yorumlar.
+
+AI Tarot Analizi
+Kart enerjilerini analiz ederek içgörüler üret.
+
+Astroloji Analizi
+Gezegen konumlarına göre kişisel yorum oluştur.
+
+Numeroloji Analizi
+Sayı enerjilerine göre kişisel analiz üret.
+
+El Çizgisi Analizi
+El çizgilerindeki sembolleri yorumla.
+
+Rüya Analizi
+Rüyandaki sembolleri keşfet.
+
+Enerji Analizi
+Günlük ruhsal enerjini analiz et.
+
+Uyum Analizi
+İki kişi arasındaki enerji uyumunu keşfet.
+
+Doğum Haritası Analizi
+Gezegen konumlarına göre kişisel analiz oluştur.
+
+4) AI AÇIKLAMASI EKLE
+
+Uygulamada görünür bir yerde şu tarz açıklama olsun:
+
+“Bu uygulamadaki yorumlar seçtiğiniz analiz türüne ve sağladığınız bilgilere göre yapay zeka tarafından oluşturulur.”
+
+5) ANALİZ SONUCU EKRANI
+
+Sonuç ekranında küçük bir bilgi metni olsun:
+
+“Bu yorum yapay zeka tarafından oluşturulmuştur ve kişisel keşif amaçlıdır.”
+
+6) COIN GÖRÜNÜRLÜĞÜNÜ AZALT
+
+Kategori listelerinde görünen altın / coin göstergeleri (6 ✦ gibi) daha küçük veya daha az dikkat çekici hale getir.
+
+İlk bakışta coin tabanlı bir uygulama gibi görünmemeli.
+
+7) SATIN ALMA METİNLERİ
+
+Ana ekranda agresif satın alma çağrıları olmasın.
+
+Öncelik sırası:
+
+1 AI analiz
+2 analiz kategorileri
+3 kullanıcı etkileşimi
+4 coin / satın alma
+
+8) TASARIM RUHU
+
+Mevcut mistik / premium tasarım korunmalı.
+
+Ancak metin dili şu kimliği vermeli:
+
+“AI destekli kişisel mistik analiz platformu”
+
+Fal uygulaması hissi tamamen kaldırılmalı.
+
+HEDEF:
+
+Reviewer uygulamayı açtığında şunu görmeli:
+
+AI kişisel analiz uygulaması

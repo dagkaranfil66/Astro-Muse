@@ -41,7 +41,7 @@ export function FreeCoffeeHighlight({ onPress, lang = 'tr' }: Props) {
 
         <View style={styles.content}>
           <Text style={styles.title}>
-            {lang === 'tr' ? 'İlk Kahve Falın Ücretsiz!' : 'Your First Coffee Reading is Free!'}
+            {lang === 'tr' ? 'İlk Kahve Analizin Ücretsiz!' : 'Your First Coffee Analysis is Free!'}
           </Text>
           <Text style={styles.sub}>
             {lang === 'tr' ? 'Bir kerelik • Altın harcamadan dene' : 'One time • No gold needed'}

@@ -25,7 +25,7 @@ const PRIVACY_SECTIONS = [
       "Ad ve E-posta adresi — Hesap oluşturma ve iletişim için",
       "Uygulama kullanım verileri — Hizmet kullanımı, okuma geçmişi",
       "Satın alma bilgileri — RevenueCat aracılığıyla in-app satın alma kayıtları (kart bilgileri tarafımızda saklanmaz)",
-      "Yüklenen görseller — Kahve falı veya el falı için gönderilen fotoğraflar (yalnızca analiz için kullanılır, saklanmaz)",
+      "Yüklenen görseller — Kahve analizi veya el çizgisi analizi için gönderilen fotoğraflar (yalnızca analiz için kullanılır, saklanmaz)",
     ],
   },
   {
@@ -83,7 +83,7 @@ const TERMS_SECTIONS = [
   },
   {
     title: "Hizmet Tanımı",
-    body: "Tengri, yapay zeka destekli mistik rehberlik hizmetleri sunan bir mobil uygulamadır. Kahve falı, tarot, astroloji, rüya yorumu ve diğer hizmetler eğlence ve kişisel yansıma amaçlıdır; bilimsel veya kehanet niteliği taşımaz.",
+    body: "Tengri, yapay zeka destekli mistik rehberlik hizmetleri sunan bir mobil uygulamadır. Kahve analizi, tarot, astroloji, rüya yorumu ve diğer hizmetler eğlence ve kişisel yansıma amaçlıdır; bilimsel veya kehanet niteliği taşımaz.",
   },
   {
     title: "Hesap ve Güvenlik",

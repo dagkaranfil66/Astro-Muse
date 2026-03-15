@@ -154,7 +154,7 @@ function KahveIntro({ color }: { color: string }) {
   return (
     <View style={styles.serviceIntro}>
       <ServiceHeroBanner serviceId="kahve" color={color} />
-      <Text style={styles.introServiceTitle}>{(t.services_list as any).kahve?.label ?? 'Kahve Falı'}</Text>
+      <Text style={styles.introServiceTitle}>{(t.services_list as any).kahve?.label ?? 'AI Kahve Analizi'}</Text>
       <Text style={styles.introDesc}>
         {lang === "tr"
           ? "Fincanınızın fotoğrafını yükleyin\nveya gördüğünüz sembolleri yazın."
@@ -191,7 +191,7 @@ function ElIntro({ color }: { color: string }) {
   return (
     <View style={styles.serviceIntro}>
       <ServiceHeroBanner serviceId="el" color={color} />
-      <Text style={styles.introServiceTitle}>{(t.services_list as any).el?.label ?? 'El Falı'}</Text>
+      <Text style={styles.introServiceTitle}>{(t.services_list as any).el?.label ?? 'El Çizgisi Analizi'}</Text>
       <Text style={styles.introDesc}>
         {lang === "tr"
           ? "Avucunuzun fotoğrafını yükleyin ya da çizgilerinizi anlatın. Kader haritanız okunacak."
@@ -501,16 +501,16 @@ function DefaultIntro({ serviceId, color, label, hint }: { serviceId: string; co
 // ────────── Share Panel ──────────
 // ── Service-specific share copy ───────────────────────────────────────────
 const SERVICE_SHARE_COPY: Record<string, { headerTR: string; btnTR: string; headerEN: string; btnEN: string }> = {
-  kahve:      { headerTR: "KAHVE FALINI PAYLAŞ",              btnTR: "Kahve Falımı Paylaş",          headerEN: "SHARE YOUR COFFEE READING",     btnEN: "Share My Coffee Reading" },
-  el:         { headerTR: "EL FALINI PAYLAŞ",                 btnTR: "El Falımı Paylaş",             headerEN: "SHARE YOUR PALM READING",       btnEN: "Share My Palm Reading" },
-  tarot:      { headerTR: "TAROTUNU PAYLAŞ",                  btnTR: "Tarotumu Paylaş",              headerEN: "SHARE YOUR TAROT",              btnEN: "Share My Tarot" },
+  kahve:      { headerTR: "KAHVE ANALİZİNİ PAYLAŞ",           btnTR: "Kahve Analizimi Paylaş",       headerEN: "SHARE YOUR COFFEE ANALYSIS",    btnEN: "Share My Coffee Analysis" },
+  el:         { headerTR: "EL ÇİZGİSİ ANALİZİNİ PAYLAŞ",    btnTR: "El Analizimi Paylaş",           headerEN: "SHARE YOUR PALM ANALYSIS",      btnEN: "Share My Palm Analysis" },
+  tarot:      { headerTR: "TAROT ANALİZİNİ PAYLAŞ",           btnTR: "Tarot Analizimi Paylaş",        headerEN: "SHARE YOUR TAROT ANALYSIS",     btnEN: "Share My Tarot Analysis" },
   samanizm:   { headerTR: "ŞAMANİZM REHBERLİĞİNİ PAYLAŞ",   btnTR: "Şamanizm Rehberliğimi Paylaş", headerEN: "SHARE YOUR SHAMANISM GUIDANCE", btnEN: "Share My Shamanism Guidance" },
-  numeroloji: { headerTR: "NUMEROLOJİNİ PAYLAŞ",             btnTR: "Numerolojimi Paylaş",          headerEN: "SHARE YOUR NUMEROLOGY",         btnEN: "Share My Numerology" },
-  ruya:       { headerTR: "RÜYA YORUMUNU PAYLAŞ",             btnTR: "Rüya Yorumumu Paylaş",         headerEN: "SHARE YOUR DREAM READING",      btnEN: "Share My Dream Reading" },
-  burclar:    { headerTR: "BURÇ YORUMUNU PAYLAŞ",             btnTR: "Burç Yorumumu Paylaş",         headerEN: "SHARE YOUR HOROSCOPE",          btnEN: "Share My Horoscope" },
-  ask:        { headerTR: "AŞK YORUMUNU PAYLAŞ",              btnTR: "Aşk Yorumumu Paylaş",          headerEN: "SHARE YOUR LOVE READING",       btnEN: "Share My Love Reading" },
+  numeroloji: { headerTR: "NUMEROLOJİ ANALİZİNİ PAYLAŞ",    btnTR: "Numeroloji Analizimi Paylaş",   headerEN: "SHARE YOUR NUMEROLOGY ANALYSIS", btnEN: "Share My Numerology Analysis" },
+  ruya:       { headerTR: "RÜYA ANALİZİNİ PAYLAŞ",           btnTR: "Rüya Analizimi Paylaş",         headerEN: "SHARE YOUR DREAM ANALYSIS",     btnEN: "Share My Dream Analysis" },
+  burclar:    { headerTR: "ASTROLOJİ ANALİZİNİ PAYLAŞ",      btnTR: "Astroloji Analizimi Paylaş",    headerEN: "SHARE YOUR ASTROLOGY ANALYSIS", btnEN: "Share My Astrology Analysis" },
+  ask:        { headerTR: "UYUM ANALİZİNİ PAYLAŞ",            btnTR: "Uyum Analizimi Paylaş",         headerEN: "SHARE YOUR COMPATIBILITY",      btnEN: "Share My Compatibility Analysis" },
 };
-const DEFAULT_SHARE_COPY = { headerTR: "YORUMUNU PAYLAŞ", btnTR: "Yorumumu Paylaş", headerEN: "SHARE YOUR READING", btnEN: "Share My Reading" };
+const DEFAULT_SHARE_COPY = { headerTR: "ANALİZİNİ PAYLAŞ", btnTR: "Analizimi Paylaş", headerEN: "SHARE YOUR ANALYSIS", btnEN: "Share My Analysis" };
 
 function SharePanel({ text, serviceLabel, readingId, service }: { text: string; serviceLabel: string; readingId: string | null; service: string }) {
   const { t, lang } = useLang();
@@ -966,7 +966,7 @@ export default function ReadingScreen() {
         if (!vData.valid) {
           setCoffeeValidationStatus("invalid");
           setCoffeeValidationReason(vData.reason ?? (lang === "tr"
-            ? "Bu görselde kahve falına uygun fincan içi tespit edemedik."
+            ? "Bu görselde kahve analizine uygun fincan içi tespit edemedik."
             : "We couldn't detect a valid coffee cup interior in this image."));
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           return;
@@ -1206,7 +1206,7 @@ export default function ReadingScreen() {
                 <View style={styles.freeCoffeeBanner}>
                   <Ionicons name="gift" size={14} color="#000" />
                   <Text style={styles.freeCoffeeBannerText}>
-                    {lang === "tr" ? "İlk kahve falın ücretsiz! ✦" : "Your first coffee reading is free! ✦"}
+                    {lang === "tr" ? "İlk kahve analizin ücretsiz! ✦" : "Your first coffee analysis is free! ✦"}
                   </Text>
                 </View>
               )}
@@ -1222,7 +1222,7 @@ export default function ReadingScreen() {
                 </View>
                 <View style={styles.cameraReadText}>
                   <Text style={[styles.cameraReadTitle, { color: base.color }]}>
-                    {lang === "tr" ? "Kameradan Fal Al" : "Camera Reading"}
+                    {lang === "tr" ? "Kamera ile Analiz Et" : "Analyze with Camera"}
                   </Text>
                   <Text style={styles.cameraReadSub}>
                     {lang === "tr"
@@ -1301,8 +1301,8 @@ export default function ReadingScreen() {
               </View>
               <Text style={styles.aiDisclosureBody}>
                 {lang === "tr"
-                  ? "Bu yorum sana özel olarak yapay zekâ tarafından üretilmiştir.\nYalnızca eğlence amaçlıdır."
-                  : "This interpretation is uniquely generated for you by AI.\nFor entertainment purposes only."}
+                  ? "Bu yorum yapay zeka tarafından oluşturulmuştur ve kişisel keşif amaçlıdır."
+                  : "This analysis is generated by AI and is intended for personal exploration purposes."}
               </Text>
             </Animated.View>
           )}
@@ -1851,12 +1851,12 @@ export default function ReadingScreen() {
             <LinearGradient colors={["#1a1220", "#0e0c1a"]} style={StyleSheet.absoluteFill} />
             <Text style={styles.freeCoffeeCardEmoji}>☕</Text>
             <Text style={styles.freeCoffeeCardTitle}>
-              {lang === "tr" ? "Kahve falını sevdin mi?" : "Enjoyed your reading?"}
+              {lang === "tr" ? "Kahve analizini sevdin mi?" : "Enjoyed your coffee analysis?"}
             </Text>
             <Text style={styles.freeCoffeeCardBody}>
               {lang === "tr"
-                ? "Daha fazla fal için altın al ya da aboneliğe geç — tüm hizmetlerin kilidini aç!"
-                : "Get more gold or go unlimited with a subscription — unlock all services!"}
+                ? "Daha fazla analiz için altın al ya da tüm hizmetlerin kilidini aç!"
+                : "Get more gold or unlock all analyses with a subscription!"}
             </Text>
             <Pressable
               onPress={() => { setShowFreeCoffeeConversion(false); router.push("/purchase"); }}

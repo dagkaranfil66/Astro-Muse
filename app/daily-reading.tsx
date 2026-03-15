@@ -78,8 +78,8 @@ const SERVICE_META: Record<string, {
   ruya:       { icon: "cloud-outline",     color: "#5B9BD5", gradient: ["#051020", "#070D1A"], labelTR: "Rüya Yorumu",  labelEN: "Dream Reading" },
   numeroloji: { icon: "star-outline",      color: "#E74C8B", gradient: ["#1A0510", "#070D1A"], labelTR: "Numeroloji",   labelEN: "Numerology" },
   ask:        { icon: "heart-outline",     color: "#FF4757", gradient: ["#1A0508", "#070D1A"], labelTR: "Aşkını Bul",   labelEN: "Love Reading" },
-  kahve:      { icon: "cafe-outline",      color: "#C8843A", gradient: ["#1A0A05", "#070D1A"], labelTR: "Kahve Falı",   labelEN: "Coffee Reading", needsPhoto: true, maxPhotos: 3 },
-  el:         { icon: "hand-left-outline", color: "#A07EE0", gradient: ["#100A20", "#070D1A"], labelTR: "El Falı",      labelEN: "Palm Reading",   needsPhoto: true, maxPhotos: 1 },
+  kahve:      { icon: "cafe-outline",      color: "#C8843A", gradient: ["#1A0A05", "#070D1A"], labelTR: "AI Kahve Analizi",      labelEN: "AI Coffee Analysis", needsPhoto: true, maxPhotos: 3 },
+  el:         { icon: "hand-left-outline", color: "#A07EE0", gradient: ["#100A20", "#070D1A"], labelTR: "El Çizgisi Analizi",    labelEN: "Palm Line Analysis",  needsPhoto: true, maxPhotos: 1 },
 };
 
 const TEASER_CHARS = 260;

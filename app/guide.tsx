@@ -32,7 +32,7 @@ const GUIDE_SECTIONS = [
   },
   {
     icon: "☕",
-    title: "Kahve Falı — Fotoğraf ile",
+    title: "AI Kahve Analizi — Fotoğraf ile",
     body: "Fincanınızın fotoğrafını çekin ya da galerinizden yükleyin. Tengri, fincan sembollerini analiz ederek size özel bir yorum sunar.",
     items: [
       "Fincanı beyaz arka plan üzerinde, iyi ışıkta fotoğraflayın",
@@ -43,7 +43,7 @@ const GUIDE_SECTIONS = [
   },
   {
     icon: "✋",
-    title: "El Falı — Avuç İçi Okuma",
+    title: "El Çizgisi Analizi — Avuç İçi Okuma",
     body: "Avuç içinizin fotoğrafını yükleyin. Kader, yaşam ve kalp çizgileriniz analiz edilir.",
     items: [
       "Avucunuzu düz tutun, parmakları hafifçe açın",

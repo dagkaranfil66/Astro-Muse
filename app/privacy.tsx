@@ -46,7 +46,7 @@ export default function PrivacyScreen() {
           Uygulama aşağıdaki verileri toplayabilir:{"\n\n"}
           • Hesap oluşturma sırasında sağladığınız ad, e-posta adresi{"\n"}
           • Uygulama içi okuma geçmişiniz ve tercihleriniz{"\n"}
-          • Yüklediğiniz fotoğraflar (kahve fincanı, el falı vb.){"\n"}
+          • Yüklediğiniz fotoğraflar (kahve fincanı, el çizgisi analizi vb.){"\n"}
           • Cihaz bilgileri ve uygulama kullanım istatistikleri{"\n"}
           • Satın alma işlemleri (RevenueCat aracılığıyla)
         </Section>

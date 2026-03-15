@@ -131,7 +131,7 @@ export default function WelcomeBonusModal({ visible, onDismiss }: Props) {
               <Text style={s.title}>Başlangıç Hediyeni Aldın!</Text>
               <Text style={s.desc}>
                 Tengri sana 15 altın hediye etti.{"\n"}
-                Hemen bir fal bak, gizemi keşfet.
+                Hemen bir analiz yap, gizemi keşfet.
               </Text>
             </Animated.View>
 
@@ -142,7 +142,7 @@ export default function WelcomeBonusModal({ visible, onDismiss }: Props) {
             <Animated.View entering={FadeIn.delay(500)} style={s.statsRow}>
               <View style={s.statItem}>
                 <Ionicons name="cafe-outline" size={18} color={GOLD} />
-                <Text style={s.statText}>Kahve Falı</Text>
+                <Text style={s.statText}>Kahve Analizi</Text>
                 <Text style={s.statCost}>6✦</Text>
               </View>
               <View style={s.statDivider} />
@@ -154,7 +154,7 @@ export default function WelcomeBonusModal({ visible, onDismiss }: Props) {
               <View style={s.statDivider} />
               <View style={s.statItem}>
                 <Ionicons name="moon-outline" size={18} color={GOLD} />
-                <Text style={s.statText}>Rüya Falı</Text>
+                <Text style={s.statText}>Rüya Analizi</Text>
                 <Text style={s.statCost}>4✦</Text>
               </View>
             </Animated.View>

@@ -372,10 +372,10 @@ function getSlides(lang: "tr" | "en") {
       icon: "🔔",
       title: tr ? "Seni Haberdar\nEdelim" : "Stay in the\nLoop",
       subtitle: tr
-        ? "Falın hazır olduğunda ve günlük ödüller geldiğinde sana bildirim gönderebiliriz."
-        : "We can notify you when your reading is ready and when daily rewards are available.",
+        ? "Analizin hazır olduğunda ve günlük ödüller geldiğinde sana bildirim gönderebiliriz."
+        : "We can notify you when your analysis is ready and when daily rewards are available.",
       detail: tr
-        ? "📿 Günlük altın hatırlatıcısı\n🔮 Fal hazır bildirimi\n✨ Özel mistik mesajlar"
+        ? "📿 Günlük altın hatırlatıcısı\n🔮 Analiz hazır bildirimi\n✨ Özel mistik mesajlar"
         : "📿 Daily gold reminders\n🔮 Reading ready alerts\n✨ Special mystical messages",
       accent: "#9B6FBB",
       cta: tr ? "Bildirimleri Aç" : "Enable Notifications",
