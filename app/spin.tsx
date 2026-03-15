@@ -219,7 +219,7 @@ export default function SpinScreen() {
           <Ionicons name="chevron-back" size={24} color={Colors.text} />
         </Pressable>
         <Text style={styles.headerTitle}>
-          {lang === "tr" ? "Günlük Çark" : "Daily Wheel"}
+          {lang === "tr" ? "Şans Çarkı" : "Lucky Wheel"}
         </Text>
         <View style={styles.goldBadge}>
           <Text style={{ fontSize: 13, color: Colors.gold }}>✦</Text>
@@ -234,7 +234,7 @@ export default function SpinScreen() {
           </Text>
           {canSpin ? (
             <Text style={styles.infoDesc}>
-              {lang === "tr" ? "🎡 Çark seni bekliyor — çevir ve altın kazan!" : "🎡 The wheel awaits — spin and win gold!"}
+              {lang === "tr" ? "🎡 Şans Çarkı seni bekliyor — döndür ve altın kazan!" : "🎡 The Lucky Wheel awaits — spin and win gold!"}
             </Text>
           ) : (
             <View style={styles.countdownWrap}>

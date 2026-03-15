@@ -704,8 +704,8 @@ function SpinCountdownBtn() {
     return (
       <Pressable onPress={goSpin} style={styles.spinPillReady}>
         <Animated.View style={[styles.spinPillReadyInner, glowStyle]}>
-          <Text style={styles.spinPillReadyStar}>✦</Text>
-          <Text style={styles.spinPillReadyText}>{lang === "tr" ? "ÇEVİR" : "SPIN"}</Text>
+          <Text style={styles.spinPillReadyStar}>🎡</Text>
+          <Text style={styles.spinPillReadyText}>{lang === "tr" ? "Şans Çarkı" : "Lucky Wheel"}</Text>
         </Animated.View>
       </Pressable>
     );

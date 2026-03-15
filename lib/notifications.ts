@@ -179,7 +179,7 @@ export async function scheduleSpinReadyNotification(lang: "tr" | "en") {
     const tr = lang === "tr";
     await N.scheduleNotificationAsync({
       content: {
-        title: tr ? "✦ Çarkın döndürmeye hazır!" : "✦ Your wheel is ready to spin!",
+        title: tr ? "🎡 Şans Çarkın döndürmeye hazır!" : "🎡 Your Lucky Wheel is ready to spin!",
         body: tr
           ? "Günlük altın ödülün seni bekliyor — hemen çevir!"
           : "Your daily gold reward awaits — spin now!",
