@@ -1,0 +1,171 @@
+Tengri Astroloji onboarding akışını ve App Store screenshot hazırlığını aşağıdaki şekilde güncelle.
+
+AMAÇ:
+- Onboarding daha net, daha premium ve Apple review açısından daha güvenli olsun
+- “11 Mistik Hizmet” gibi artık doğru olmayan ifadeler kaldırılsın
+- AI destekli kişiselleştirme vurgusu güçlendirilsin
+- App Store screenshot almak için temiz ve güçlü ekranlar oluşsun
+
+YAPILACAKLAR:
+
+1) ONBOARDING EKRAN SIRASI
+Onboarding akışı şu sırada olsun:
+
+1. Bilgilendirme
+2. Tengri’ye Hoş Geldin
+3. AI Destekli Mistik Analizler
+4. Ücretsiz Başla
+5. Seni Haberdar Edelim
+6. Mistik Profilini Oluştur
+7. Mistik Yolculuğa Başla
+
+2) İLK EKRAN – BİLGİLENDİRME
+Başlık:
+“Bilgilendirme”
+
+Metin:
+“Bu uygulamada sunulan yorumlar yapay zeka destekli sistem tarafından oluşturulur ve yalnızca eğlence ve kişisel keşif amaçlıdır. Sunulan içerikler geleceğe dair kesin sonuç veya profesyonel tavsiye niteliği taşımaz.”
+
+Buton:
+“Anladım, Devam Et”
+
+Bu ekrandaki mevcut premium mistik tasarım korunsun.
+
+3) İKİNCİ EKRAN – TENGRİ’YE HOŞ GELDİN
+Başlık:
+“Tengri’ye Hoş Geldin”
+
+Alt metin:
+“Kadim mistik bilgelik ve yapay zekâ ile sana özel yorumları keşfet.”
+
+Küçük bilgi satırı:
+“Her yorum yapay zekâ tarafından sana özel üretilir.
+Yalnızca eğlence amaçlıdır.”
+
+Buton:
+“Keşfetmeye Başla”
+
+4) ÜÇÜNCÜ EKRAN – 11 MİSTİK HİZMET YERİNE YENİ EKRAN
+“11 Mistik Hizmet” başlığını tamamen kaldır.
+
+Yeni başlık:
+“AI Destekli Mistik Analizler”
+
+Alt metin:
+“Kahve, tarot, astroloji, numeroloji ve daha fazlasını keşfet.”
+
+Alt bölümde kategori isimleri kısa biçimde gösterilebilir:
+- Kahve
+- Tarot
+- Astroloji
+- Numeroloji
+- Rüya
+- Uyum
+- Şamanizm
+
+Buton:
+“Analizleri Keşfet”
+
+Amaç:
+Artık kategori sayısı değiştiği için yanlış sayı gösterilmesin.
+Bu ekran App Store screenshot için de kullanılabilecek kadar temiz olsun.
+
+5) DÖRDÜNCÜ EKRAN – ÜCRETSİZ BAŞLA
+Başlık:
+“Ücretsiz Başla”
+
+Alt metin:
+“Her gün şans çarkını çevir, ödüller kazan.”
+
+Küçük bilgi satırı:
+“Günlük ücretsiz mistik okuma seni bekliyor.”
+
+“Yeni üyeler 15 altın ile başlar.” metnini daha yumuşak hale getir:
+“Yeni kullanıcılar ücretsiz başlayabilir.”
+
+Buton:
+“Devam Et”
+
+Amaç:
+Apple review açısından fazla agresif monetization görünmesin.
+
+6) BEŞİNCİ EKRAN – SENİ HABERDAR EDELİM
+Başlık:
+“Seni Haberdar Edelim”
+
+Alt metin:
+“Analizin hazır olduğunda ve günlük ödüller geldiğinde sana bildirim gönderebiliriz.”
+
+Alt maddeler:
+- Günlük ödül hatırlatıcıları
+- Analiz hazır bildirimi
+- Özel mistik mesajlar
+
+Buton:
+“Bildirimleri Aç”
+
+İkincil seçenek:
+“Şimdilik Geç”
+
+7) ALTINCI EKRAN – MİSTİK PROFİLİNİ OLUŞTUR
+Başlık:
+“Mistik Profilini Oluştur”
+
+Alt metin:
+“Girdiğin bilgiler, sana özel yapay zekâ yorumları oluşturmak için kullanılır. Tüm alanlar isteğe bağlıdır.”
+
+Alanlar:
+- Ad (isteğe bağlı)
+- Doğum Tarihi (isteğe bağlı)
+- Odak Alanın:
+  - Aşk
+  - Kariyer
+  - Enerji
+  - Kader
+
+Buton:
+“Devam Et”
+
+Bu ekran mevcut premium tasarımını korusun.
+
+8) YEDİNCİ EKRAN – MİSTİK YOLCULUĞA BAŞLA
+Başlık:
+“Mistik Yolculuğa Başla”
+
+Alt metin:
+“Bir hesap oluştur ve mistik yolculuğunu başlat. Okumalarını kaydet ve sana özel yorumları takip et.”
+
+Küçük bilgi satırı:
+“Yapay Zekâ Destekli • Sana Özel Yorumlar • Her okuma dinamik olarak üretilir”
+
+Ana buton:
+“Ücretsiz Hesap Oluştur”
+
+İkincil buton:
+“Giriş Yap”
+
+Alt küçük geçiş:
+“Geç”
+
+9) TASARIM KURALLARI
+- Mevcut koyu lacivert / altın / mor premium mistik tasarım korunmalı
+- Font hiyerarşisi temiz olsun
+- Başlıklar kısa ve güçlü olsun
+- Metinler çok uzun görünmesin
+- App Store screenshot’ta kullanılabilecek kadar temiz ve net ekranlar üret
+
+10) APP STORE SCREENSHOT HAZIRLIĞI
+Bu onboarding ekranları aynı zamanda App Store screenshot için referans olacak.
+Bu yüzden özellikle şu ekranlar görsel olarak çok temiz olsun:
+- Tengri’ye Hoş Geldin
+- AI Destekli Mistik Analizler
+- Ücretsiz Başla
+- Mistik Profilini Oluştur
+- Seni Haberdar Edelim
+
+11) KRİTİK DEĞİŞİKLİK
+En önemli düzeltme:
+“11 Mistik Hizmet” ifadesi tamamen kaldırılmalı ve yerine
+“AI Destekli Mistik Analizler” kullanılmalı.
+
+Lütfen mevcut tasarımı bozmadan, sadece metinleri, sıralamayı ve onboarding akışını bu yapıya göre güncelle.
