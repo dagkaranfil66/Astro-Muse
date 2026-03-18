@@ -95,3 +95,6 @@ REVENUECAT_PROJECT_ID = "projadae9d62"
 REVENUECAT_TEST_STORE_APP_ID = "appb1eae4775c"
 REVENUECAT_APPLE_APP_STORE_APP_ID = "app571aea58be"
 REVENUECAT_GOOGLE_PLAY_STORE_APP_ID = "app18fea629d3"
+
+[userenv.production]
+TENGRI_PROD_URL = "https://astro-muse.replit.app"

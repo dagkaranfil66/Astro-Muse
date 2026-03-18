@@ -91,25 +91,69 @@ async function sendEmail(to: string, subject: string, html: string) {
   }
 }
 
+function isInternalHost(host: string): boolean {
+  return (
+    host.startsWith("127.") ||
+    host.startsWith("localhost") ||
+    host.startsWith("0.0.0.0") ||
+    host === "::1"
+  );
+}
+
 function getServerBaseUrl(req: Request): string {
-  // 1) Explicit production override — always wins
-  if (process.env.APP_BASE_URL) {
-    return process.env.APP_BASE_URL.replace(/\/$/, "");
+  // 1) TENGRI_PROD_URL — set as production env var, always reliable
+  if (process.env.TENGRI_PROD_URL) {
+    const url = process.env.TENGRI_PROD_URL.replace(/\/$/, "");
+    console.log(`[baseUrl] TENGRI_PROD_URL → ${url}`);
+    return url;
   }
-  // 2) Reverse-proxy sets x-forwarded-host to the real public domain (both dev & prod on Replit)
-  //    Use it directly — no port suffix needed (proxy handles TLS termination)
-  const fwdHost = req.headers["x-forwarded-host"] as string | undefined;
+
+  // 2) APP_BASE_URL — validate it's not an internal or dev address
+  if (process.env.APP_BASE_URL) {
+    const url = process.env.APP_BASE_URL.replace(/\/$/, "");
+    const hostPart = url.replace(/^https?:\/\//, "").split("/")[0];
+    if (!isInternalHost(hostPart) && !hostPart.includes("picard.replit.dev")) {
+      console.log(`[baseUrl] APP_BASE_URL → ${url}`);
+      return url;
+    }
+    console.warn(`[baseUrl] APP_BASE_URL looks like internal/dev address, skipping: ${url}`);
+  }
+
+  // 3) x-forwarded-host set by the Replit reverse-proxy (production & dev)
+  const fwdHost  = req.headers["x-forwarded-host"] as string | undefined;
   const fwdProto = req.headers["x-forwarded-proto"] as string | undefined;
   if (fwdHost) {
     const proto = (fwdProto || "https").split(",")[0].trim();
     const host  = fwdHost.split(",")[0].trim();
-    return `${proto}://${host}`;
+    if (!isInternalHost(host)) {
+      const url = `${proto}://${host}`;
+      console.log(`[baseUrl] x-forwarded-host → ${url}`);
+      return url;
+    }
   }
-  // 3) Local fallback (no proxy)
+
+  // 4) REPLIT_DOMAINS contains the deployed production domain (astro-muse.replit.app)
+  if (process.env.REPLIT_DOMAINS) {
+    const prodDomain = process.env.REPLIT_DOMAINS
+      .split(",")
+      .map((d) => d.trim())
+      .find((d) => d.endsWith(".replit.app"));
+    if (prodDomain) {
+      console.log(`[baseUrl] REPLIT_DOMAINS → https://${prodDomain}`);
+      return `https://${prodDomain}`;
+    }
+  }
+
+  // 5) Dev domain fallback
   if (process.env.REPLIT_DEV_DOMAIN) {
-    return `https://${process.env.REPLIT_DEV_DOMAIN}:5000`;
+    const url = `https://${process.env.REPLIT_DEV_DOMAIN}`;
+    console.log(`[baseUrl] REPLIT_DEV_DOMAIN → ${url}`);
+    return url;
   }
-  return `${req.protocol}://${req.get("host")}`;
+
+  const fallback = `${req.protocol}://${req.get("host")}`;
+  console.log(`[baseUrl] fallback → ${fallback}`);
+  return fallback;
 }
 
 async function sendVerificationEmail(email: string, name: string, token: string, baseUrl: string) {
@@ -152,9 +196,9 @@ async function sendVerificationEmail(email: string, name: string, token: string,
           <!-- Feature pills -->
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
             <tr>
-              <td style="padding:4px;" width="33%"><div style="background:#1A1030;border:1px solid #C8A02020;border-radius:10px;padding:12px 8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">☕</div><div style="font-size:11px;color:#8A7AAA;">Kahve Falı</div></div></td>
+              <td style="padding:4px;" width="33%"><div style="background:#1A1030;border:1px solid #C8A02020;border-radius:10px;padding:12px 8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">☕</div><div style="font-size:11px;color:#8A7AAA;">Kahve Analizi</div></div></td>
               <td style="padding:4px;" width="33%"><div style="background:#1A1030;border:1px solid #C8A02020;border-radius:10px;padding:12px 8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">🔮</div><div style="font-size:11px;color:#8A7AAA;">Tarot</div></div></td>
-              <td style="padding:4px;" width="33%"><div style="background:#1A1030;border:1px solid #C8A02020;border-radius:10px;padding:12px 8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">✋</div><div style="font-size:11px;color:#8A7AAA;">El Falı</div></div></td>
+              <td style="padding:4px;" width="33%"><div style="background:#1A1030;border:1px solid #C8A02020;border-radius:10px;padding:12px 8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">🌙</div><div style="font-size:11px;color:#8A7AAA;">Astroloji</div></div></td>
             </tr>
           </table>
 
@@ -1125,9 +1169,7 @@ ${lang === "en" ? "IMPORTANT: This is a free preview reading. Write 4-6 sentence
 function verifyPage(title: string, message: string, success: boolean): string {
   const color = success ? "#C8A020" : "#FF6B6B";
   const emoji = success ? "🌟" : "⚠️";
-  const appUrl = process.env.APP_BASE_URL
-    ? process.env.APP_BASE_URL.replace(/\/$/, "")
-    : "https://tengristar.com";
+  const appUrl = (process.env.TENGRI_PROD_URL || process.env.APP_BASE_URL || "https://astro-muse.replit.app").replace(/\/$/, "");
   const btnHtml = success
     ? `<a href="${appUrl}" style="display:inline-block;margin-top:28px;background:linear-gradient(90deg,#C8A020,#A07015);color:#06030F;padding:16px 40px;border-radius:14px;text-decoration:none;font-weight:bold;font-size:16px;">✦ &nbsp; Tengri'yi Aç</a>`
     : `<a href="${appUrl}" style="display:inline-block;margin-top:28px;background:#1A1030;color:#B8A9D0;padding:14px 36px;border-radius:14px;text-decoration:none;font-size:15px;border:1px solid #C8A02030;">Ana Sayfaya Dön</a>`;
