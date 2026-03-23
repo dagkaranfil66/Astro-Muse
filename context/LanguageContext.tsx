@@ -30,9 +30,9 @@ const translations = {
     buyPackage: 'Paket satın al',
     connectionError: 'Bağlantı hatası oluştu. Lütfen tekrar deneyin.',
     services_list: {
-      astroloji: { label: 'Astroloji Analizi', desc: 'Doğum haritası, el çizgisi ve gezegen yorumları — 3 analiz bir arada' },
+      astroloji: { label: 'AI Doğum Haritası Analizi', desc: 'Doğum tarihi ve konumuna göre yapay zeka destekli kişisel analiz' },
       kahve: { label: 'AI Kahve Analizi', desc: 'Fincanınızdaki sembolleri yapay zeka yorumlar' },
-      el: { label: 'El Çizgisi Analizi', desc: 'El çizgilerinizdeki sembolleri AI ile keşfedin' },
+      el: { label: 'El Çizgisi Analizi', desc: 'Avuç içi fotoğrafına göre yapay zeka ile kişisel analiz oluşturur.' },
       tarot: { label: 'AI Tarot Analizi', desc: 'Kart enerjilerini analiz ederek kişisel içgörüler üretir' },
       samanizm: { label: 'Şamanizm Rehberliği', desc: 'Ataların bilgeliğiyle ruhsal yolunuzu keşfedin' },
       numeroloji: { label: 'Numeroloji Analizi', desc: 'Sayı enerjilerine göre kişisel analiz üretir' },
@@ -84,9 +84,9 @@ const translations = {
     buyPackage: 'Buy package',
     connectionError: 'Connection error. Please try again.',
     services_list: {
-      astroloji: { label: 'Astrology Analysis', desc: 'Birth chart, palm lines & planetary readings — 3 analyses in one' },
+      astroloji: { label: 'AI Birth Chart Analysis', desc: 'AI-powered personal analysis based on birth date and location' },
       kahve: { label: 'AI Coffee Analysis', desc: 'Artificial intelligence interprets the symbols in your cup' },
-      el: { label: 'Palm Line Analysis', desc: 'Discover the symbols in your palm lines with AI' },
+      el: { label: 'Palm Line Analysis', desc: 'Generates a personal AI analysis based on your palm photo.' },
       tarot: { label: 'AI Tarot Analysis', desc: 'Analyzes card energies to generate personal insights' },
       samanizm: { label: 'Shamanism Guidance', desc: 'Explore your spiritual path with ancestral wisdom' },
       numeroloji: { label: 'Numerology Analysis', desc: 'Generates personal analysis based on number energies' },

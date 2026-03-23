@@ -398,9 +398,9 @@ const SERVICE_IMAGES: Record<string, any> = {
   ask:       require("@/assets/images/services/ask.png"),
 };
 
-// Ordered 7 services shown on home (doğum+el are inside astroloji-select)
+// Ordered 8 services shown on home
 const HOME_SERVICES_ORDERED = [
-  "kahve", "tarot", "astroloji", "numeroloji", "ruya", "ask", "samanizm",
+  "kahve", "tarot", "astroloji", "el", "numeroloji", "ruya", "ask", "samanizm",
 ];
 const POPULAR_SERVICE = "kahve";
 
@@ -728,7 +728,7 @@ export default function HomeScreen() {
       return;
     }
     if (serviceId === "astroloji") {
-      router.push("/astroloji-select" as any);
+      router.push("/reading/dogum" as any);
       return;
     }
     router.push(`/reading/${serviceId}`);

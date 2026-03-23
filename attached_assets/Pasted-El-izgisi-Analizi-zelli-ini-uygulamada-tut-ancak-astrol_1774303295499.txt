@@ -1,0 +1,52 @@
+El Çizgisi Analizi özelliğini uygulamada tut, ancak astroloji kategorisinin içinden çıkar ve bağımsız bir analiz kategorisi olarak konumlandır.
+
+AMAÇ:
+App Store review açısından uygulamanın “çok karışık klasik fal paketi” gibi görünmesini azaltmak.
+El Çizgisi özelliğini ayrı, net, kullanıcı girdisine dayalı AI analiz özelliği olarak göstermek.
+
+YAPILACAKLAR:
+
+1) ASTROLOJİ ALT EKRANINDAN EL ÇİZGİSİ KARTINI KALDIR
+- Astroloji / doğum haritası ekranındaki “El Çizgisi Analizi” kartını kaldır.
+- Bu ekran artık sadece doğum bilgisi tabanlı astroloji / doğum haritası mantığında kalsın.
+
+2) EL ÇİZGİSİNİ ANA SAYFADA BAĞIMSIZ KATEGORİ YAP
+- El Çizgisi Analizi’ni ana analiz kategorileri listesine ayrı bir kart olarak ekle.
+- Bu kart bağımsız bir özellik gibi görünmeli; astrolojinin alt özelliği gibi görünmemeli.
+
+3) KART BAŞLIĞI VE AÇIKLAMASI
+- Kart başlığı:
+  “El Çizgisi Analizi”
+- Kart açıklaması:
+  “Avuç içi fotoğrafına göre yapay zeka ile kişisel analiz oluşturur.”
+- Açıklama net olsun: kullanıcı girdisi + AI analizi hissi vermeli.
+
+4) NAVIGATION GÜNCELLE
+- El Çizgisi kartı ana sayfadan kendi ekranına düzgün yönlensin.
+- Astroloji ekranı içindeki eski bağlantı kaldırılınca kırık route kalmasın.
+- Aynı feature’a iki farklı yerden çakışmalı erişim olmasın.
+
+5) ASTROLOJİ EKRANINI TEMİZLE
+- El Çizgisi çıkınca astroloji / doğum haritası ekranı daha sade görünsün.
+- Astroloji ekranında yalnızca doğum bilgileriyle ilişkili AI analiz mantığı kalsın.
+- Eğer hala “Astroloji Analizi” adlı genel kart varsa onu da kaldır. Ana odak “AI Doğum Haritası Analizi” olsun.
+
+6) TASARIMI BOZMA
+- Mevcut premium koyu tema korunsun.
+- Kartların boyutu, radius, gölge, renk dengesi ve genel mistik estetik aynı kalsın.
+- Sadece feature konumlandırması App Store review için optimize edilsin.
+
+7) KOD TEMİZLİĞİ
+- El Çizgisi astroloji altından taşındıktan sonra kullanılmayan import, component, state, route veya helper varsa temizle.
+- Duplicate navigation ya da bozuk ekran bağlantısı kalmasın.
+
+8) SON HEDEF
+Uygulama açıldığında kategori yapısı şu mantığı vermeli:
+- her özellik bağımsız
+- kullanıcı girdisi alıyor
+- yapay zeka ile kişisel analiz üretiyor
+
+İŞ BİTİNCE:
+- Hangi dosyalarda ne değiştiğini yaz
+- El Çizgisi’nin artık ana sayfada hangi sırada göründüğünü belirt
+- Astroloji alt ekranında artık hangi kartların kaldığını listele
