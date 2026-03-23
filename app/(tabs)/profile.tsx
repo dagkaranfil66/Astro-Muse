@@ -292,12 +292,12 @@ const SERVICE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   astroloji: "moon-outline", kahve: "cafe-outline", el: "hand-left-outline",
   tarot: "layers-outline", samanizm: "leaf-outline", numeroloji: "star-outline",
   ruh: "eye-outline", dogum: "planet-outline", ruya: "cloud-outline",
-  burclar: "telescope-outline", ask: "heart-outline",
+  ask: "heart-outline",
 };
 const SERVICE_COLORS: Record<string, string> = {
   astroloji: "#6B4FBB", kahve: "#C0932A", el: "#1ABFB8", tarot: "#E7B008",
   samanizm: "#4CAF7A", numeroloji: "#E74C8B", ruh: "#9B59B6",
-  dogum: "#FF8C42", ruya: "#5B9BD5", burclar: "#FF6B9D", ask: "#FF4757",
+  dogum: "#FF8C42", ruya: "#5B9BD5", ask: "#FF4757",
 };
 
 const AVATAR_COLORS = [

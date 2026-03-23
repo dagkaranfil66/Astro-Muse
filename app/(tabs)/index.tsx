@@ -371,19 +371,18 @@ const SERVICE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   ruh: "eye-outline",
   dogum: "planet-outline",
   ruya: "cloud-outline",
-  burclar: "telescope-outline",
   ask: "heart-outline",
 };
 const SERVICE_COLORS: Record<string, string> = {
   astroloji: "#6B4FBB", kahve: "#C0932A", el: "#1ABFB8", tarot: "#E7B008",
   samanizm: "#4CAF7A", numeroloji: "#E74C8B", ruh: "#9B59B6",
-  dogum: "#FF8C42", ruya: "#5B9BD5", burclar: "#FF6B9D", ask: "#FF4757",
+  dogum: "#FF8C42", ruya: "#5B9BD5", ask: "#FF4757",
 };
 const SERVICE_GRADIENTS: Record<string, [string, string]> = {
   astroloji: ["#1A0F35", "#0D1526"], kahve: ["#2A1A05", "#0D1526"], el: ["#051A1A", "#0D1526"],
   tarot: ["#1A1205", "#0D1526"], samanizm: ["#051A0D", "#0D1526"], numeroloji: ["#1A0510", "#0D1526"],
   ruh: ["#150E25", "#0D1526"], dogum: ["#1A0E05", "#0D1526"], ruya: ["#051020", "#0D1526"],
-  burclar: ["#1A0515", "#0D1526"], ask: ["#1A0508", "#0D1526"],
+  ask: ["#1A0508", "#0D1526"],
 };
 
 const SERVICE_IMAGES: Record<string, any> = {
@@ -396,7 +395,6 @@ const SERVICE_IMAGES: Record<string, any> = {
   ruh:       require("@/assets/images/services/ruh.png"),
   dogum:     require("@/assets/images/services/dogum.png"),
   ruya:      require("@/assets/images/services/ruya.png"),
-  burclar:   require("@/assets/images/services/burclar.png"),
   ask:       require("@/assets/images/services/ask.png"),
 };
 
@@ -616,55 +614,6 @@ function DailyFreeCard() {
   );
 }
 
-// ────────── Daily Horoscope Card ──────────
-function DailyHoroscopeCard() {
-  const { zodiacSign } = useApp();
-  const { lang } = useLang();
-  const signEmoji: Record<string, string> = {
-    Koç: "♈", Boğa: "♉", İkizler: "♊", Yengeç: "♋",
-    Aslan: "♌", Başak: "♍", Terazi: "♎", Akrep: "♏",
-    Yay: "♐", Oğlak: "♑", Kova: "♒", Balık: "♓",
-  };
-  const signColor: Record<string, string> = {
-    Koç: "#E05555", Boğa: "#6B9E3A", İkizler: "#E0C040", Yengeç: "#7EB8E8",
-    Aslan: "#E08C00", Başak: "#7EB880", Terazi: "#C878D8", Akrep: "#8B2020",
-    Yay: "#D8782A", Oğlak: "#6B8B9E", Kova: "#4878C8", Balık: "#7878D8",
-  };
-  const signNameEn: Record<string, string> = {
-    Koç: "Aries", Boğa: "Taurus", İkizler: "Gemini", Yengeç: "Cancer",
-    Aslan: "Leo", Başak: "Virgo", Terazi: "Libra", Akrep: "Scorpio",
-    Yay: "Sagittarius", Oğlak: "Capricorn", Kova: "Aquarius", Balık: "Pisces",
-  };
-  const color = zodiacSign ? (signColor[zodiacSign] ?? Colors.gold) : Colors.gold;
-  const displayName = zodiacSign
-    ? (lang === "tr" ? zodiacSign : (signNameEn[zodiacSign] ?? zodiacSign))
-    : null;
-
-  return (
-    <Animated.View entering={FadeInDown.delay(260).springify()}>
-      <Pressable onPress={() => router.push("/daily-horoscope")} style={styles.dailyCard}>
-        <LinearGradient colors={[color + "22", color + "0A"]} style={styles.dailyCardInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-          <View style={styles.dailyLeft}>
-            <Text style={[styles.dailyEmoji, { color }]}>{zodiacSign ? signEmoji[zodiacSign] : "☽"}</Text>
-            <View>
-              <Text style={[styles.dailyTitle, { color }]}>
-                {displayName
-                  ? `${displayName} · ${lang === "tr" ? "Günlük Yorum" : "Daily Horoscope"}`
-                  : (lang === "tr" ? "Günlük Burcunuz" : "Daily Horoscope")}
-              </Text>
-              <Text style={styles.dailySub}>
-                {displayName
-                  ? (lang === "tr" ? "Mistik mesajınız hazır" : "Your mystic message awaits")
-                  : (lang === "tr" ? "Burcunuzu seçin" : "Select your sign")}
-              </Text>
-            </View>
-          </View>
-          <Ionicons name="chevron-forward" size={16} color={color + "80"} />
-        </LinearGradient>
-      </Pressable>
-    </Animated.View>
-  );
-}
 
 // ────────── Spin Countdown Button ──────────
 function SpinCountdownBtn() {
@@ -844,7 +793,6 @@ export default function HomeScreen() {
         </Animated.View>
 
         <DailyFreeCard />
-        <DailyHoroscopeCard />
 
         <Animated.Text entering={FadeInDown.delay(360)} style={styles.sectionTitle}>
           {lang === "tr" ? "ANALİZ KATEGORİLERİ" : "ANALYSIS CATEGORIES"}
@@ -1232,21 +1180,6 @@ const styles = StyleSheet.create({
   },
   freeCardUsedBadgeText: { fontSize: 10, fontFamily: "Lora_700Bold", color: Colors.textDim, letterSpacing: 0.5 },
 
-  // ── Horoscope card ──
-  dailyCard: {
-    marginBottom: 14, borderRadius: 14, overflow: "hidden",
-    borderWidth: 1.5, borderColor: Colors.gold + "40",
-    shadowColor: Colors.gold,
-    shadowOpacity: 0.18, shadowRadius: 10, shadowOffset: { width: 0, height: 0 },
-    elevation: 5,
-  },
-  dailyCardInner: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 18, paddingHorizontal: 18 },
-  dailyLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
-  dailyEmoji: { fontSize: 36 },
-  dailyTitle: { fontSize: 14, fontFamily: "Lora_700Bold", letterSpacing: 0.2 },
-  dailySub: { fontSize: 12, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary, marginTop: 2 },
-  dailyBadge: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 4 },
-  dailyBadgeText: { fontSize: 12, fontFamily: "Lora_700Bold" },
 
   catSlider: { marginBottom: 14 },
   catSliderContent: { paddingHorizontal: 0, gap: 8, paddingVertical: 4 },

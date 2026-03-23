@@ -36,7 +36,7 @@ let Notifications: typeof NotificationsType | null = null;
 // ── App navigation ─────────────────────────────────────────────────────────
 
 function RootLayoutNav() {
-  const { isLoaded, hasSeenOnboarding, zodiacSign, userProfile } = useApp();
+  const { isLoaded, hasSeenOnboarding, userProfile } = useApp();
   const { lang } = useLang();
 
   React.useEffect(() => {
@@ -48,7 +48,7 @@ function RootLayoutNav() {
     (async () => {
       const granted = await requestNotificationPermission();
       if (granted) {
-        await setupAllDailyNotifications(lang, zodiacSign);
+        await setupAllDailyNotifications(lang);
         // Get Expo push token and register with server
         const token = await getExpoPushToken();
         if (token && userProfile?.email) {
@@ -62,7 +62,7 @@ function RootLayoutNav() {
         }
       }
     })();
-  }, [lang, zodiacSign, userProfile?.email]);
+  }, [lang, userProfile?.email]);
 
   useEffect(() => {
     const sub = AppState.addEventListener("change", async (next: AppStateStatus) => {
@@ -91,9 +91,7 @@ function RootLayoutNav() {
     try {
       sub = Notifications.addNotificationResponseReceivedListener((response) => {
         const type = response.notification.request.content.data?.type as string | undefined;
-        if (type === "horoscope" || type === "daily-horoscope") {
-          router.push("/daily-horoscope");
-        } else if (type === "coffee") {
+        if (type === "coffee") {
           router.push("/reading/kahve" as any);
         } else if (type === "spin_ready") {
           router.push("/spin");
@@ -114,7 +112,6 @@ function RootLayoutNav() {
       <Stack.Screen name="reading/[service]" options={{ headerShown: false, presentation: "card" }} />
       <Stack.Screen name="purchase"          options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="auth"              options={{ headerShown: false, presentation: "modal" }} />
-      <Stack.Screen name="daily-horoscope"   options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="spin"              options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="legal"             options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="guide"             options={{ headerShown: false, presentation: "modal" }} />

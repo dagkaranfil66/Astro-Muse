@@ -58,15 +58,9 @@ const GUIDE_SECTIONS = [
     cost: "4 ✦",
   },
   {
-    icon: "🔮",
-    title: "Burç Yorumu",
-    body: "Doğum tarihinize göre güncel astrolojik konumları değerlendirerek kişisel burç yorumunuzu alın.",
-    cost: "4 ✦",
-  },
-  {
     icon: "❤️",
-    title: "Aşk Yorumu",
-    body: "İki kişinin enerji uyumunu derinlemesine analiz eder. Adları ve burçları girerek ilişkinizi keşfedin.",
+    title: "Aşk Uyum Analizi",
+    body: "İki kişinin enerji uyumunu yapay zeka ile derinlemesine analiz eder. İsim ve doğum bilgileri kullanılır.",
     cost: "6 ✦",
   },
   {

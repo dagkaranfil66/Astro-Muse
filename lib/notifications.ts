@@ -119,20 +119,20 @@ export async function setupAllDailyNotifications(lang: "tr" | "en", zodiacSign?:
       },
     });
 
-    // #2 — 12:00 Horoscope
-    const horoTitle = zodiacSign
-      ? (tr ? `🔮 ${zodiacSign} için mesaj hazır` : `🔮 ${zodiacSign} message ready`)
-      : (tr ? "🔮 Bugün ilginç bir tarot kartı çıktı" : "🔮 An interesting tarot card appeared today");
-    const horoBody = tr
-      ? "Öğle vakti gizemi aç — 1 saniye yeter."
-      : "Open your midday mystery — takes just 1 second.";
+    // #2 — 12:00 Midday tarot nudge
+    const tarotTitle = tr
+      ? "🔮 Öğle vakti mistik mesajın hazır"
+      : "🔮 Your midday mystic message is ready";
+    const tarotBody = tr
+      ? "Yapay zeka bugün sana özel bir analiz oluşturdu."
+      : "AI has generated a personalized analysis just for you today.";
 
     await N.scheduleNotificationAsync({
       content: {
-        title: horoTitle,
-        body: horoBody,
+        title: tarotTitle,
+        body: tarotBody,
         sound: true,
-        data: { type: "horoscope" },
+        data: { type: "coffee" },
         ...(Platform.OS === "android" && { channelId: "tengri-daily" }),
       },
       trigger: {
