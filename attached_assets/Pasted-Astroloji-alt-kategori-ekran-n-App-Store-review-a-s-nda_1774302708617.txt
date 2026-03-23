@@ -1,0 +1,70 @@
+Astroloji alt kategori ekranını App Store review açısından daha güvenli hale getir.
+
+AMAÇ:
+Bu ekranın klasik çok özellikli fal / astroloji uygulaması gibi görünmesini azaltmak.
+Ekranı daha net, daha AI odaklı ve daha kişisel analiz mantığında göstermek.
+
+MEVCUT DURUM:
+Şu an astroloji ekranında 3 seçenek var:
+- Astroloji Analizi
+- Doğum Haritası Analizi
+- El Çizgisi Analizi
+
+Bu yapı App Store review’da fazla genel ve doygun kategori hissi veriyor.
+
+YAPILACAK DEĞİŞİKLİKLER:
+
+1) “Astroloji Analizi” KARTINI KALDIR
+- Astroloji alt kategori ekranındaki “Astroloji Analizi” kartını tamamen kaldır.
+- Çünkü bu kart fazla genel kalıyor ve klasik horoscope / astrology app hissi veriyor.
+
+2) “DOĞUM HARİTASI ANALİZİ” KARTINI ANA ODAK YAP
+- “Doğum Haritası Analizi” kartı kalsın.
+- Kart başlığını değiştir:
+  Yeni başlık: “AI Doğum Haritası Analizi”
+- Kart açıklamasını değiştir:
+  “Doğum tarihi, saati ve konumuna göre yapay zeka destekli kişisel analiz oluşturur.”
+- Bu kart ekranın ana özelliği gibi görünmeli.
+
+3) EKRAN BAŞLIĞINI GÜNCELLE
+- Üst başlığı değiştir:
+  Eski: “Astroloji Analizi”
+  Yeni: “AI Doğum Haritası Analizi”
+
+4) ALT BAŞLIK / KISA AÇIKLAMAYI GÜNCELLE
+- Üstteki küçük açıklamayı değiştir:
+  Eski: “Bir seçenek belirle”
+  Yeni: “Doğum bilgilerinize göre kişisel analiz alın”
+
+5) BİLGİ KUTUSUNU DEĞİŞTİR
+- Üstteki açıklama kutusundaki mevcut metni kaldır:
+  “Astroloji kategorisi üç farklı analiz içerir. Devam etmek istediğiniz analizi seçin.”
+- Yerine şu metni koy:
+  “Bu alan, kullanıcının doğum bilgilerine göre yapay zeka destekli kişisel analiz oluşturur. Hazır sabit yorumlar kullanılmaz.”
+
+6) “EL ÇİZGİSİ ANALİZİ” İÇİN TERCİH
+- En güvenli çözüm: bu ekrandan kaldır.
+- Eğer hızlıca tamamen kaldırılamıyorsa:
+  - şimdilik bırakılabilir ama astrolojinin parçası gibi değil, ayrı bir kişisel analiz özelliği gibi görünmeli.
+  - açıklamasını değiştir:
+    “Avuç içi çizgilerini görsel veya kullanıcı girdisine göre yapay zeka ile analiz eder.”
+- Mümkünse ayrı kategoriye taşıman daha iyi olur.
+
+7) TASARIMI BOZMA
+- Mevcut koyu premium tema aynen kalsın.
+- Kart renkleri, radius, ikon, spacing ve genel mistik estetik korunmalı.
+- Sadece içerik ve konumlandırma App Store review için optimize edilsin.
+
+8) KOD TEMİZLİĞİ
+- Kaldırılan “Astroloji Analizi” kartına bağlı kullanılmayan state, navigation, import veya component varsa temizle.
+- Uygulama içinde boş yönlendirme veya kırık route kalmasın.
+
+9) SON HEDEF
+Bu ekran açıldığında ilk izlenim şu olsun:
+- genel astroloji listesi değil
+- AI destekli doğum bilgisi tabanlı kişisel analiz ekranı
+
+İŞ BİTİNCE:
+- Hangi dosyaların değiştiğini yaz
+- Ekranda görünen yeni başlık ve açıklamaları listele
+- Eğer hala “Astroloji Analizi” yazısı bir yerde kaldıysa ayrıca belirt

@@ -5,38 +5,28 @@ import {
   StyleSheet,
   Pressable,
   ScrollView,
+  Platform,
+  Image,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { Image, Platform } from "react-native";
 import { Colors } from "@/constants/colors";
 import { useLang } from "@/context/LanguageContext";
 
 const OPTIONS = [
-  {
-    id: "astroloji",
-    icon: "moon-outline" as const,
-    color: "#6B4FBB",
-    gradient: ["#1A0F35", "#0D1526"] as [string, string],
-    image: require("@/assets/images/services/astroloji.png"),
-    labelTR: "Astroloji Analizi",
-    labelEN: "Astrology Analysis",
-    descTR: "Gezegen konumlarına göre kişisel yorumlar oluşturur.",
-    descEN: "Creates personal insights based on planetary positions.",
-  },
   {
     id: "dogum",
     icon: "planet-outline" as const,
     color: "#FF8C42",
     gradient: ["#1A0E05", "#0D1526"] as [string, string],
     image: require("@/assets/images/services/dogum.png"),
-    labelTR: "Doğum Haritası Analizi",
-    labelEN: "Birth Chart Analysis",
-    descTR: "Doğum tarihi, saati ve yerine göre kapsamlı harita çıkarır.",
-    descEN: "Full chart analysis based on birth date, time and place.",
+    labelTR: "AI Doğum Haritası Analizi",
+    labelEN: "AI Birth Chart Analysis",
+    descTR: "Doğum tarihi, saati ve konumuna göre yapay zeka destekli kişisel analiz oluşturur.",
+    descEN: "Generates AI-powered personal analysis based on birth date, time and location.",
   },
   {
     id: "el",
@@ -46,8 +36,8 @@ const OPTIONS = [
     image: require("@/assets/images/services/el.png"),
     labelTR: "El Çizgisi Analizi",
     labelEN: "Palm Line Analysis",
-    descTR: "Avuç içindeki çizgileri yapay zeka ile analiz eder.",
-    descEN: "AI analyzes the lines in your palm.",
+    descTR: "Avuç içi çizgilerini görsel veya kullanıcı girdisine göre yapay zeka ile analiz eder.",
+    descEN: "AI analyzes palm lines based on image or user input.",
   },
 ];
 
@@ -59,6 +49,9 @@ export default function AstrolojiSelectScreen() {
     router.push(`/reading/${serviceId}` as any);
   };
 
+  const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
+  const botPad = Platform.OS === "web" ? Math.max(insets.bottom, 34) : insets.bottom;
+
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -66,31 +59,33 @@ export default function AstrolojiSelectScreen() {
         style={StyleSheet.absoluteFill}
       />
 
-      <View style={[styles.header, { paddingTop: (Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top) + 8 }]}>
+      <View style={[styles.header, { paddingTop: topPad + 8 }]}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={22} color={Colors.gold} />
         </Pressable>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>
-            {lang === "tr" ? "Astroloji Analizi" : "Astrology Analysis"}
+            {lang === "tr" ? "AI Doğum Haritası Analizi" : "AI Birth Chart Analysis"}
           </Text>
           <Text style={styles.headerSub}>
-            {lang === "tr" ? "Bir seçenek belirle" : "Choose an option"}
+            {lang === "tr"
+              ? "Doğum bilgilerinize göre kişisel analiz alın"
+              : "Get a personal analysis based on your birth data"}
           </Text>
         </View>
         <View style={{ width: 42 }} />
       </View>
 
       <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingBottom: (Platform.OS === "web" ? Math.max(insets.bottom, 34) : insets.bottom) + 40 }]}
+        contentContainerStyle={[styles.scroll, { paddingBottom: botPad + 40 }]}
         showsVerticalScrollIndicator={false}
       >
         <Animated.View entering={FadeInDown.delay(60).springify()} style={styles.descBox}>
-          <Ionicons name="moon-outline" size={16} color="#9B59B6" />
+          <Ionicons name="sparkles-outline" size={16} color="#FF8C42" />
           <Text style={styles.descBoxText}>
             {lang === "tr"
-              ? "Astroloji kategorisi üç farklı analiz içerir. Devam etmek istediğiniz analizi seçin."
-              : "The astrology category includes three different analyses. Choose the one you'd like to continue with."}
+              ? "Bu alan, kullanıcının doğum bilgilerine göre yapay zeka destekli kişisel analiz oluşturur. Hazır sabit yorumlar kullanılmaz."
+              : "This section generates AI-powered personal analysis based on your birth data. No pre-written generic readings are used."}
           </Text>
         </Animated.View>
 
@@ -155,27 +150,29 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.gold + "30",
   },
-  headerCenter: { alignItems: "center" },
+  headerCenter: { alignItems: "center", flex: 1, paddingHorizontal: 8 },
   headerTitle: {
-    fontSize: 17,
+    fontSize: 15,
     fontFamily: "Lora_700Bold",
     color: Colors.text,
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
+    textAlign: "center",
   },
   headerSub: {
     fontSize: 11,
     fontFamily: "Lora_400Regular_Italic",
     color: Colors.textSecondary,
     marginTop: 2,
+    textAlign: "center",
   },
   scroll: { padding: 18, gap: 12 },
   descBox: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 8,
-    backgroundColor: "rgba(155,89,182,0.08)",
+    backgroundColor: "rgba(255,140,66,0.07)",
     borderWidth: 1,
-    borderColor: "rgba(155,89,182,0.25)",
+    borderColor: "rgba(255,140,66,0.22)",
     borderRadius: 12,
     padding: 14,
     marginBottom: 8,
