@@ -1,0 +1,68 @@
+Onboarding (ilk açılış) ekranlarını App Store review açısından optimize et.
+
+AMAÇ:
+Uygulamanın klasik fal / astroloji uygulaması gibi görünmesini azaltmak.
+İlk izlenimde “AI destekli kişisel analiz uygulaması” olduğunu net göstermek.
+
+YAPILACAK DEĞİŞİKLİKLER:
+
+1) İLK ONBOARDING EKRANI METNİNİ GÜNCELLE
+
+- Mevcut metni değiştir:
+  Eski:
+  “Kahve, tarot, astroloji, numeroloji ve daha fazlasını keşfet.”
+
+- Yeni metin:
+  “Yapay zeka ile kişisel analizlerini keşfet.
+   Kahve, tarot ve diğer mistik alanlarda sana özel yorumlar oluşturulur.”
+
+- “astroloji” kelimesini burada direkt vurgulama.
+
+2) ALTTAKİ EMOJİ / KATEGORİ LİSTESİNİ KALDIR
+
+- Şu satırı tamamen kaldır:
+  “Kahve • Tarot • Astroloji • Numeroloji • Rüya • Uyum • Şamanizm”
+
+- Yerine daha AI odaklı sade bir metin ekle:
+  “Kişisel analizler • Yapay zeka yorumları • Benzersiz sonuçlar”
+
+3) AI VURGUSUNU GÜÇLENDİR (ÇOK KRİTİK)
+
+İlk onboarding ekranına aşağıdaki metni ekle (görünür olacak şekilde):
+
+“Tüm analizler yapay zeka tarafından kullanıcı verilerine göre oluşturulur.
+Uygulamada hazır fal metinleri bulunmaz.”
+
+- Bu metin küçük, silik veya zor okunur olmasın.
+- Premium tasarım korunarak net okunur hale getir.
+
+4) BAŞLIK AYNI KALSIN
+
+- “AI Destekli Mistik Analizler” başlığı değişmesin.
+- Font, boyut, renk aynen kalsın.
+
+5) BİLDİRİM EKRANINA DOKUNMA
+
+- “Seni Haberdar Edelim” ekranı olduğu gibi kalsın.
+- Butonlar ve metinler değişmesin.
+
+6) TASARIMI BOZMA
+
+- Koyu tema, yıldızlar, animasyonlar, kart yapısı aynen kalsın.
+- Sadece metinler App Store review için optimize edilsin.
+
+7) KOD TEMİZLİĞİ
+
+- Kaldırılan emoji listesi ile ilgili component veya string varsa temizle.
+- UI’da boşluk veya hizalama problemi oluşmasın.
+
+8) SON HEDEF
+
+Uygulama ilk açıldığında:
+- fal / burç uygulaması hissi vermesin
+- AI ile çalışan kişisel analiz uygulaması gibi algılansın
+
+İŞ BİTİNCE:
+- Güncellenen metinleri listele
+- Kaldırılan satırları belirt
+- Eğer onboarding içinde hala “astroloji” kelimesi geçen yer varsa bildir
