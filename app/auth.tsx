@@ -18,7 +18,7 @@ import * as Haptics from "expo-haptics";
 import * as WebBrowser from "expo-web-browser";
 import * as AppleAuthentication from "expo-apple-authentication";
 import * as Crypto from "expo-crypto";
-import { useAuthRequest, makeRedirectUri } from "expo-auth-session";
+import { useIdTokenAuthRequest } from "expo-auth-session/providers/google";
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -146,14 +146,9 @@ function LegalNote({ lang }: { lang: string }) {
   );
 }
 
-// ── Google OAuth discovery document ────────────────────────────────────────
-const GOOGLE_DISCOVERY = {
-  authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
-  tokenEndpoint:         "https://oauth2.googleapis.com/token",
-  revocationEndpoint:    "https://oauth2.googleapis.com/revoke",
-};
-
-// ── Android Google button — full OAuth flow (rendered only on Android) ──────
+// ── Android Google button — OAuth flow via expo-auth-session/providers/google
+// Hook is called at the top level of this dedicated component (not conditionally)
+// which is what prevented the "Invalid hook call" crash before.
 type AndroidGoogleButtonProps = {
   lang:      string;
   onSuccess: (displayName: string, email: string) => void;
@@ -163,48 +158,28 @@ type AndroidGoogleButtonProps = {
 function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonProps) {
   const [loading, setLoading] = useState(false);
 
-  const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? "";
-  const webClientId     = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID     ?? "";
-  const clientId        = androidClientId || webClientId;
-
-  // Reverse-DNS redirect URI → works in EAS production builds.
-  // In Expo Go the SDK falls back to exp:// automatically.
-  const androidPrefix = androidClientId.replace(".apps.googleusercontent.com", "");
-  const redirectUri   = makeRedirectUri({
-    native: `com.googleusercontent.apps.${androidPrefix}://`,
+  // useIdTokenAuthRequest returns idToken directly in response.authentication
+  // — no manual token-exchange step needed.
+  const [request, response, promptAsync] = useIdTokenAuthRequest({
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    webClientId:     process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
   });
-
-  const [request, response, promptAsync] = useAuthRequest(
-    { clientId, redirectUri, scopes: ["openid", "profile", "email"], usePKCE: true },
-    GOOGLE_DISCOVERY,
-  );
 
   useEffect(() => {
     if (!response) return;
+
     if (response.type === "success") {
-      const { code } = response.params;
-      const codeVerifier = request?.codeVerifier;
+      const idToken     = response.authentication?.idToken     ?? null;
+      const accessToken = response.authentication?.accessToken ?? null;
       (async () => {
         try {
-          const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
-            method:  "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({
-              code,
-              client_id:    clientId,
-              redirect_uri: redirectUri,
-              grant_type:   "authorization_code",
-              ...(codeVerifier ? { code_verifier: codeVerifier } : {}),
-            }).toString(),
-          });
-          const tokens = await tokenRes.json();
-          if (!tokens.id_token) throw new Error("No id_token");
-          const user        = await firebaseGoogleSignIn(tokens.id_token, tokens.access_token);
+          if (!idToken) throw new Error("No idToken in response");
+          const user        = await firebaseGoogleSignIn(idToken, accessToken);
           const displayName = user?.displayName ?? (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
           const email       = user?.email       ?? `google_${Date.now()}@tengri.social`;
           onSuccess(displayName, email);
         } catch (err) {
-          console.warn("[Google OAuth] token exchange error:", err);
+          console.warn("[Google OAuth] Firebase sign-in error:", err);
           onError(lang === "tr" ? "Google ile giriş başarısız." : "Google sign-in failed.");
         } finally {
           setLoading(false);
@@ -212,21 +187,18 @@ function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonPr
       })();
     } else if (response.type === "error") {
       setLoading(false);
-      onError(lang === "tr" ? "Google ile giriş iptal edildi." : "Google sign-in was cancelled.");
+      onError(lang === "tr" ? "Google girişi başarısız oldu." : "Google sign-in failed.");
     } else {
-      // dismiss / cancel
+      // "dismiss" | "cancel" — user closed the popup
       setLoading(false);
     }
   }, [response]);
 
   const handlePress = () => {
-    if (!clientId) {
-      onError(lang === "tr" ? "Google yapılandırılmamış." : "Google not configured.");
-      return;
-    }
+    if (!request) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setLoading(true);
-    promptAsync();
+    promptAsync().catch(() => setLoading(false));
   };
 
   return (
