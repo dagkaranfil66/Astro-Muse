@@ -570,8 +570,8 @@ export default function PurchaseScreen() {
                 <Ionicons name="shield-checkmark-outline" size={13} color="#4CAF7A" />
                 <Text style={styles.trustText}>
                   {lang === "tr"
-                    ? "Tüm ödemeler Apple App Store'un güvenli ödeme sistemi üzerinden gerçekleştirilir."
-                    : "All payments are processed through Apple App Store's secure payment system."}
+                    ? `Tüm ödemeler ${Platform.OS === "ios" ? "Apple App Store" : "Google Play"}'in güvenli ödeme sistemi üzerinden gerçekleştirilir.`
+                    : `All payments are processed through ${Platform.OS === "ios" ? "Apple App Store" : "Google Play"}'s secure payment system.`}
                 </Text>
               </View>
               <View style={styles.trustRow}>
