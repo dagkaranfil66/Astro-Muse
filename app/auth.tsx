@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import * as Haptics from "expo-haptics";
 import * as WebBrowser from "expo-web-browser";
 import * as AppleAuthentication from "expo-apple-authentication";
 import * as Crypto from "expo-crypto";
+import { useAuthRequest, makeRedirectUri } from "expo-auth-session";
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -34,7 +35,7 @@ import { Colors } from "@/constants/colors";
 import { useLang } from "@/context/LanguageContext";
 import { useApp } from "@/context/AppContext";
 import { getApiUrl } from "@/lib/query-client";
-import { firebaseAppleSignIn } from "@/lib/firebase";
+import { firebaseAppleSignIn, firebaseGoogleSignIn } from "@/lib/firebase";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -145,21 +146,100 @@ function LegalNote({ lang }: { lang: string }) {
   );
 }
 
-// ── Android Google button — rendered only on Android ──────────────────────
-type AndroidGoogleButtonProps = {
-  lang: string;
-  onPress: () => void;
+// ── Google OAuth discovery document ────────────────────────────────────────
+const GOOGLE_DISCOVERY = {
+  authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
+  tokenEndpoint:         "https://oauth2.googleapis.com/token",
+  revocationEndpoint:    "https://oauth2.googleapis.com/revoke",
 };
 
-function AndroidGoogleButton({ lang, onPress }: AndroidGoogleButtonProps) {
+// ── Android Google button — full OAuth flow (rendered only on Android) ──────
+type AndroidGoogleButtonProps = {
+  lang:      string;
+  onSuccess: (displayName: string, email: string) => void;
+  onError:   (msg: string) => void;
+};
+
+function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonProps) {
+  const [loading, setLoading] = useState(false);
+
+  const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? "";
+  const webClientId     = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID     ?? "";
+  const clientId        = androidClientId || webClientId;
+
+  // Reverse-DNS redirect URI → works in EAS production builds.
+  // In Expo Go the SDK falls back to exp:// automatically.
+  const androidPrefix = androidClientId.replace(".apps.googleusercontent.com", "");
+  const redirectUri   = makeRedirectUri({
+    native: `com.googleusercontent.apps.${androidPrefix}://`,
+  });
+
+  const [request, response, promptAsync] = useAuthRequest(
+    { clientId, redirectUri, scopes: ["openid", "profile", "email"], usePKCE: true },
+    GOOGLE_DISCOVERY,
+  );
+
+  useEffect(() => {
+    if (!response) return;
+    if (response.type === "success") {
+      const { code } = response.params;
+      const codeVerifier = request?.codeVerifier;
+      (async () => {
+        try {
+          const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+            method:  "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              code,
+              client_id:    clientId,
+              redirect_uri: redirectUri,
+              grant_type:   "authorization_code",
+              ...(codeVerifier ? { code_verifier: codeVerifier } : {}),
+            }).toString(),
+          });
+          const tokens = await tokenRes.json();
+          if (!tokens.id_token) throw new Error("No id_token");
+          const user        = await firebaseGoogleSignIn(tokens.id_token, tokens.access_token);
+          const displayName = user?.displayName ?? (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
+          const email       = user?.email       ?? `google_${Date.now()}@tengri.social`;
+          onSuccess(displayName, email);
+        } catch (err) {
+          console.warn("[Google OAuth] token exchange error:", err);
+          onError(lang === "tr" ? "Google ile giriş başarısız." : "Google sign-in failed.");
+        } finally {
+          setLoading(false);
+        }
+      })();
+    } else if (response.type === "error") {
+      setLoading(false);
+      onError(lang === "tr" ? "Google ile giriş iptal edildi." : "Google sign-in was cancelled.");
+    } else {
+      // dismiss / cancel
+      setLoading(false);
+    }
+  }, [response]);
+
+  const handlePress = () => {
+    if (!clientId) {
+      onError(lang === "tr" ? "Google yapılandırılmamış." : "Google not configured.");
+      return;
+    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setLoading(true);
+    promptAsync();
+  };
+
   return (
     <Pressable
-      onPress={onPress}
+      onPress={handlePress}
+      disabled={loading || !request}
       style={({ pressed }) => [styles.googleBtn, pressed && { opacity: 0.88 }]}
     >
       <Ionicons name="logo-google" size={20} color="#EA4335" />
       <Text style={styles.googleBtnText}>
-        {lang === "tr" ? "Google ile Giriş Yap" : "Continue with Google"}
+        {loading
+          ? (lang === "tr" ? "Bekleniyor..." : "Please wait...")
+          : (lang === "tr" ? "Google ile Giriş Yap" : "Continue with Google")}
       </Text>
     </Pressable>
   );
@@ -361,10 +441,11 @@ export default function AuthScreen() {
                 <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.btnRow}>
                   <AndroidGoogleButton
                     lang={lang}
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      setView("email");
+                    onSuccess={async (displayName, email) => {
+                      setError("");
+                      await finishLogin(displayName, email, "google");
                     }}
+                    onError={(msg) => setError(msg)}
                   />
                 </Animated.View>
               )}
