@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -34,7 +34,8 @@ import { Colors } from "@/constants/colors";
 import { useLang } from "@/context/LanguageContext";
 import { useApp } from "@/context/AppContext";
 import { getApiUrl } from "@/lib/query-client";
-import { firebaseAppleSignIn } from "@/lib/firebase";
+import { firebaseAppleSignIn, firebaseGoogleSignIn } from "@/lib/firebase";
+import * as Google from "expo-auth-session/providers/google";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -159,7 +160,14 @@ export default function AuthScreen() {
   const [name, setName]               = useState("");
   const [error, setError]             = useState("");
   const [loading, setLoading]         = useState(false);
-  const [appleLoading, setAppleLoading] = useState(false);
+  const [appleLoading, setAppleLoading]   = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const [, googleResponse, googlePromptAsync] = Google.useAuthRequest({
+    webClientId:     process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    iosClientId:     process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+  });
   const [showPass, setShowPass]       = useState(false);
   const [showConfPass, setShowConfPass] = useState(false);
 
@@ -182,6 +190,42 @@ export default function AuthScreen() {
     });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.replace("/(tabs)");
+  };
+
+  // ── Google Sign-In response handler ───────────────────────────────────
+  useEffect(() => {
+    if (googleResponse?.type === "success") {
+      const { authentication } = googleResponse;
+      (async () => {
+        try {
+          const user = await firebaseGoogleSignIn(
+            authentication?.idToken ?? null,
+            authentication?.accessToken ?? null,
+          );
+          const displayName = user?.displayName ?? (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
+          const email       = user?.email       ?? `google_${Date.now()}@tengri.social`;
+          await finishLogin(displayName, email, "google");
+        } catch {
+          setError(lang === "tr" ? "Google ile giriş başarısız." : "Google sign-in failed.");
+        } finally {
+          setGoogleLoading(false);
+        }
+      })();
+    } else if (googleResponse?.type === "error" || googleResponse?.type === "dismiss") {
+      setGoogleLoading(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [googleResponse]);
+
+  const handleGoogleSignIn = () => {
+    if (!process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID) {
+      setError(lang === "tr" ? "Google giriş henüz yapılandırılmamış." : "Google sign-in not configured.");
+      return;
+    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setGoogleLoading(true);
+    setError("");
+    googlePromptAsync();
   };
 
   // ── Apple Sign-In ─────────────────────────────────────────────────────
@@ -335,8 +379,26 @@ export default function AuthScreen() {
                 </Animated.View>
               )}
 
-              {/* 2. Email — all platforms */}
-              <Animated.View entering={FadeInDown.delay(Platform.OS === "ios" ? 370 : 310).springify()} style={styles.btnRow}>
+              {/* 2. Google — Android only */}
+              {Platform.OS === "android" && (
+                <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.btnRow}>
+                  <Pressable
+                    onPress={handleGoogleSignIn}
+                    disabled={googleLoading}
+                    style={({ pressed }) => [styles.googleBtn, pressed && { opacity: 0.88 }]}
+                  >
+                    <Ionicons name="logo-google" size={20} color="#EA4335" />
+                    <Text style={styles.googleBtnText}>
+                      {googleLoading
+                        ? (lang === "tr" ? "Bekleniyor..." : "Please wait...")
+                        : (lang === "tr" ? "Google ile Giriş Yap" : "Continue with Google")}
+                    </Text>
+                  </Pressable>
+                </Animated.View>
+              )}
+
+              {/* 3. Email — all platforms */}
+              <Animated.View entering={FadeInDown.delay(370).springify()} style={styles.btnRow}>
                 <Pressable
                   onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setView("email"); }}
                   style={({ pressed }) => [styles.emailBtn, pressed && { opacity: 0.88 }]}
@@ -538,6 +600,25 @@ const styles = StyleSheet.create({
   btnRow:   { width: "100%" },
 
   appleBtn: { width: "100%", height: 58, borderRadius: 14 },
+
+  googleBtn: {
+    width: "100%",
+    height: 54,
+    backgroundColor: Colors.surface,
+    borderRadius: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+  },
+  googleBtnText: {
+    fontSize: 16,
+    fontFamily: "Lora_700Bold",
+    color: Colors.text,
+    letterSpacing: 0.1,
+  },
 
   emailBtn: {
     width: "100%",
