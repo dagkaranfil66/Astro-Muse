@@ -46,19 +46,9 @@ export const RC_PACKAGE_ORDER = ["gold_20", "gold_50", "gold_120", "gold_300"];
 export const RC_ENTITLEMENT = "gold_access";
 
 // ── API key resolver ───────────────────────────────────────────────────────────
-// Expo Go requires a DIFFERENT key than native builds.
-// Production iOS key (appl_xxx) does NOT work in Expo Go.
-// If you need to test purchases in Expo Go, set EXPO_PUBLIC_REVENUECAT_TEST_API_KEY.
+// RC works in Expo Go (Preview API Mode) with the real platform key.
+// No special IS_EXPO_GO check needed — the SDK handles Preview Mode automatically.
 function getApiKey(): { key: string; source: string } {
-  // ── Expo Go: must use Test Store key ──
-  if (IS_EXPO_GO) {
-    const test = process.env.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY ?? "";
-    if (test) return { key: test, source: "EXPO_PUBLIC_REVENUECAT_TEST_API_KEY (Expo Go mode)" };
-    // No test key — we'll skip configure and show graceful message in UI
-    return { key: "", source: "NONE_EXPO_GO" };
-  }
-
-  // ── Native build (TestFlight, production, dev client) ──
   if (Platform.OS === "ios") {
     const key = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY ?? "";
     if (key) return { key, source: "EXPO_PUBLIC_REVENUECAT_IOS_API_KEY" };
@@ -126,20 +116,14 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
     async function init() {
       try {
-        // ── Expo Go without test key: skip configure gracefully ──
-        if (!apiKey && IS_EXPO_GO) {
-          console.warn("[RC] ⚠️ Expo Go detected but no EXPO_PUBLIC_REVENUECAT_TEST_API_KEY found");
-          console.warn("[RC]    Purchases are only available in TestFlight / App Store builds.");
-          console.warn("[RC]    To test in Expo Go, add EXPO_PUBLIC_REVENUECAT_TEST_API_KEY env var.");
-          clearTimeout(initTimeout);
-          setRcConfigured(false);
-          setIsReady(true);
-          return;
-        }
-
         if (!apiKey) {
           console.error("[RC] ❌ NO API KEY FOUND (source: " + source + ")");
-          console.error("[RC]    → Set EXPO_PUBLIC_REVENUECAT_IOS_API_KEY in EAS secrets for iOS builds");
+          if (Platform.OS === "android") {
+            console.error("[RC]    → Set EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY in Replit env vars");
+            console.error("[RC]    → Package name must match RC dashboard: check app.json android.package");
+          } else {
+            console.error("[RC]    → Set EXPO_PUBLIC_REVENUECAT_IOS_API_KEY in Replit env vars");
+          }
           clearTimeout(initTimeout);
           setRcConfigured(false);
           setIsReady(true);
@@ -149,6 +133,10 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         if (Platform.OS !== "web") {
           Purchases.setLogLevel(LOG_LEVEL.DEBUG);
           console.log("[RC] Debug logging enabled");
+        }
+
+        if (IS_EXPO_GO) {
+          console.log("[RC] ℹ️ Expo Go detected — RC runs in Preview API Mode (purchases are simulated)");
         }
 
         console.log("[RC] Calling Purchases.configure()...");
@@ -163,10 +151,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       } catch (e: any) {
         console.error("[RC] ❌ configure() FAILED:", e?.message ?? e);
         console.error("[RC]    Code:", e?.code);
-        console.error("[RC]    Full error:", JSON.stringify(e, null, 2));
-        if (IS_EXPO_GO) {
-          console.error("[RC]    ⚠️ Running in Expo Go — production API key (appl_...) is not supported.");
-          console.error("[RC]       Set EXPO_PUBLIC_REVENUECAT_TEST_API_KEY to test purchases in Expo Go.");
+        if (Platform.OS === "android") {
+          console.error("[RC]    Android — verify package name matches RC dashboard");
+          console.error("[RC]    app.json android.package:", "com.tengriastrolojifalburlarmistikyolculuk.app");
         }
         clearTimeout(initTimeout);
         setRcConfigured(false);
@@ -299,20 +286,40 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
   const purchaseMutation = useMutation<CustomerInfo, Error, PurchasesPackage>({
     mutationFn: async (pkg: PurchasesPackage) => {
-      console.log("[RC] purchasePackage:", pkg.identifier, pkg.product.priceString);
+      console.log("[RC] purchasePackage START");
+      console.log("[RC]   package.identifier:", pkg.identifier);
+      console.log("[RC]   product.identifier:", pkg.product.identifier);
+      console.log("[RC]   product.priceString:", pkg.product.priceString);
+      console.log("[RC]   Platform:", Platform.OS);
+      console.log("[RC]   IS_EXPO_GO:", IS_EXPO_GO);
       const result = await Purchases.purchasePackage(pkg);
-      console.log("Purchase result:", result);
-      console.log("Customer info:", result.customerInfo);
-      return result.customerInfo;
+      const ci = result.customerInfo;
+      console.log("[RC] ✅ purchasePackage SUCCESS");
+      console.log("[RC]   activeSubscriptions:", ci.activeSubscriptions);
+      console.log("[RC]   nonSubscriptionTransactions count:", ci.nonSubscriptionTransactions?.length ?? 0);
+      const activeEntitlements = Object.keys(ci.entitlements.active);
+      console.log("[RC]   active entitlements:", activeEntitlements.length > 0 ? activeEntitlements.join(", ") : "(none — expected for consumables)");
+      if (ci.nonSubscriptionTransactions?.length > 0) {
+        const last = ci.nonSubscriptionTransactions[ci.nonSubscriptionTransactions.length - 1];
+        console.log("[RC]   last transaction productId:", last.productIdentifier);
+        console.log("[RC]   last transaction purchaseDate:", last.purchaseDateMillis);
+      }
+      return ci;
     },
-    onSuccess: () => {
+    onSuccess: (ci) => {
       qc.invalidateQueries({ queryKey: ["rc", "customerInfo"] });
+      console.log("[RC] customerInfo cache invalidated after purchase");
     },
     onError: (e: any) => {
       if (e?.userCancelled) {
         console.log("[RC] Purchase cancelled by user");
       } else {
-        console.error("[RC] ❌ Purchase error:", e?.message ?? e, "code:", e?.code);
+        console.error("[RC] ❌ Purchase error:", e?.message ?? e);
+        console.error("[RC]   code:", e?.code);
+        console.error("[RC]   underlyingError:", e?.underlyingErrorMessage ?? "(none)");
+        if (Platform.OS === "android") {
+          console.error("[RC]   Android billing error codes: 1=user_cancelled 3=billing_unavailable 6=product_not_available 7=already_owned");
+        }
       }
     },
   });

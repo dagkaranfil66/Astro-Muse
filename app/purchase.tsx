@@ -31,10 +31,10 @@ import { useSubscription, PACKAGE_GOLD_MAP, RC_PACKAGE_ORDER } from "@/lib/reven
 import type { PurchasesPackage } from "react-native-purchases";
 
 const SERVICE_NAMES_TR: Record<string, string> = {
-  samanizm: "Şamanizm", burclar: "Burçlar", ruh: "Ruh Okuma",
-  astroloji: "Astroloji", kahve: "Kahve Falı", el: "El Falı",
-  numeroloji: "Numeroloji", ruya: "Rüya Yorumu", ask: "Aşkını Bul",
-  tarot: "Tarot", dogum: "Doğum Haritası",
+  samanizm: "Şamanizm Analizi", burclar: "Astroloji Rehberi", ruh: "Enerji Analizi",
+  astroloji: "Doğum Haritası Analizi", kahve: "Kahve Analizi", el: "El Çizgisi Analizi",
+  numeroloji: "Numeroloji Analizi", ruya: "Rüya Analizi", ask: "Uyum Analizi",
+  tarot: "Tarot Analizi", dogum: "Doğum Haritası Analizi",
 };
 
 // RC package display data — keyed by RC package identifier (gold_20, gold_50, etc.)
@@ -305,27 +305,23 @@ export default function PurchaseScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setBuying(true);
     try {
-      console.log(
-        "Selected package:",
-        rcPkg?.identifier,
-        rcPkg?.product?.identifier
-      );
-      await purchase(rcPkg);
-      // Look up by RC package identifier first, then by product identifier as fallback.
-      // Both are in PACKAGE_GOLD_MAP so at least one will always resolve.
+      console.log("[Purchase] Starting purchase:", rcPkg?.identifier, rcPkg?.product?.identifier);
+      const customerInfo = await purchase(rcPkg);
+
+      // Award gold: look up by RC package identifier first, then product identifier as fallback
       const gold =
         PACKAGE_GOLD_MAP[rcPkg.identifier] ??
         PACKAGE_GOLD_MAP[rcPkg.product.identifier] ??
         0;
-      console.log(
-        `[Purchase] ✅ pkg=${rcPkg.identifier} product=${rcPkg.product.identifier} gold=${gold}`
-      );
+
+      console.log(`[Purchase] ✅ Success — pkg=${rcPkg.identifier} gold=${gold}`);
+      console.log("[Purchase]   nonSubscriptionTransactions:", customerInfo?.nonSubscriptionTransactions?.length ?? 0);
+
       if (gold > 0) {
         addGold(gold);
+        console.log(`[Purchase]   Added ${gold} gold to balance`);
       } else {
-        console.warn(
-          `[Purchase] ⚠️ Gold lookup returned 0. pkg identifier="${rcPkg.identifier}" product="${rcPkg.product.identifier}"`
-        );
+        console.warn(`[Purchase] ⚠️ Gold=0 — pkg="${rcPkg.identifier}" product="${rcPkg.product.identifier}"`);
       }
       setBoughtId(rcPkg.identifier);
       setBoughtGold(gold);
@@ -333,13 +329,16 @@ export default function PurchaseScreen() {
       setTimeout(() => router.back(), 1800);
     } catch (e: any) {
       if (!e?.userCancelled) {
-        console.error(
-          "[Purchase] ❌ Error:",
-          (e as any)?.message ?? e,
-          "code:",
-          (e as any)?.code
-        );
-        setPurchaseError(lang === "tr" ? "Satın alma başarısız oldu" : "Purchase failed");
+        console.error("[Purchase] ❌ Error:", e?.message ?? e, "code:", e?.code);
+        const code = e?.code as number | undefined;
+        let msg = lang === "tr" ? "Satın alma başarısız oldu" : "Purchase failed";
+        if (Platform.OS === "android") {
+          if (code === 3) msg = lang === "tr" ? "Google Play Billing kullanılamıyor" : "Google Play Billing unavailable";
+          else if (code === 6) msg = lang === "tr" ? "Ürün şu an satışta değil" : "Product not available";
+          else if (code === 7) msg = lang === "tr" ? "Bu ürün zaten satın alınmış" : "Product already owned";
+          else if (code === 1) msg = lang === "tr" ? "Satın alma iptal edildi" : "Purchase cancelled";
+        }
+        setPurchaseError(msg);
       }
     } finally {
       setBuying(false);
@@ -451,14 +450,14 @@ export default function PurchaseScreen() {
               </Animated.View>
             )}
 
-            {/* Expo Go notice — purchases require a native build */}
-            {isExpoGo && !rcConfigured && (
+            {/* Expo Go notice — Preview API Mode */}
+            {isExpoGo && (
               <Animated.View entering={FadeIn.duration(400)} style={styles.webNoticeBanner}>
-                <Ionicons name="construct-outline" size={16} color={Colors.gold} />
+                <Ionicons name="information-circle-outline" size={16} color={Colors.gold} />
                 <Text style={styles.webNoticeText}>
                   {lang === "tr"
-                    ? "Satın alma yalnızca TestFlight veya App Store sürümünde çalışır. Expo Go test modunda satın alma desteklenmez."
-                    : "Purchases only work in TestFlight or App Store builds. In-app purchases are not supported in Expo Go."}
+                    ? "Expo Go önizleme modunda çalışıyor. Fiyatlar simüle edilmiştir; gerçek ödeme alınmaz."
+                    : "Running in Expo Go preview mode. Prices are simulated; no real payment is taken."}
                 </Text>
               </Animated.View>
             )}
@@ -502,8 +501,12 @@ export default function PurchaseScreen() {
                 </Text>
                 <Text style={styles.rcErrorDesc}>
                   {lang === "tr"
-                    ? "Ürünler App Store'dan yüklenemedi. Lütfen daha sonra tekrar deneyin."
-                    : "Products could not be loaded from App Store. Please try again later."}
+                    ? (Platform.OS === "android"
+                        ? "Ürünler Google Play'den yüklenemedi. İnternet bağlantınızı kontrol edip tekrar deneyin."
+                        : "Ürünler App Store'dan yüklenemedi. Lütfen daha sonra tekrar deneyin.")
+                    : (Platform.OS === "android"
+                        ? "Products could not be loaded from Google Play. Check your connection and try again."
+                        : "Products could not be loaded from App Store. Please try again later.")}
                 </Text>
                 <Pressable
                   onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); refetchOfferings(); }}
