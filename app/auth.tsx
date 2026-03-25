@@ -146,6 +146,72 @@ function LegalNote({ lang }: { lang: string }) {
   );
 }
 
+// ── Android-only Google Sign-In button ────────────────────────────────────
+// Rendered only when Platform.OS === "android" — hook never runs on iOS
+type AndroidGoogleButtonProps = {
+  lang: string;
+  onSuccess: (displayName: string, email: string) => void;
+  onError: (msg: string) => void;
+};
+
+function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonProps) {
+  const [loading, setLoading] = useState(false);
+
+  const [, googleResponse, googlePromptAsync] = Google.useAuthRequest({
+    webClientId:     process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+  });
+
+  useEffect(() => {
+    if (googleResponse?.type === "success") {
+      const { authentication } = googleResponse;
+      (async () => {
+        try {
+          const user = await firebaseGoogleSignIn(
+            authentication?.idToken ?? null,
+            authentication?.accessToken ?? null,
+          );
+          const displayName = user?.displayName ?? (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
+          const email       = user?.email       ?? `google_${Date.now()}@tengri.social`;
+          onSuccess(displayName, email);
+        } catch {
+          onError(lang === "tr" ? "Google ile giriş başarısız." : "Google sign-in failed.");
+        } finally {
+          setLoading(false);
+        }
+      })();
+    } else if (googleResponse?.type === "error" || googleResponse?.type === "dismiss") {
+      setLoading(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [googleResponse]);
+
+  const handlePress = () => {
+    if (!process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID) {
+      onError(lang === "tr" ? "Google giriş yapılandırılmamış." : "Google sign-in not configured.");
+      return;
+    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setLoading(true);
+    googlePromptAsync();
+  };
+
+  return (
+    <Pressable
+      onPress={handlePress}
+      disabled={loading}
+      style={({ pressed }) => [styles.googleBtn, pressed && { opacity: 0.88 }]}
+    >
+      <Ionicons name="logo-google" size={20} color="#EA4335" />
+      <Text style={styles.googleBtnText}>
+        {loading
+          ? (lang === "tr" ? "Bekleniyor..." : "Please wait...")
+          : (lang === "tr" ? "Google ile Giriş Yap" : "Continue with Google")}
+      </Text>
+    </Pressable>
+  );
+}
+
 // ── Screen ────────────────────────────────────────────────────────────────
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
@@ -160,18 +226,7 @@ export default function AuthScreen() {
   const [name, setName]               = useState("");
   const [error, setError]             = useState("");
   const [loading, setLoading]         = useState(false);
-  const [appleLoading, setAppleLoading]   = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-
-  // Hook must be called unconditionally — client IDs only provided on Android
-  const [, googleResponse, googlePromptAsync] = Google.useAuthRequest(
-    Platform.OS === "android"
-      ? {
-          webClientId:     process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-          androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-        }
-      : {},
-  );
+  const [appleLoading, setAppleLoading] = useState(false);
   const [showPass, setShowPass]       = useState(false);
   const [showConfPass, setShowConfPass] = useState(false);
 
@@ -194,44 +249,6 @@ export default function AuthScreen() {
     });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.replace("/(tabs)");
-  };
-
-  // ── Google Sign-In response handler — Android only ────────────────────
-  useEffect(() => {
-    if (Platform.OS !== "android") return;
-    if (googleResponse?.type === "success") {
-      const { authentication } = googleResponse;
-      (async () => {
-        try {
-          const user = await firebaseGoogleSignIn(
-            authentication?.idToken ?? null,
-            authentication?.accessToken ?? null,
-          );
-          const displayName = user?.displayName ?? (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
-          const email       = user?.email       ?? `google_${Date.now()}@tengri.social`;
-          await finishLogin(displayName, email, "google");
-        } catch {
-          setError(lang === "tr" ? "Google ile giriş başarısız." : "Google sign-in failed.");
-        } finally {
-          setGoogleLoading(false);
-        }
-      })();
-    } else if (googleResponse?.type === "error" || googleResponse?.type === "dismiss") {
-      setGoogleLoading(false);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [googleResponse]);
-
-  const handleGoogleSignIn = () => {
-    if (Platform.OS !== "android") return;
-    if (!process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID) {
-      setError(lang === "tr" ? "Google giriş henüz yapılandırılmamış." : "Google sign-in not configured.");
-      return;
-    }
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setGoogleLoading(true);
-    setError("");
-    googlePromptAsync();
   };
 
   // ── Apple Sign-In — iOS only ───────────────────────────────────────────
@@ -386,21 +403,14 @@ export default function AuthScreen() {
                 </Animated.View>
               )}
 
-              {/* 2. Google — Android only */}
+              {/* 2. Google — Android only (hook lives inside AndroidGoogleButton, never runs on iOS) */}
               {Platform.OS === "android" && (
                 <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.btnRow}>
-                  <Pressable
-                    onPress={handleGoogleSignIn}
-                    disabled={googleLoading}
-                    style={({ pressed }) => [styles.googleBtn, pressed && { opacity: 0.88 }]}
-                  >
-                    <Ionicons name="logo-google" size={20} color="#EA4335" />
-                    <Text style={styles.googleBtnText}>
-                      {googleLoading
-                        ? (lang === "tr" ? "Bekleniyor..." : "Please wait...")
-                        : (lang === "tr" ? "Google ile Giriş Yap" : "Continue with Google")}
-                    </Text>
-                  </Pressable>
+                  <AndroidGoogleButton
+                    lang={lang}
+                    onSuccess={(displayName, email) => finishLogin(displayName, email, "google")}
+                    onError={setError}
+                  />
                 </Animated.View>
               )}
 
