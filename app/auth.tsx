@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -34,8 +34,7 @@ import { Colors } from "@/constants/colors";
 import { useLang } from "@/context/LanguageContext";
 import { useApp } from "@/context/AppContext";
 import { getApiUrl } from "@/lib/query-client";
-import { firebaseAppleSignIn, firebaseGoogleSignIn } from "@/lib/firebase";
-import * as Google from "expo-auth-session/providers/google";
+import { firebaseAppleSignIn } from "@/lib/firebase";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -146,67 +145,21 @@ function LegalNote({ lang }: { lang: string }) {
   );
 }
 
-// ── Android-only Google Sign-In button ────────────────────────────────────
-// Rendered only when Platform.OS === "android" — hook never runs on iOS
+// ── Android Google button — rendered only on Android ──────────────────────
 type AndroidGoogleButtonProps = {
   lang: string;
-  onSuccess: (displayName: string, email: string) => void;
-  onError: (msg: string) => void;
+  onPress: () => void;
 };
 
-function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonProps) {
-  const [loading, setLoading] = useState(false);
-
-  const [, googleResponse, googlePromptAsync] = Google.useAuthRequest({
-    webClientId:     process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-  });
-
-  useEffect(() => {
-    if (googleResponse?.type === "success") {
-      const { authentication } = googleResponse;
-      (async () => {
-        try {
-          const user = await firebaseGoogleSignIn(
-            authentication?.idToken ?? null,
-            authentication?.accessToken ?? null,
-          );
-          const displayName = user?.displayName ?? (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
-          const email       = user?.email       ?? `google_${Date.now()}@tengri.social`;
-          onSuccess(displayName, email);
-        } catch {
-          onError(lang === "tr" ? "Google ile giriş başarısız." : "Google sign-in failed.");
-        } finally {
-          setLoading(false);
-        }
-      })();
-    } else if (googleResponse?.type === "error" || googleResponse?.type === "dismiss") {
-      setLoading(false);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [googleResponse]);
-
-  const handlePress = () => {
-    if (!process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID) {
-      onError(lang === "tr" ? "Google giriş yapılandırılmamış." : "Google sign-in not configured.");
-      return;
-    }
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setLoading(true);
-    googlePromptAsync();
-  };
-
+function AndroidGoogleButton({ lang, onPress }: AndroidGoogleButtonProps) {
   return (
     <Pressable
-      onPress={handlePress}
-      disabled={loading}
+      onPress={onPress}
       style={({ pressed }) => [styles.googleBtn, pressed && { opacity: 0.88 }]}
     >
       <Ionicons name="logo-google" size={20} color="#EA4335" />
       <Text style={styles.googleBtnText}>
-        {loading
-          ? (lang === "tr" ? "Bekleniyor..." : "Please wait...")
-          : (lang === "tr" ? "Google ile Giriş Yap" : "Continue with Google")}
+        {lang === "tr" ? "Google ile Giriş Yap" : "Continue with Google"}
       </Text>
     </Pressable>
   );
@@ -403,13 +356,15 @@ export default function AuthScreen() {
                 </Animated.View>
               )}
 
-              {/* 2. Google — Android only (hook lives inside AndroidGoogleButton, never runs on iOS) */}
+              {/* 2. Google — Android only */}
               {Platform.OS === "android" && (
                 <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.btnRow}>
                   <AndroidGoogleButton
                     lang={lang}
-                    onSuccess={(displayName, email) => finishLogin(displayName, email, "google")}
-                    onError={setError}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setView("email");
+                    }}
                   />
                 </Animated.View>
               )}
