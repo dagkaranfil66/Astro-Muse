@@ -163,11 +163,15 @@ export default function AuthScreen() {
   const [appleLoading, setAppleLoading]   = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  const [, googleResponse, googlePromptAsync] = Google.useAuthRequest({
-    webClientId:     process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-    iosClientId:     process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-  });
+  // Hook must be called unconditionally — client IDs only provided on Android
+  const [, googleResponse, googlePromptAsync] = Google.useAuthRequest(
+    Platform.OS === "android"
+      ? {
+          webClientId:     process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+          androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+        }
+      : {},
+  );
   const [showPass, setShowPass]       = useState(false);
   const [showConfPass, setShowConfPass] = useState(false);
 
@@ -192,8 +196,9 @@ export default function AuthScreen() {
     router.replace("/(tabs)");
   };
 
-  // ── Google Sign-In response handler ───────────────────────────────────
+  // ── Google Sign-In response handler — Android only ────────────────────
   useEffect(() => {
+    if (Platform.OS !== "android") return;
     if (googleResponse?.type === "success") {
       const { authentication } = googleResponse;
       (async () => {
@@ -218,6 +223,7 @@ export default function AuthScreen() {
   }, [googleResponse]);
 
   const handleGoogleSignIn = () => {
+    if (Platform.OS !== "android") return;
     if (!process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID) {
       setError(lang === "tr" ? "Google giriş henüz yapılandırılmamış." : "Google sign-in not configured.");
       return;
@@ -228,8 +234,9 @@ export default function AuthScreen() {
     googlePromptAsync();
   };
 
-  // ── Apple Sign-In ─────────────────────────────────────────────────────
+  // ── Apple Sign-In — iOS only ───────────────────────────────────────────
   const handleAppleSignIn = async () => {
+    if (Platform.OS !== "ios") return;
     try {
       setAppleLoading(true);
       setError("");
