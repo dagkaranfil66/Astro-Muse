@@ -15,15 +15,21 @@ const IS_EXPO_GO = Constants.executionEnvironment === "storeClient";
 
 // ── Gold awarded per identifier ───────────────────────────────────────────────
 // Keyed by BOTH RC package identifier (e.g. "gold_20") AND product identifier
-// (e.g. "tengri_gold_20") so lookups work regardless of which is used.
+// (e.g. "tengri_20_gold") so lookups work regardless of which is used.
 // Values are TOTAL gold including bonus.
 export const PACKAGE_GOLD_MAP: Record<string, number> = {
-  // RC package identifiers (used by rcPkg.identifier)
+  // RC package identifiers (used by rcPkg.identifier) — primary lookup
   gold_20:  20,
   gold_50:  55,   // 50 + 5 bonus
   gold_120: 140,  // 120 + 20 bonus
   gold_300: 360,  // 300 + 60 bonus
   // Product identifiers (used by rcPkg.product.identifier) — fallback
+  // RC Dashboard format: tengri_XX_gold (amount comes after tengri_)
+  tengri_20_gold:  20,
+  tengri_50_gold:  55,
+  tengri_120_gold: 140,
+  tengri_300_gold: 360,
+  // Legacy format (in case product IDs were ever registered differently)
   tengri_gold_20:  20,
   tengri_gold_50:  55,
   tengri_gold_120: 140,
@@ -31,11 +37,12 @@ export const PACKAGE_GOLD_MAP: Record<string, number> = {
 };
 
 // ── Expected product IDs (for diagnostic comparison) ─────────────────────────
+// RC Dashboard format confirmed via API: tengri_XX_gold
 export const EXPECTED_PRODUCT_IDS = [
-  "tengri_gold_20",
-  "tengri_gold_50",
-  "tengri_gold_120",
-  "tengri_gold_300",
+  "tengri_20_gold",
+  "tengri_50_gold",
+  "tengri_120_gold",
+  "tengri_300_gold",
 ];
 
 // ── RC package identifier order (cheapest → most expensive) ──────────────────
