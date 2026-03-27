@@ -160,7 +160,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         console.error("[RC]    Code:", e?.code);
         if (Platform.OS === "android") {
           console.error("[RC]    Android — verify package name matches RC dashboard");
-          console.error("[RC]    app.json android.package:", "com.tengriastrolojifalburlarmistikyolculuk.app");
+          console.error("[RC]    app.json android.package:", "com.median.android.bnljzke");
         }
         clearTimeout(initTimeout);
         setRcConfigured(false);

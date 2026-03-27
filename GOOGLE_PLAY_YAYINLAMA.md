@@ -52,7 +52,7 @@ Google Play'de yayınladıktan sonra RevenueCat'e Android yapılandırması ekle
 
 1. [app.revenuecat.com](https://app.revenuecat.com) → Tengri projesi
 2. "Apps" → Android uygulaması ekle
-3. Google Play package name: `com.tengriastrolojifalburlarmistikyolculuk.app`
+3. Google Play package name: `com.median.android.bnljzke`
 4. Oluşturulan Android API Key'i `EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY` secret'ına ekleyin
 
 ---
@@ -61,7 +61,7 @@ Google Play'de yayınladıktan sonra RevenueCat'e Android yapılandırması ekle
 
 | Alan | Değer |
 |------|-------|
-| Paket adı | `com.tengriastrolojifalburlarmistikyolculuk.app` |
+| Paket adı | `com.median.android.bnljzke` |
 | Sürüm | 1.0.0 |
 | versionCode | 1 |
 | Min SDK | 24 (Android 7.0) |
