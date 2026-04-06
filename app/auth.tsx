@@ -186,10 +186,9 @@ const APP_SCHEME = "tengriastrolojifalburlarmistikyolculuk";
 function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonProps) {
   const [loading, setLoading] = useState(false);
 
-  const redirectUri = AuthSession.makeRedirectUri({
-    scheme: APP_SCHEME,
-    path: "redirect",
-  });
+  // Expo Go'da exp:// URL'i her seferinde değişir — Google Console'a eklenemez.
+  // Çözüm: useProxy:true → sabit https://auth.expo.io/@user/slug URL'i üretir.
+  const redirectUri = AuthSession.makeRedirectUri({ useProxy: true });
 
   const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
   const webClientId     = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
@@ -201,8 +200,9 @@ function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonPr
   });
 
   useEffect(() => {
-    console.log("[Google OAuth] ── CONFIG ──");
-    console.log("[Google OAuth] redirectUri:", redirectUri);
+    console.log("=== [Google OAuth] CONFIG ===");
+    console.log("[Google OAuth] redirectUri (EXACT):", redirectUri);
+    console.log("[Google OAuth] >>> Bu URL'i Google Cloud Console'a ekleyin <<<");
     console.log("[Google OAuth] androidClientId set:", !!androidClientId);
     console.log("[Google OAuth] webClientId set:", !!webClientId);
     console.log("[Google OAuth] request ready:", !!request);
