@@ -183,12 +183,12 @@ type AndroidGoogleButtonProps = {
 
 const APP_SCHEME = "tengriastrolojifalburlarmistikyolculuk";
 
+// ── SABİT redirectUri — dinamik hesaplama YOK ────────────────────────────
+// Bu değer Google Cloud Console → Authorized redirect URIs'e eklenmiş olmalı.
+const GOOGLE_REDIRECT_URI = "https://auth.expo.io/@dagkaranfil/tengriastroloji";
+
 function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonProps) {
   const [loading, setLoading] = useState(false);
-
-  // Expo Go'da exp:// URL'i her seferinde değişir — Google Console'a eklenemez.
-  // Çözüm: useProxy:true → sabit https://auth.expo.io/@user/slug URL'i üretir.
-  const redirectUri = AuthSession.makeRedirectUri({ useProxy: true });
 
   const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
   const webClientId     = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
@@ -196,18 +196,22 @@ function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonPr
   const [request, response, promptAsync] = useIdTokenAuthRequest({
     androidClientId,
     webClientId,
-    redirectUri,
+    redirectUri: GOOGLE_REDIRECT_URI,
   });
 
   useEffect(() => {
     console.log("=== [Google OAuth] CONFIG ===");
-    console.log("[Google OAuth] redirectUri (EXACT):", redirectUri);
-    console.log("[Google OAuth] >>> Bu URL'i Google Cloud Console'a ekleyin <<<");
-    console.log("[Google OAuth] androidClientId set:", !!androidClientId);
-    console.log("[Google OAuth] webClientId set:", !!webClientId);
+    console.log("[Google OAuth] redirectUri (EXACT - SABİT):", GOOGLE_REDIRECT_URI);
+    console.log("[Google OAuth] androidClientId set:", !!androidClientId, androidClientId ? ("..." + androidClientId.slice(-12)) : "YOK");
+    console.log("[Google OAuth] webClientId set:", !!webClientId, webClientId ? ("..." + webClientId.slice(-12)) : "YOK");
     console.log("[Google OAuth] request ready:", !!request);
     if (request) {
-      console.log("[Google OAuth] request.url:", (request as any)?.url ?? "N/A");
+      const url = (request as any)?.url ?? "";
+      console.log("[Google OAuth] OAuth URL:", url);
+      const redirectParam = url.match(/redirect_uri=([^&]+)/)?.[1];
+      if (redirectParam) {
+        console.log("[Google OAuth] redirect_uri param (decoded):", decodeURIComponent(redirectParam));
+      }
     }
   }, [request]);
 
@@ -285,7 +289,7 @@ function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonPr
   const handlePress = () => {
     console.log("[Google OAuth] ── BUTTON PRESS ──");
     console.log("[Google OAuth] request hazır mı:", !!request);
-    console.log("[Google OAuth] redirectUri:", redirectUri);
+    console.log("[Google OAuth] SABİT redirectUri:", GOOGLE_REDIRECT_URI);
 
     if (!request) {
       console.warn("[Google OAuth] ⚠️ request null — androidClientId veya webClientId eksik olabilir");
@@ -299,7 +303,8 @@ function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonPr
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setLoading(true);
-    promptAsync().then((result) => {
+    // useProxy: true → tarayıcıyı auth.expo.io proxy üzerinden yönlendirir
+    promptAsync({ useProxy: true }).then((result) => {
       console.log("[Google OAuth] promptAsync sonucu:", result?.type);
     }).catch((err) => {
       console.error("[Google OAuth] promptAsync hatası:", err?.message ?? err);
