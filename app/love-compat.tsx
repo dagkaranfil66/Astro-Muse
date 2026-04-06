@@ -597,7 +597,7 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
                     <Text style={styles.shareCardMiniDot}>·</Text>
                     <Text style={styles.shareCardMiniItem}>{lang === "tr" ? "GELECEK" : "FUTURE"} %{scores.future}</Text>
                   </View>
-                  <Text style={styles.shareCardBrand}>✦ TENGRI · tengristar.com ✦</Text>
+                  <Text style={styles.shareCardBrand}>· TENGRI · tengristar.com ·</Text>
                 </LinearGradient>
                 <Pressable onPress={shareCard} style={styles.shareCardBtn}>
                   <Ionicons name="share-social-outline" size={15} color={Colors.gold} />
@@ -629,16 +629,16 @@ Lütfen şu bölümleri sırasıyla yaz (her birini kalın başlıkla):
                   <View style={styles.lockedDivider} />
 
                   {/* Campaign hint */}
-                  <Text style={styles.campaignHint}>{lang === "tr" ? "✦ İlk aşk uyumu yorumuna özel ✦" : "✦ Special offer for your first love reading ✦"}</Text>
+                  <Text style={styles.campaignHint}>{lang === "tr" ? "· İlk aşk uyumu yorumuna özel ·" : "· Special offer for your first love reading ·"}</Text>
 
                   <Pressable onPress={unlockDetail} style={styles.unlockBtn}>
                     <LinearGradient colors={["#FF4757", "#C0932A"]} style={styles.unlockBtnInner}
                       start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
                       <Ionicons name="lock-open-outline" size={18} color="#fff" />
-                      <Text style={styles.unlockBtnText}>{lang === "tr" ? "Detaylı Yorumu Aç" : "Unlock Full Reading"}  ·  {GOLD_COST} ✦</Text>
+                      <Text style={styles.unlockBtnText}>{lang === "tr" ? "Detaylı Yorumu Aç" : "Unlock Full Reading"}  ·  {GOLD_COST}</Text>
                     </LinearGradient>
                   </Pressable>
-                  <Text style={styles.lockedGoldHint}>{lang === "tr" ? "Mevcut altın" : "Current gold"}: {goldBalance} ✦</Text>
+                  <Text style={styles.lockedGoldHint}>{lang === "tr" ? "Mevcut altın" : "Current gold"}: {goldBalance}</Text>
                 </LinearGradient>
               </Animated.View>
             )}

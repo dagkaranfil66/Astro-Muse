@@ -22,8 +22,6 @@ import { Colors } from "@/constants/colors";
 import { useApp, Reading } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
 
-const STAR_FONT = Platform.OS === "ios" ? "System" : "sans-serif";
-
 const SERVICE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   astroloji: "moon-outline",
   kahve: "cafe-outline",
@@ -107,7 +105,10 @@ function ReadingDetailModal({
 
         {reading.goldSpent !== undefined && (
           <View style={modal.goldRow}>
-            <Text style={modal.goldText}><Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>{reading.goldSpent} {lang === "tr" ? "altın harcandı" : "gold spent"}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Ionicons name="diamond" size={12} color={Colors.gold} />
+              <Text style={modal.goldText}>{reading.goldSpent} {lang === "tr" ? "altın harcandı" : "gold spent"}</Text>
+            </View>
           </View>
         )}
 
@@ -172,8 +173,9 @@ function ReadingCard({
             {stripMarkdown(reading.content)}
           </Text>
           {reading.goldSpent !== undefined && (
-            <View style={styles.goldPill}>
-              <Text style={styles.goldPillText}><Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>{reading.goldSpent}</Text>
+            <View style={[styles.goldPill, { flexDirection: "row", alignItems: "center", gap: 3 }]}>
+              <Ionicons name="diamond" size={9} color={Colors.gold} />
+              <Text style={styles.goldPillText}>{reading.goldSpent}</Text>
             </View>
           )}
         </LinearGradient>
@@ -211,7 +213,11 @@ export default function HistoryScreen() {
         contentContainerStyle={[styles.content, { paddingTop: topPad + 20, paddingBottom: botPad }]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.headerSub}><Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>{t.history.toUpperCase()}<Text style={{ fontFamily: STAR_FONT }}>{" ✦"}</Text></Text>
+        <View style={styles.centeredIconRow}>
+          <Ionicons name="sparkles" size={10} color={Colors.gold} />
+          <Text style={styles.headerSub}>{t.history.toUpperCase()}</Text>
+          <Ionicons name="sparkles" size={10} color={Colors.gold} />
+        </View>
         <Text style={styles.headerTitle}>{t.myReadings}</Text>
 
         {readings.length === 0 ? (
@@ -239,6 +245,7 @@ export default function HistoryScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   content: { paddingHorizontal: 20 },
+  centeredIconRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
   headerSub: {
     color: Colors.gold,
     fontSize: 11,

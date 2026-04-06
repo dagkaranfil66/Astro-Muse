@@ -1,0 +1,77 @@
+Uygulamadaki bozuk sembol / Çince gibi görünen karakter sorununu kalıcı olarak çöz ve icon/font sistemini profesyonel hale getir.
+
+AMAÇ:
+- Android/Expo’da görünen garip semboller tamamen kalksın
+- Tüm string icon kullanımları kaldırılsın
+- Gerçek icon component sistemi kullanılsın
+- Font yüklenmeden uygulama render edilmesin
+- Uygulama premium görünümünü korusun
+
+YAPILACAKLAR:
+
+1) FONT YÜKLENMESİNİ GÜVENLİ HALE GETİR
+- app/_layout.tsx içinde useFonts yapısını kontrol et
+- Ionicons fontunu da yükle:
+  ...Ionicons.font
+- Lora ve kullanılan diğer custom fontlar da burada yüklensin
+- fontsLoaded olmadan uygulama render edilmesin
+- örnek mantık:
+  if (!fontsLoaded) return null;
+
+2) STRING ICON KULLANIMLARINI KALDIR
+Aşağıdaki gibi metin içinde yazılmış sembolleri bul ve kaldır:
+- ✦
+- ★
+- >
+- chevron yerine kullanılan özel karakterler
+- sağ tarafta görünen bozuk unicode karakterler
+
+Bunların yerine gerçek icon component kullan:
+- chevron-forward
+- star
+- heart
+- arrow-forward
+gibi @expo/vector-icons / Ionicons iconları
+
+3) APP ICON WRAPPER COMPONENT OLUŞTUR
+Ortak bir component oluştur:
+components/AppIcon.tsx
+
+Örnek mantık:
+- Ionicons import et
+- default size ve color tanımla
+- tüm uygulamada iconlar bu component üzerinden kullanılsın
+
+4) LORA FONTUNDA OLMAYAN KARAKTERLERİ DÜZELT
+- U+2726 gibi Lora fontunda olmayan karakterleri tespit et
+- Bu karakterler metin içinde kullanılmasın
+- Gerekirse yıldız/süs karakterlerini ayrı Text span ile system fontta göster
+- Ama tercih edilen çözüm: bunları da icon component’e çevir
+
+5) BOZUK SEMBOLLERİN GELDİĞİ DOSYALARI DÜZELT
+Özellikle şunları kontrol et:
+- app/_layout.tsx
+- profile.tsx
+- history.tsx
+- purchase.tsx
+- kart/list item componentleri
+- sağ tarafta küçük sembol render eden componentler
+
+6) ANDROID / EXPO ODAKLI TEST MANTIĞI
+- Bu sorun web preview’de görünmeyebilir
+- Çözüm Android/Expo davranışına göre uygulanmalı
+- Preview’e bakıp tamam demeyin
+- Android’de bozuk sembol kalmamalı
+
+7) SONUÇTA BEKLEDİĞİM
+- Sorunun kök nedeni
+- Değiştirilen dosyalar
+- Yapılan düzeltmeler
+- Final çalışan kod
+- Bozuk sembollerin tamamen kaldırıldığının teyidi
+
+NOT:
+String karakterlerle sahte icon kullanma.
+Gerçek icon component kullan.
+Font yüklenmeden render etme.
+Ama mevcut premium koyu tema ve şık görünüm korunsun.

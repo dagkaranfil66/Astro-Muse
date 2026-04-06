@@ -48,10 +48,6 @@ function genderLabel(gender: string | null, lang: string): string {
   return lang === "tr" ? opt.labelTR : opt.labelEN;
 }
 
-// ✦ karakteri (U+2726) Lora fontunda yok — Android'de CJK/garbled olarak render olabilir.
-// Sisteme bırakılan bu sabit, nested Text'te font override için kullanılır.
-const STAR_FONT = Platform.OS === "ios" ? "System" : "sans-serif";
-
 function parseBirthDate(raw: string): { day: string; month: string; year: string } {
   if (!raw) return { day: "", month: "", year: "" };
   // YYYY-MM-DD
@@ -600,7 +596,11 @@ export default function ProfileScreen() {
       >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(500)} style={styles.header}>
-          <Text style={styles.headerSub}><Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>TENGRI<Text style={{ fontFamily: STAR_FONT }}>{" ✦"}</Text></Text>
+          <View style={styles.centeredIconRow}>
+            <Ionicons name="sparkles" size={10} color={Colors.gold} />
+            <Text style={styles.headerSub}>TENGRI</Text>
+            <Ionicons name="sparkles" size={10} color={Colors.gold} />
+          </View>
           <Text style={styles.headerTitle}>{lang === "tr" ? "Profilim" : "My Profile"}</Text>
         </Animated.View>
 
@@ -670,7 +670,10 @@ export default function ProfileScreen() {
           <Animated.View entering={FadeInDown.delay(130).springify()}>
             <LinearGradient colors={["#100C28", "#0A1020"]} style={styles.personalInfoCard}>
               <View style={styles.personalInfoHeader}>
-                <Text style={styles.sectionTitle}><Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>{lang === "tr" ? "Kişisel Bilgiler" : "Personal Info"}</Text>
+                <View style={styles.iconTextRow}>
+                  <Ionicons name="sparkles" size={11} color={Colors.gold} />
+                  <Text style={styles.sectionTitle}>{lang === "tr" ? "Kişisel Bilgiler" : "Personal Info"}</Text>
+                </View>
                 <Pressable
                   onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setShowEditModal(true); }}
                   style={styles.editProfileBtn}
@@ -777,9 +780,10 @@ export default function ProfileScreen() {
 
         {/* Service Costs Reference */}
         <Animated.View entering={FadeInDown.delay(250).springify()} style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            <Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>{lang === "tr" ? "Hizmet Ücretleri" : "Service Costs"}
-          </Text>
+          <View style={styles.iconTextRow}>
+            <Ionicons name="sparkles" size={11} color={Colors.gold} />
+            <Text style={styles.sectionTitle}>{lang === "tr" ? "Hizmet Ücretleri" : "Service Costs"}</Text>
+          </View>
           <View style={styles.costGrid}>
             {Object.entries(SERVICE_GOLD_COST).sort((a, b) => a[1] - b[1]).map(([svc, cost]) => (
               <View key={svc} style={[styles.costItem, { borderColor: (SERVICE_COLORS[svc] ?? Colors.gold) + "30" }]}>
@@ -787,8 +791,9 @@ export default function ProfileScreen() {
                 <Text style={styles.costItemName} numberOfLines={1}>
                   {(t.services_list as any)[svc]?.label ?? svc}
                 </Text>
-                <View style={styles.costBadge}>
-                  <Text style={styles.costBadgeText}>{cost}<Text style={{ fontFamily: STAR_FONT }}>{"✦"}</Text></Text>
+                <View style={[styles.costBadge, styles.iconTextRowTight]}>
+                  <Text style={styles.costBadgeText}>{cost}</Text>
+                  <Ionicons name="diamond" size={8} color={Colors.gold} />
                 </View>
               </View>
             ))}
@@ -799,7 +804,10 @@ export default function ProfileScreen() {
         {recentReadings.length > 0 && (
           <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.section}>
             <View style={styles.sectionRow}>
-              <Text style={styles.sectionTitle}><Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>{lang === "tr" ? "Son Okumalar" : "Recent Readings"}</Text>
+              <View style={styles.iconTextRow}>
+                <Ionicons name="sparkles" size={11} color={Colors.gold} />
+                <Text style={styles.sectionTitle}>{lang === "tr" ? "Son Okumalar" : "Recent Readings"}</Text>
+              </View>
               <Pressable onPress={() => router.push("/(tabs)/history")}>
                 <Text style={styles.seeAll}>{lang === "tr" ? "Tümü →" : "All →"}</Text>
               </Pressable>
@@ -825,7 +833,10 @@ export default function ProfileScreen() {
                   <Text style={styles.recentText} numberOfLines={2}>{r.content.slice(0, 80)}…</Text>
                 </View>
                 {r.goldSpent && (
-                  <Text style={styles.recentGold}>{r.goldSpent}<Text style={{ fontFamily: STAR_FONT }}>{"✦"}</Text></Text>
+                  <View style={styles.iconTextRowTight}>
+                    <Text style={styles.recentGold}>{r.goldSpent}</Text>
+                    <Ionicons name="diamond" size={9} color={Colors.gold} />
+                  </View>
                 )}
               </Pressable>
             ))}
@@ -834,7 +845,10 @@ export default function ProfileScreen() {
 
         {/* Account Actions */}
         <Animated.View entering={FadeInDown.delay(350).springify()} style={styles.section}>
-          <Text style={styles.sectionTitle}><Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>{lang === "tr" ? "Hesap" : "Account"}</Text>
+          <View style={styles.iconTextRow}>
+            <Ionicons name="sparkles" size={11} color={Colors.gold} />
+            <Text style={styles.sectionTitle}>{lang === "tr" ? "Hesap" : "Account"}</Text>
+          </View>
           <Pressable onPress={() => router.push("/purchase")} style={styles.actionBtn}>
             <LinearGradient colors={["#1A1205", "#0D1526"]} style={styles.actionBtnInner}>
               <Ionicons name="diamond-outline" size={18} color={Colors.gold} />
@@ -864,7 +878,10 @@ export default function ProfileScreen() {
 
         {/* Legal Links */}
         <Animated.View entering={FadeInDown.delay(400).springify()} style={styles.section}>
-          <Text style={styles.sectionTitle}><Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>{lang === "tr" ? "Yasal" : "Legal"}</Text>
+          <View style={styles.iconTextRow}>
+            <Ionicons name="sparkles" size={11} color={Colors.gold} />
+            <Text style={styles.sectionTitle}>{lang === "tr" ? "Yasal" : "Legal"}</Text>
+          </View>
           <Pressable
             onPress={() => router.push("/legal?doc=privacy" as any)}
             style={styles.actionBtn}
@@ -897,6 +914,9 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 18, gap: 14 },
 
   header: { alignItems: "center", marginBottom: 4, gap: 4 },
+  centeredIconRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
+  iconTextRow: { flexDirection: "row", alignItems: "center", gap: 5 },
+  iconTextRowTight: { flexDirection: "row", alignItems: "center", gap: 3 },
   headerSub: { fontSize: 10, fontFamily: "Lora_400Regular", color: Colors.gold, letterSpacing: 6, textAlign: "center" },
   headerTitle: { fontSize: 26, fontFamily: "Lora_700Bold", color: Colors.text, textAlign: "center" },
 

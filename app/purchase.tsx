@@ -30,8 +30,6 @@ import { SERVICE_GOLD_COST, FREE_START_GOLD } from "@/constants/serviceConfig";
 import { useSubscription, PACKAGE_GOLD_MAP, RC_PACKAGE_ORDER } from "@/lib/revenuecat";
 import type { PurchasesPackage } from "react-native-purchases";
 
-const STAR_FONT = Platform.OS === "ios" ? "System" : "sans-serif";
-
 const SERVICE_NAMES_TR: Record<string, string> = {
   samanizm: "Şamanizm Analizi", burclar: "Astroloji Rehberi", ruh: "Enerji Analizi",
   astroloji: "Doğum Haritası Analizi", kahve: "Kahve Analizi", el: "El Çizgisi Analizi",
@@ -173,8 +171,9 @@ function GoldPackageCard({
           </View>
         )}
         {display.advantage && !isThisBought && (
-          <View style={styles.advantageBadge}>
-            <Text style={styles.advantageBadgeText}><Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>AVANTAJLI</Text>
+          <View style={[styles.advantageBadge, { flexDirection: "row", alignItems: "center", gap: 3 }]}>
+            <Ionicons name="sparkles" size={8} color="#fff" />
+            <Text style={styles.advantageBadgeText}>AVANTAJLI</Text>
           </View>
         )}
         {display.discount > 0 && !isThisBought && (
@@ -231,8 +230,9 @@ function UnavailablePackageCard({ pkgId, lang }: { pkgId: string; lang: string }
         </View>
       )}
       {display.advantage && (
-        <View style={styles.advantageBadge}>
-          <Text style={styles.advantageBadgeText}><Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>AVANTAJLI</Text>
+        <View style={[styles.advantageBadge, { flexDirection: "row", alignItems: "center", gap: 3 }]}>
+          <Ionicons name="sparkles" size={8} color="#fff" />
+          <Text style={styles.advantageBadgeText}>AVANTAJLI</Text>
         </View>
       )}
       {display.discount > 0 && (
@@ -393,7 +393,11 @@ export default function PurchaseScreen() {
           </Animated.View>
         ) : (
           <Animated.View entering={FadeIn.duration(500)} style={styles.header}>
-            <Text style={styles.headerSub}><Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>TENGRI<Text style={{ fontFamily: STAR_FONT }}>{" ✦"}</Text></Text>
+            <View style={styles.centeredIconRow}>
+              <Ionicons name="sparkles" size={10} color={Colors.gold} />
+              <Text style={styles.headerSub}>TENGRI</Text>
+              <Ionicons name="sparkles" size={10} color={Colors.gold} />
+            </View>
             <Text style={styles.headerTitle}>
               {lang === "tr" ? "Altın Satın Al" : "Buy Gold"}
             </Text>
@@ -434,9 +438,10 @@ export default function PurchaseScreen() {
           <AuthGate lang={lang} goldBalance={goldBalance} />
         ) : (
           <Animated.View entering={FadeInDown.delay(150).springify()} style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              <Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>{lang === "tr" ? "Altın Paketleri" : "Gold Packages"}
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 8 }}>
+              <Ionicons name="sparkles" size={11} color={Colors.gold} />
+              <Text style={styles.sectionTitle}>{lang === "tr" ? "Altın Paketleri" : "Gold Packages"}</Text>
+            </View>
             <Text style={styles.sectionPricingNote}>
               {lang === "tr" ? "Büyük paket, daha fazla tasarruf!" : "Bigger package, more savings!"}
             </Text>
@@ -590,13 +595,17 @@ export default function PurchaseScreen() {
 
         {/* Service Prices */}
         <Animated.View entering={FadeInDown.delay(isLoggedIn ? 500 : 200).springify()} style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            <Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>{lang === "tr" ? "Hizmet Fiyatları" : "Service Prices"}
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 8 }}>
+            <Ionicons name="sparkles" size={11} color={Colors.gold} />
+            <Text style={styles.sectionTitle}>{lang === "tr" ? "Hizmet Fiyatları" : "Service Prices"}</Text>
+          </View>
           {Object.entries(byCost).sort((a, b) => Number(a[0]) - Number(b[0])).map(([cost, services]) => (
             <View key={cost} style={styles.costTier}>
               <View style={styles.costTierBadge}>
-                <Text style={styles.costTierValue}>{cost}<Text style={{ fontFamily: STAR_FONT }}>{" ✦"}</Text></Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+                  <Text style={styles.costTierValue}>{cost}</Text>
+                  <Ionicons name="diamond" size={8} color={Colors.gold} />
+                </View>
               </View>
               <View style={styles.costTierServices}>
                 {services.map((svc) => (
@@ -674,6 +683,7 @@ export default function PurchaseScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
+  centeredIconRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
   glow: { position: "absolute", width: 300, height: 300, borderRadius: 150, backgroundColor: Colors.gold, opacity: 0.02, top: "10%", left: "50%", marginLeft: -150 },
   inner: { paddingHorizontal: 18, gap: 16 },
   closeBtn: { alignSelf: "flex-end", width: 36, height: 36, alignItems: "center", justifyContent: "center" },

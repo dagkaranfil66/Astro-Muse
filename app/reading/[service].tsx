@@ -655,7 +655,7 @@ function SharePanel({ text, serviceLabel, readingId, service }: { text: string; 
       return (
         <Animated.View entering={ZoomIn.springify()} style={[styles.rewardBadge, styles.rewardBadgeGold]}>
           <Text style={styles.rewardBadgeGoldText}>
-            +{SHARE_CONFIG.REWARD_PER_SHARE} ✦ {lang === "tr" ? "Altın kazandın!" : "Gold earned!"}
+            +{SHARE_CONFIG.REWARD_PER_SHARE} {lang === "tr" ? "Altın kazandın!" : "Gold earned!"}
             {sharesLeft !== null && sharesLeft > 0
               ? `  (${lang === "tr" ? `Bugün ${sharesLeft} paylaşım hakkın kaldı` : `${sharesLeft} shares left today`})`
               : ""}
@@ -704,13 +704,13 @@ function SharePanel({ text, serviceLabel, readingId, service }: { text: string; 
           <View style={{ flex: 1 }}>
             <Text style={styles.rewardBadgeGoldText}>
               {lang === "tr"
-                ? `Paylaşınca +${SHARE_CONFIG.REWARD_PER_SHARE} ✦ altın kazanırsın!`
-                : `Earn +${SHARE_CONFIG.REWARD_PER_SHARE} ✦ gold when you share!`}
+                ? `Paylaşınca +${SHARE_CONFIG.REWARD_PER_SHARE} altın kazanırsın!`
+                : `Earn +${SHARE_CONFIG.REWARD_PER_SHARE} gold when you share!`}
             </Text>
             <Text style={styles.rewardBadgeSubText}>
               {lang === "tr"
-                ? `Günde ${SHARE_CONFIG.MAX_DAILY_SHARES} paylaşım → ${SHARE_CONFIG.MAX_DAILY_GOLD} ✦ altın`
-                : `${SHARE_CONFIG.MAX_DAILY_SHARES} shares/day → ${SHARE_CONFIG.MAX_DAILY_GOLD} ✦ gold max`}
+                ? `Günde ${SHARE_CONFIG.MAX_DAILY_SHARES} paylaşım → ${SHARE_CONFIG.MAX_DAILY_GOLD} altın`
+                : `${SHARE_CONFIG.MAX_DAILY_SHARES} shares/day → ${SHARE_CONFIG.MAX_DAILY_GOLD} gold max`}
             </Text>
           </View>
         </View>
@@ -1206,7 +1206,7 @@ export default function ReadingScreen() {
                 <View style={styles.freeCoffeeBanner}>
                   <Ionicons name="gift" size={14} color="#000" />
                   <Text style={styles.freeCoffeeBannerText}>
-                    {lang === "tr" ? "İlk kahve analizin ücretsiz! ✦" : "Your first coffee analysis is free! ✦"}
+                    {lang === "tr" ? "İlk kahve analizin ücretsiz!" : "Your first coffee analysis is free!"}
                   </Text>
                 </View>
               )}

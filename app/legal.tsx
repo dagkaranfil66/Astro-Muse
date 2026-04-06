@@ -148,7 +148,10 @@ function Section({
       entering={FadeInDown.delay(index * 50).springify()}
       style={styles.card}
     >
-      <Text style={styles.cardTitle}>✦ {section.title}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 0 }}>
+        <Ionicons name="sparkles" size={11} color={Colors.gold} />
+        <Text style={styles.cardTitle}>{section.title}</Text>
+      </View>
       {section.body ? (
         <Text style={styles.cardBody}>{section.body}</Text>
       ) : null}
@@ -168,7 +171,11 @@ function Section({
           onPress={() => Linking.openURL(`mailto:${section.contact}`)}
           style={styles.contactBox}
         >
-          <Text style={styles.contactText}>✦  {section.contact}  ✦</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Ionicons name="sparkles" size={10} color={Colors.gold} />
+            <Text style={styles.contactText}>{section.contact}</Text>
+            <Ionicons name="sparkles" size={10} color={Colors.gold} />
+          </View>
         </Pressable>
       ) : null}
     </Animated.View>
@@ -236,7 +243,7 @@ export default function LegalScreen() {
           <Section key={i} section={section} index={i} />
         ))}
         <Text style={styles.footer}>
-          tengristar.com ✦ Kadim Türk Mistisizmi ✦ © 2026 Tengri
+          tengristar.com · Kadim Türk Mistisizmi · © 2026 Tengri
         </Text>
       </ScrollView>
     </View>

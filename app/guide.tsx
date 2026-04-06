@@ -27,7 +27,7 @@ const GUIDE_SECTIONS = [
     items: [
       "🎁 Kayıt olduğunuzda 15 ücretsiz altın hediye",
       "🎡 Her gün çarkı çevirerek 2–10 altın kazanın",
-      "✦ Altın paketlerinden dilediğinizi satın alın",
+      "💰 Altın paketlerinden dilediğinizi satın alın",
     ],
   },
   {
@@ -39,7 +39,7 @@ const GUIDE_SECTIONS = [
       "Fincanın içi net görünmeli",
       "Analiz genellikle 10–20 saniye sürer",
     ],
-    cost: "6 ✦",
+    cost: "6",
   },
   {
     icon: "✋",
@@ -49,31 +49,31 @@ const GUIDE_SECTIONS = [
       "Avucunuzu düz tutun, parmakları hafifçe açın",
       "İyi aydınlatılmış ortamda çekin",
     ],
-    cost: "6 ✦",
+    cost: "6",
   },
   {
     icon: "🃏",
     title: "Tarot",
     body: "Zihninizdeki soruyu düşünerek bir kart çekin. Tengri, kartın derin anlamını sizin için yorumlar.",
-    cost: "4 ✦",
+    cost: "4",
   },
   {
     icon: "❤️",
     title: "Aşk Uyum Analizi",
     body: "İki kişinin enerji uyumunu yapay zeka ile derinlemesine analiz eder. İsim ve doğum bilgileri kullanılır.",
-    cost: "6 ✦",
+    cost: "6",
   },
   {
     icon: "🌙",
     title: "Rüya Yorumu",
     body: "Rüyanızı yazın, Tengri bilinçaltınızın sembollerini deşifre eder. En iyi sonuç için rüyanızı mümkün olduğunca ayrıntılı anlatın.",
-    cost: "6 ✦",
+    cost: "6",
   },
   {
     icon: "🌟",
     title: "Astroloji",
     body: "Doğum haritanıza göre derin karakter ve kader analizi. Gezegenlerin sizin üzerinizdeki etkisini keşfedin.",
-    cost: "6 ✦",
+    cost: "6",
   },
   {
     icon: "🎡",
@@ -116,8 +116,9 @@ function GuideCard({
           {section.title}
         </Text>
         {section.cost ? (
-          <View style={styles.costBadge}>
+          <View style={[styles.costBadge, { flexDirection: "row", alignItems: "center", gap: 3 }]}>
             <Text style={styles.costText}>{section.cost}</Text>
+            <Ionicons name="diamond" size={8} color={Colors.gold} />
           </View>
         ) : null}
       </View>
@@ -172,7 +173,7 @@ export default function GuideScreen() {
           <GuideCard key={i} section={section} index={i} />
         ))}
         <Text style={styles.footer}>
-          Tengri ✦ Kadim Türk Mistisizmi ✦ © 2026
+          Tengri · Kadim Türk Mistisizmi · © 2026
         </Text>
       </ScrollView>
     </View>
