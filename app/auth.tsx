@@ -19,6 +19,7 @@ import * as Haptics from "expo-haptics";
 import * as WebBrowser from "expo-web-browser";
 import * as AppleAuthentication from "expo-apple-authentication";
 import * as Crypto from "expo-crypto";
+import * as AuthSession from "expo-auth-session";
 import { useIdTokenAuthRequest } from "expo-auth-session/providers/google";
 import Animated, {
   FadeIn,
@@ -180,75 +181,128 @@ type AndroidGoogleButtonProps = {
   onError:   (msg: string) => void;
 };
 
+const APP_SCHEME = "tengriastrolojifalburlarmistikyolculuk";
+
 function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonProps) {
   const [loading, setLoading] = useState(false);
 
+  const redirectUri = AuthSession.makeRedirectUri({
+    scheme: APP_SCHEME,
+    path: "redirect",
+  });
+
+  const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
+  const webClientId     = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+
   const [request, response, promptAsync] = useIdTokenAuthRequest({
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-    webClientId:     process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    androidClientId,
+    webClientId,
+    redirectUri,
   });
 
   useEffect(() => {
+    console.log("[Google OAuth] ── CONFIG ──");
+    console.log("[Google OAuth] redirectUri:", redirectUri);
+    console.log("[Google OAuth] androidClientId set:", !!androidClientId);
+    console.log("[Google OAuth] webClientId set:", !!webClientId);
+    console.log("[Google OAuth] request ready:", !!request);
+    if (request) {
+      console.log("[Google OAuth] request.url:", (request as any)?.url ?? "N/A");
+    }
+  }, [request]);
+
+  useEffect(() => {
     if (!response) return;
-    console.log("[Google OAuth] Response type:", response.type);
+
+    console.log("[Google OAuth] ── RESPONSE ──");
+    console.log("[Google OAuth] type:", response.type);
+    console.log("[Google OAuth] full response:", JSON.stringify(response, null, 2));
 
     if (response.type === "success") {
-      const idToken     = response.authentication?.idToken     ?? null;
-      const accessToken = response.authentication?.accessToken ?? null;
-      console.log("[Google OAuth] idToken present:", !!idToken, "accessToken present:", !!accessToken);
+      const params      = (response as any).params ?? {};
+      const idToken     = response.authentication?.idToken     ?? params.id_token     ?? null;
+      const accessToken = response.authentication?.accessToken ?? params.access_token ?? null;
+
+      console.log("[Google OAuth] idToken present:", !!idToken);
+      console.log("[Google OAuth] accessToken present:", !!accessToken);
+      console.log("[Google OAuth] params keys:", Object.keys(params));
+
       (async () => {
         try {
           if (!idToken) {
-            console.error("[Google OAuth] No idToken in response. Full response:", JSON.stringify(response));
-            throw new Error("No idToken in response");
+            console.error("[Google OAuth] ❌ idToken yok! Dönen params:", JSON.stringify(params));
+            throw new Error("No id_token in OAuth response");
           }
+
+          console.log("[Google OAuth] Firebase signInWithCredential başlatılıyor...");
           const user = await firebaseGoogleSignIn(idToken, accessToken);
+
           if (!user) {
-            console.error("[Google OAuth] Firebase returned null user");
+            console.error("[Google OAuth] ❌ Firebase null user döndürdü");
             throw new Error("Firebase sign-in returned null user");
           }
+
           const displayName = user.displayName ?? (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
           const email       = user.email       ?? `google_${Date.now()}@tengri.social`;
-          console.log("[Google OAuth] Sign-in success:", email);
+          console.log("[Google OAuth] ✅ Giriş başarılı:", email);
           onSuccess(displayName, email);
         } catch (err: any) {
-          console.error("[Google OAuth] Firebase sign-in error:", err?.code ?? err?.message ?? err);
-          const msg = err?.code === "auth/network-request-failed"
-            ? (lang === "tr" ? "Ağ hatası. İnternet bağlantınızı kontrol edin." : "Network error. Check your connection.")
+          console.error("[Google OAuth] ❌ HATA kodu:", err?.code);
+          console.error("[Google OAuth] ❌ HATA mesajı:", err?.message);
+          const msg =
+            err?.code === "auth/network-request-failed"
+              ? (lang === "tr" ? "Ağ hatası. İnternet bağlantınızı kontrol edin." : "Network error. Check your connection.")
             : err?.code === "auth/invalid-credential"
-            ? (lang === "tr" ? "Geçersiz kimlik bilgisi. Lütfen tekrar deneyin." : "Invalid credential. Please try again.")
-            : (lang === "tr" ? "Google ile giriş başarısız: " + (err?.code ?? err?.message ?? "Bilinmeyen hata") : "Google sign-in failed: " + (err?.code ?? err?.message ?? "Unknown error"));
+              ? (lang === "tr" ? "Geçersiz kimlik bilgisi. Lütfen tekrar deneyin." : "Invalid credential. Please try again.")
+            : err?.code === "auth/api-key-not-valid"
+              ? (lang === "tr" ? "Firebase yapılandırma hatası. Geliştiriciyle iletişime geçin." : "Firebase config error. Contact developer.")
+            : (lang === "tr"
+                ? "Google ile giriş başarısız: " + (err?.code ?? err?.message ?? "Bilinmeyen hata")
+                : "Google sign-in failed: " + (err?.code ?? err?.message ?? "Unknown error"));
           onError(msg);
         } finally {
           setLoading(false);
         }
       })();
+
     } else if (response.type === "error") {
-      console.error("[Google OAuth] Auth error:", response.error);
+      console.error("[Google OAuth] ❌ OAuth hata:", JSON.stringify(response.error));
+      console.error("[Google OAuth] ❌ Olası neden: Google Console'da bu redirectUri izinli değil.");
+      console.error("[Google OAuth] ❌ İzin verilmesi gereken redirectUri:", redirectUri);
       setLoading(false);
-      const errMsg = (response.error as any)?.message ?? "";
+      const errCode = (response.error as any)?.code ?? "";
+      const errMsg  = (response.error as any)?.message ?? errCode;
       onError(lang === "tr"
         ? "Google girişi başarısız: " + errMsg
         : "Google sign-in failed: " + errMsg);
+
     } else {
-      console.log("[Google OAuth] Dismissed/cancelled by user");
+      console.log("[Google OAuth] İptal edildi / kapatıldı:", response.type);
       setLoading(false);
     }
   }, [response]);
 
   const handlePress = () => {
-    console.log("[Google OAuth] Button pressed. request ready:", !!request);
+    console.log("[Google OAuth] ── BUTTON PRESS ──");
+    console.log("[Google OAuth] request hazır mı:", !!request);
+    console.log("[Google OAuth] redirectUri:", redirectUri);
+
     if (!request) {
-      console.warn("[Google OAuth] request is null — client IDs may be missing");
+      console.warn("[Google OAuth] ⚠️ request null — androidClientId veya webClientId eksik olabilir");
+      console.warn("[Google OAuth] androidClientId:", androidClientId ? androidClientId.slice(0, 20) + "..." : "YOK");
+      console.warn("[Google OAuth] webClientId:", webClientId ? webClientId.slice(0, 20) + "..." : "YOK");
       onError(lang === "tr"
-        ? "Google girişi yapılandırılmamış."
+        ? "Google girişi yapılandırılmamış. Geliştiriciyle iletişime geçin."
         : "Google sign-in not configured.");
       return;
     }
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setLoading(true);
-    promptAsync().catch((err) => {
-      console.error("[Google OAuth] promptAsync error:", err);
+    promptAsync().then((result) => {
+      console.log("[Google OAuth] promptAsync sonucu:", result?.type);
+    }).catch((err) => {
+      console.error("[Google OAuth] promptAsync hatası:", err?.message ?? err);
       setLoading(false);
       onError(lang === "tr" ? "Google girişi açılamadı." : "Could not open Google sign-in.");
     });
