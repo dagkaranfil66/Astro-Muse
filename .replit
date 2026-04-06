@@ -3,7 +3,7 @@ modules = ["javascript", "node", "nodejs-20", "nodejs-22", "postgresql-16"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["glib"]
+packages = ["glib", "tuxguitar"]
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -82,7 +82,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "EXPO_TOKEN= EXPO_PUBLIC_DOMAIN=$REPLIT_DEV_DOMAIN:5000 npx expo start --tunnel"
+args = "npm run expo:dev"
 waitForPort = 8081
 
 [userenv]

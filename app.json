@@ -69,7 +69,7 @@
     },
     "android": {
       "package": "com.median.android.bnljzke",
-      "versionCode": 2,
+      "versionCode": 4,
       "adaptiveIcon": {
         "backgroundColor": "#070D1A",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
