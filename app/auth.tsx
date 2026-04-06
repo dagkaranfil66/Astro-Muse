@@ -9,7 +9,6 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Image,
-  Linking,
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { router } from "expo-router";
@@ -20,10 +19,8 @@ import * as Haptics from "expo-haptics";
 import * as WebBrowser from "expo-web-browser";
 import * as AppleAuthentication from "expo-apple-authentication";
 import * as Crypto from "expo-crypto";
-import { AuthRequest, ResponseType } from "expo-auth-session";
-import { discovery as googleDiscovery } from "expo-auth-session/providers/google";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth as firebaseAuth } from "@/lib/firebase";
+import * as AuthSession from "expo-auth-session";
+import { useIdTokenAuthRequest } from "expo-auth-session/providers/google";
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -175,176 +172,139 @@ function GoogleGLogo({ size = 20 }: { size?: number }) {
   );
 }
 
-// ── Google Sign-In button
-// Web: Firebase signInWithPopup (doğrudan, proxy gereksiz)
-// Native: auth.expo.io proxy URL'ini manuel kurarak WebBrowser.openAuthSessionAsync
-//
-// expo-auth-session v7'de useProxy tamamen kaldırıldı. promptAsync({useProxy:true})
-// artık sessizce görmezden geliniyor; proxy oturumu kurulmadığı için auth.expo.io
-// "Something went wrong" gösteriyor. Çözüm: proxy URL'ini biz oluşturuyoruz.
+// ── Android Google button — OAuth flow via expo-auth-session/providers/google
+// Hook is called at the top level of this dedicated component (not conditionally)
+// which is what prevented the "Invalid hook call" crash before.
 type AndroidGoogleButtonProps = {
   lang:      string;
   onSuccess: (displayName: string, email: string) => void;
   onError:   (msg: string) => void;
 };
 
-// Google Cloud Console'da kayıtlı Web OAuth istemcisinin authorized redirect URI'si.
-// Bu URL Google Console > OAuth > Web client > Authorized redirect URIs listesinde olmali.
-const PROXY_REDIRECT_URI = "https://auth.expo.io/@dagkaranfil/tengriastroloji";
+// redirectUri, manifest'teki owner ("dagkaranfil") ve slug ("tengriastroloji")
+// değerlerinden otomatik üretilir: https://auth.expo.io/@dagkaranfil/tengriastroloji
+// Bu URL Google Cloud Console → Authorized redirect URIs listesinde olmalı.
+const GOOGLE_REDIRECT_URI = AuthSession.makeRedirectUri({ useProxy: true } as any);
 
 function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonProps) {
   const [loading, setLoading] = useState(false);
 
-  const handlePress = async () => {
-    if (loading) return;
+  const clientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 
-    const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
-    if (!webClientId) {
+  const [request, response, promptAsync] = useIdTokenAuthRequest({
+    clientId,
+    redirectUri: GOOGLE_REDIRECT_URI,
+  });
+
+  useEffect(() => {
+    console.log("=== [Google OAuth] CONFIG ===");
+    console.log("[Google OAuth] REDIRECT_URI :", GOOGLE_REDIRECT_URI);
+    console.log("[Google OAuth] CLIENT_ID    :", clientId ?? "⚠️ YOK — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik");
+    console.log("[Google OAuth] request ready:", !!request);
+    if (request) {
+      const url = (request as any)?.url ?? "";
+      const clientParam   = url.match(/client_id=([^&]+)/)?.[1];
+      const redirectParam = url.match(/redirect_uri=([^&]+)/)?.[1];
+      console.log("[Google OAuth] OAuth client_id   :", clientParam   ? decodeURIComponent(clientParam)   : "bulunamadı");
+      console.log("[Google OAuth] OAuth redirect_uri :", redirectParam ? decodeURIComponent(redirectParam) : "bulunamadı");
+    }
+  }, [request]);
+
+  useEffect(() => {
+    if (!response) return;
+
+    console.log("[Google OAuth] ── RESPONSE ──");
+    console.log("[Google OAuth] type:", response.type);
+    console.log("[Google OAuth] full response:", JSON.stringify(response, null, 2));
+
+    if (response.type === "success") {
+      const params      = (response as any).params ?? {};
+      const idToken     = response.authentication?.idToken     ?? params.id_token     ?? null;
+      const accessToken = response.authentication?.accessToken ?? params.access_token ?? null;
+
+      console.log("[Google OAuth] idToken present:", !!idToken);
+      console.log("[Google OAuth] accessToken present:", !!accessToken);
+      console.log("[Google OAuth] params keys:", Object.keys(params));
+
+      (async () => {
+        try {
+          if (!idToken) {
+            console.error("[Google OAuth] ❌ idToken yok! Dönen params:", JSON.stringify(params));
+            throw new Error("No id_token in OAuth response");
+          }
+
+          console.log("[Google OAuth] Firebase signInWithCredential başlatılıyor...");
+          const user = await firebaseGoogleSignIn(idToken, accessToken);
+
+          if (!user) {
+            console.error("[Google OAuth] ❌ Firebase null user döndürdü");
+            throw new Error("Firebase sign-in returned null user");
+          }
+
+          const displayName = user.displayName ?? (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
+          const email       = user.email       ?? `google_${Date.now()}@tengri.social`;
+          console.log("[Google OAuth] ✅ Giriş başarılı:", email);
+          onSuccess(displayName, email);
+        } catch (err: any) {
+          console.error("[Google OAuth] ❌ HATA kodu:", err?.code);
+          console.error("[Google OAuth] ❌ HATA mesajı:", err?.message);
+          const msg =
+            err?.code === "auth/network-request-failed"
+              ? (lang === "tr" ? "Ağ hatası. İnternet bağlantınızı kontrol edin." : "Network error. Check your connection.")
+            : err?.code === "auth/invalid-credential"
+              ? (lang === "tr" ? "Geçersiz kimlik bilgisi. Lütfen tekrar deneyin." : "Invalid credential. Please try again.")
+            : err?.code === "auth/api-key-not-valid"
+              ? (lang === "tr" ? "Firebase yapılandırma hatası. Geliştiriciyle iletişime geçin." : "Firebase config error. Contact developer.")
+            : (lang === "tr"
+                ? "Google ile giriş başarısız: " + (err?.code ?? err?.message ?? "Bilinmeyen hata")
+                : "Google sign-in failed: " + (err?.code ?? err?.message ?? "Unknown error"));
+          onError(msg);
+        } finally {
+          setLoading(false);
+        }
+      })();
+
+    } else if (response.type === "error") {
+      console.error("[Google OAuth] ❌ OAuth hata:", JSON.stringify(response.error));
+      console.error("[Google OAuth] ❌ Olası neden: Google Console'da bu redirectUri izinli değil.");
+      console.error("[Google OAuth] ❌ İzin verilmesi gereken redirectUri:", GOOGLE_REDIRECT_URI);
+      setLoading(false);
+      const errCode = (response.error as any)?.code ?? "";
+      const errMsg  = (response.error as any)?.message ?? errCode;
+      onError(lang === "tr"
+        ? "Google girişi başarısız: " + errMsg
+        : "Google sign-in failed: " + errMsg);
+
+    } else {
+      console.log("[Google OAuth] İptal edildi / kapatıldı:", response.type);
+      setLoading(false);
+    }
+  }, [response]);
+
+  const handlePress = () => {
+    console.log("[Google OAuth] ── BUTTON PRESS ──");
+    console.log("[Google OAuth] request hazır mı:", !!request);
+    console.log("[Google OAuth] redirectUri (makeRedirectUri):", GOOGLE_REDIRECT_URI);
+
+    if (!request) {
+      console.warn("[Google OAuth] ⚠️ request null — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik olabilir");
+      console.warn("[Google OAuth] clientId:", clientId ? (clientId.slice(0, 30) + "...") : "YOK");
       onError(lang === "tr"
         ? "Google girişi yapılandırılmamış. Geliştiriciyle iletişime geçin."
-        : "Google sign-in not configured. Contact developer.");
+        : "Google sign-in not configured.");
       return;
     }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setLoading(true);
-
-    try {
-      // ── WEB PLATFORMU: Firebase popup (en sade, en güvenilir yol) ──────────
-      if (Platform.OS === "web") {
-        console.log("[Google OAuth] Web platform — Firebase signInWithPopup");
-        const provider = new GoogleAuthProvider();
-        provider.addScope("profile");
-        provider.addScope("email");
-        const popupResult = await signInWithPopup(firebaseAuth, provider);
-        const user = popupResult.user;
-        const displayName = user.displayName ?? (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
-        const email       = user.email       ?? `google_${Date.now()}@tengri.social`;
-        console.log("[Google OAuth] ✅ Web popup başarılı:", email);
-        onSuccess(displayName, email);
-        return;
-      }
-
-      // ── NATIVE (Android / iOS): Manuel proxy akışı ───────────────────────
-      // expo-auth-session v7 useProxy'yi kaldırdı; proxy URL'ini biz kuruyoruz.
-      // Adımlar:
-      //   1. AuthRequest ile Google OAuth URL'i oluştur (PKCE + code flow)
-      //   2. auth.expo.io/v2/proxy?authUrl=...&returnUrl=... URL'ini kur
-      //   3. WebBrowser.openAuthSessionAsync ile aç; returnUrl (app scheme) beklenir
-      //   4. Tarayıcı returnUrl'e yönlenince kapanır, biz URL'i parse ederiz
-      //   5. code varsa token endpoint'ten id_token al; yoksa direkt kullan
-      //   6. Firebase signInWithCredential
-
-      // App'in deep link scheme'i (intent filter ile kayıtlı)
-      // Expo Go → exp://..., bare/dev build → tengriastrolojifalburlarmistikyolculuk://
-      const returnUrl = Linking.createURL("");
-      console.log("[Google OAuth] returnUrl:", returnUrl);
-      console.log("[Google OAuth] PROXY_REDIRECT_URI:", PROXY_REDIRECT_URI);
-
-      // AuthRequest: code flow + PKCE (Google Web Client kabul eder)
-      const authReq = new AuthRequest({
-        clientId:    webClientId,
-        redirectUri: PROXY_REDIRECT_URI,
-        scopes:      ["openid", "profile", "email"],
-        usePKCE:     true,
-        responseType: ResponseType.Code,
-      });
-
-      const authUrl = await authReq.makeAuthUrlAsync(googleDiscovery as any);
-      console.log("[Google OAuth] authUrl (ilk 80):", authUrl.substring(0, 80));
-
-      // auth.expo.io proxy URL'i — proxy, authUrl'e yönlendirir; sonuç returnUrl'e iletilir
-      const proxyUrl =
-        "https://auth.expo.io/v2/proxy" +
-        "?authUrl="   + encodeURIComponent(authUrl) +
-        "&returnUrl=" + encodeURIComponent(returnUrl);
-
-      console.log("[Google OAuth] proxyUrl (ilk 80):", proxyUrl.substring(0, 80));
-
-      const browserResult = await WebBrowser.openAuthSessionAsync(proxyUrl, returnUrl);
-      console.log("[Google OAuth] browser result type:", browserResult.type);
-
-      if (browserResult.type === "cancel" || browserResult.type === "dismiss") {
-        setLoading(false);
-        return;
-      }
-
-      if (browserResult.type !== "success") {
-        throw new Error("Tarayıcı oturumu başarısız: " + browserResult.type);
-      }
-
-      console.log("[Google OAuth] browser URL:", browserResult.url.substring(0, 120));
-
-      // URL'den OAuth yanıtını parse et
-      const parsed = await authReq.parseReturnUrlAsync(browserResult.url);
-      console.log("[Google OAuth] parsed type:", parsed.type);
-
-      if (parsed.type !== "success") {
-        const errDetail = (parsed as any).error ?? parsed.type;
-        throw new Error("OAuth yanıtı parse hatası: " + JSON.stringify(errDetail));
-      }
-
-      const params = (parsed as any).params as Record<string, string> ?? {};
-      console.log("[Google OAuth] params keys:", Object.keys(params));
-
-      let idToken:     string | null = params.id_token     ?? null;
-      let accessToken: string | null = params.access_token ?? null;
-
-      // code flow: authorization code → token exchange
-      if (params.code && !idToken) {
-        console.log("[Google OAuth] Code alındı, token exchange başlatılıyor...");
-        const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
-          method:  "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            client_id:     webClientId,
-            code:          params.code,
-            grant_type:    "authorization_code",
-            redirect_uri:  PROXY_REDIRECT_URI,
-            code_verifier: authReq.codeVerifier ?? "",
-          }).toString(),
-        });
-        const tokenData = await tokenRes.json() as Record<string, string>;
-        console.log("[Google OAuth] token response keys:", Object.keys(tokenData));
-        if (tokenData.error) {
-          throw new Error("Token exchange hatası: " + tokenData.error + " — " + (tokenData.error_description ?? ""));
-        }
-        idToken     = tokenData.id_token     ?? null;
-        accessToken = tokenData.access_token ?? null;
-      }
-
-      if (!idToken && !accessToken) {
-        throw new Error("OAuth yanıtında id_token veya access_token yok. Params: " + JSON.stringify(params));
-      }
-
-      console.log("[Google OAuth] Firebase signInWithCredential başlatılıyor...");
-      const user = await firebaseGoogleSignIn(idToken, accessToken);
-
-      if (!user) throw new Error("Firebase sign-in null user döndürdü");
-
-      const displayName = user.displayName ?? (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
-      const email       = user.email       ?? `google_${Date.now()}@tengri.social`;
-      console.log("[Google OAuth] ✅ Giriş başarılı:", email);
-      onSuccess(displayName, email);
-
-    } catch (err: any) {
-      console.error("[Google OAuth] ❌ HATA kodu   :", err?.code);
-      console.error("[Google OAuth] ❌ HATA mesajı :", err?.message);
-      const code = err?.code ?? "";
-      const msg  =
-        code === "auth/network-request-failed"
-          ? (lang === "tr" ? "Ağ hatası. İnternet bağlantınızı kontrol edin." : "Network error. Check your connection.")
-        : code === "auth/invalid-credential"
-          ? (lang === "tr" ? "Geçersiz kimlik bilgisi. Lütfen tekrar deneyin." : "Invalid credential. Please try again.")
-        : code === "auth/api-key-not-valid"
-          ? (lang === "tr" ? "Firebase yapılandırma hatası." : "Firebase config error.")
-        : (lang === "tr"
-            ? "Google ile giriş başarısız: " + (err?.message ?? "Bilinmeyen hata")
-            : "Google sign-in failed: "      + (err?.message ?? "Unknown error"));
-      onError(msg);
-    } finally {
+    // useProxy: true → tarayıcıyı auth.expo.io proxy üzerinden yönlendirir
+    promptAsync({ useProxy: true }).then((result) => {
+      console.log("[Google OAuth] promptAsync sonucu:", result?.type);
+    }).catch((err) => {
+      console.error("[Google OAuth] promptAsync hatası:", err?.message ?? err);
       setLoading(false);
-    }
+      onError(lang === "tr" ? "Google girişi açılamadı." : "Could not open Google sign-in.");
+    });
   };
 
   return (
