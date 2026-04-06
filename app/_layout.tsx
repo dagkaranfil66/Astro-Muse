@@ -14,6 +14,7 @@ import { AppProvider, useApp } from "@/context/AppContext";
 import { LanguageProvider, useLang } from "@/context/LanguageContext";
 import { useFonts, CinzelDecorative_400Regular, CinzelDecorative_700Bold } from "@expo-google-fonts/cinzel-decorative";
 import { Lora_400Regular, Lora_400Regular_Italic, Lora_700Bold } from "@expo-google-fonts/lora";
+import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
 import { SubscriptionProvider } from "@/lib/revenuecat";
 import type * as NotificationsType from "expo-notifications";
@@ -127,6 +128,7 @@ export default function RootLayout() {
   console.log('ROOT_LAYOUT_RENDER');
 
   const [fontsLoaded, fontError] = useFonts({
+    ...Ionicons.font,
     CinzelDecorative_400Regular,
     CinzelDecorative_700Bold,
     Lora_400Regular,

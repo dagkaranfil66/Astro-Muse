@@ -22,6 +22,8 @@ import { Colors } from "@/constants/colors";
 import { useApp, Reading } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
 
+const STAR_FONT = Platform.OS === "ios" ? "System" : "sans-serif";
+
 const SERVICE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   astroloji: "moon-outline",
   kahve: "cafe-outline",
@@ -105,7 +107,7 @@ function ReadingDetailModal({
 
         {reading.goldSpent !== undefined && (
           <View style={modal.goldRow}>
-            <Text style={modal.goldText}>✦ {reading.goldSpent} {lang === "tr" ? "altın harcandı" : "gold spent"}</Text>
+            <Text style={modal.goldText}><Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>{reading.goldSpent} {lang === "tr" ? "altın harcandı" : "gold spent"}</Text>
           </View>
         )}
 
@@ -171,7 +173,7 @@ function ReadingCard({
           </Text>
           {reading.goldSpent !== undefined && (
             <View style={styles.goldPill}>
-              <Text style={styles.goldPillText}>✦ {reading.goldSpent}</Text>
+              <Text style={styles.goldPillText}><Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>{reading.goldSpent}</Text>
             </View>
           )}
         </LinearGradient>
@@ -209,7 +211,7 @@ export default function HistoryScreen() {
         contentContainerStyle={[styles.content, { paddingTop: topPad + 20, paddingBottom: botPad }]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.headerSub}>✦ {t.history.toUpperCase()} ✦</Text>
+        <Text style={styles.headerSub}><Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>{t.history.toUpperCase()}<Text style={{ fontFamily: STAR_FONT }}>{" ✦"}</Text></Text>
         <Text style={styles.headerTitle}>{t.myReadings}</Text>
 
         {readings.length === 0 ? (

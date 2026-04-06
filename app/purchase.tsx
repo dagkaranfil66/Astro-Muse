@@ -30,6 +30,8 @@ import { SERVICE_GOLD_COST, FREE_START_GOLD } from "@/constants/serviceConfig";
 import { useSubscription, PACKAGE_GOLD_MAP, RC_PACKAGE_ORDER } from "@/lib/revenuecat";
 import type { PurchasesPackage } from "react-native-purchases";
 
+const STAR_FONT = Platform.OS === "ios" ? "System" : "sans-serif";
+
 const SERVICE_NAMES_TR: Record<string, string> = {
   samanizm: "Şamanizm Analizi", burclar: "Astroloji Rehberi", ruh: "Enerji Analizi",
   astroloji: "Doğum Haritası Analizi", kahve: "Kahve Analizi", el: "El Çizgisi Analizi",
@@ -172,7 +174,7 @@ function GoldPackageCard({
         )}
         {display.advantage && !isThisBought && (
           <View style={styles.advantageBadge}>
-            <Text style={styles.advantageBadgeText}>✦ AVANTAJLI</Text>
+            <Text style={styles.advantageBadgeText}><Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>AVANTAJLI</Text>
           </View>
         )}
         {display.discount > 0 && !isThisBought && (
@@ -230,7 +232,7 @@ function UnavailablePackageCard({ pkgId, lang }: { pkgId: string; lang: string }
       )}
       {display.advantage && (
         <View style={styles.advantageBadge}>
-          <Text style={styles.advantageBadgeText}>✦ AVANTAJLI</Text>
+          <Text style={styles.advantageBadgeText}><Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>AVANTAJLI</Text>
         </View>
       )}
       {display.discount > 0 && (
@@ -391,7 +393,7 @@ export default function PurchaseScreen() {
           </Animated.View>
         ) : (
           <Animated.View entering={FadeIn.duration(500)} style={styles.header}>
-            <Text style={styles.headerSub}>✦ TENGRI ✦</Text>
+            <Text style={styles.headerSub}><Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>TENGRI<Text style={{ fontFamily: STAR_FONT }}>{" ✦"}</Text></Text>
             <Text style={styles.headerTitle}>
               {lang === "tr" ? "Altın Satın Al" : "Buy Gold"}
             </Text>
@@ -433,7 +435,7 @@ export default function PurchaseScreen() {
         ) : (
           <Animated.View entering={FadeInDown.delay(150).springify()} style={styles.section}>
             <Text style={styles.sectionTitle}>
-              {lang === "tr" ? "✦ Altın Paketleri" : "✦ Gold Packages"}
+              <Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>{lang === "tr" ? "Altın Paketleri" : "Gold Packages"}
             </Text>
             <Text style={styles.sectionPricingNote}>
               {lang === "tr" ? "Büyük paket, daha fazla tasarruf!" : "Bigger package, more savings!"}
@@ -589,12 +591,12 @@ export default function PurchaseScreen() {
         {/* Service Prices */}
         <Animated.View entering={FadeInDown.delay(isLoggedIn ? 500 : 200).springify()} style={styles.section}>
           <Text style={styles.sectionTitle}>
-            {lang === "tr" ? "✦ Hizmet Fiyatları" : "✦ Service Prices"}
+            <Text style={{ fontFamily: STAR_FONT }}>{"✦ "}</Text>{lang === "tr" ? "Hizmet Fiyatları" : "Service Prices"}
           </Text>
           {Object.entries(byCost).sort((a, b) => Number(a[0]) - Number(b[0])).map(([cost, services]) => (
             <View key={cost} style={styles.costTier}>
               <View style={styles.costTierBadge}>
-                <Text style={styles.costTierValue}>{cost} ✦</Text>
+                <Text style={styles.costTierValue}>{cost}<Text style={{ fontFamily: STAR_FONT }}>{" ✦"}</Text></Text>
               </View>
               <View style={styles.costTierServices}>
                 {services.map((svc) => (
