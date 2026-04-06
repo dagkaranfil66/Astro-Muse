@@ -83,6 +83,7 @@ outputType = "console"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run expo:dev"
+waitForPort = 8081
 
 [userenv]
 
