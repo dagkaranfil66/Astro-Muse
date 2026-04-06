@@ -189,24 +189,37 @@ const GOOGLE_REDIRECT_URI = AuthSession.makeRedirectUri({ useProxy: true } as an
 function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonProps) {
   const [loading, setLoading] = useState(false);
 
-  const clientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+  // Sadece webClientId kullan — androidClientId/iosClientId YOK
+  // Proxy (auth.expo.io) yalnızca Web OAuth istemcisiyle çalışır.
+  const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 
   const [request, response, promptAsync] = useIdTokenAuthRequest({
-    clientId,
+    webClientId,
     redirectUri: GOOGLE_REDIRECT_URI,
   });
 
   useEffect(() => {
     console.log("=== [Google OAuth] CONFIG ===");
-    console.log("[Google OAuth] REDIRECT_URI :", GOOGLE_REDIRECT_URI);
-    console.log("[Google OAuth] CLIENT_ID    :", clientId ?? "⚠️ YOK — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik");
-    console.log("[Google OAuth] request ready:", !!request);
+    console.log("[Google OAuth] WEB_CLIENT_ID  :", webClientId ?? "⚠️ YOK — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik");
+    console.log("[Google OAuth] REDIRECT_URI   :", GOOGLE_REDIRECT_URI);
+    console.log("[Google OAuth] request ready  :", !!request);
     if (request) {
-      const url = (request as any)?.url ?? "";
+      const url           = (request as any)?.url ?? "";
       const clientParam   = url.match(/client_id=([^&]+)/)?.[1];
       const redirectParam = url.match(/redirect_uri=([^&]+)/)?.[1];
-      console.log("[Google OAuth] OAuth client_id   :", clientParam   ? decodeURIComponent(clientParam)   : "bulunamadı");
-      console.log("[Google OAuth] OAuth redirect_uri :", redirectParam ? decodeURIComponent(redirectParam) : "bulunamadı");
+      const urlClientId   = clientParam ? decodeURIComponent(clientParam) : null;
+      const urlRedirect   = redirectParam ? decodeURIComponent(redirectParam) : null;
+      console.log("[Google OAuth] URL client_id   :", urlClientId  ?? "bulunamadı");
+      console.log("[Google OAuth] URL redirect_uri :", urlRedirect  ?? "bulunamadı");
+      // Kritik kontrol: URL'deki client_id, webClientId ile birebir eşleşmeli
+      if (urlClientId && webClientId) {
+        const match = urlClientId === webClientId;
+        console.log("[Google OAuth] client_id EŞLEŞİYOR MU:", match ? "✅ EVET" : "❌ HAYIR — yanlış istemci seçildi!");
+        if (!match) {
+          console.warn("[Google OAuth] Beklenen:", webClientId);
+          console.warn("[Google OAuth] Gelen   :", urlClientId);
+        }
+      }
     }
   }, [request]);
 
@@ -283,12 +296,20 @@ function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonPr
 
   const handlePress = () => {
     console.log("[Google OAuth] ── BUTTON PRESS ──");
-    console.log("[Google OAuth] request hazır mı:", !!request);
-    console.log("[Google OAuth] redirectUri (makeRedirectUri):", GOOGLE_REDIRECT_URI);
+    console.log("[Google OAuth] request hazır mı     :", !!request);
+    console.log("[Google OAuth] webClientId (env)    :", webClientId ?? "YOK");
+    console.log("[Google OAuth] redirectUri           :", GOOGLE_REDIRECT_URI);
+    if (request) {
+      const url         = (request as any)?.url ?? "";
+      const clientParam = url.match(/client_id=([^&]+)/)?.[1];
+      const urlClientId = clientParam ? decodeURIComponent(clientParam) : null;
+      console.log("[Google OAuth] URL'deki client_id    :", urlClientId ?? "bulunamadı");
+      console.log("[Google OAuth] EŞLEŞİYOR MU          :", urlClientId === webClientId ? "✅ EVET" : "❌ HAYIR");
+    }
 
     if (!request) {
       console.warn("[Google OAuth] ⚠️ request null — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik olabilir");
-      console.warn("[Google OAuth] clientId:", clientId ? (clientId.slice(0, 30) + "...") : "YOK");
+      console.warn("[Google OAuth] webClientId:", webClientId ? (webClientId.slice(0, 30) + "...") : "YOK");
       onError(lang === "tr"
         ? "Google girişi yapılandırılmamış. Geliştiriciyle iletişime geçin."
         : "Google sign-in not configured.");
