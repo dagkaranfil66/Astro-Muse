@@ -201,17 +201,16 @@ function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonPr
 
   useEffect(() => {
     console.log("=== [Google OAuth] CONFIG ===");
-    console.log("[Google OAuth] redirectUri (EXACT - SABİT):", GOOGLE_REDIRECT_URI);
-    console.log("[Google OAuth] androidClientId set:", !!androidClientId, androidClientId ? ("..." + androidClientId.slice(-12)) : "YOK");
-    console.log("[Google OAuth] webClientId set:", !!webClientId, webClientId ? ("..." + webClientId.slice(-12)) : "YOK");
-    console.log("[Google OAuth] request ready:", !!request);
+    console.log("[Google OAuth] REDIRECT_URI  :", GOOGLE_REDIRECT_URI);
+    console.log("[Google OAuth] WEB_CLIENT_ID :", webClientId     ?? "⚠️ YOK — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik");
+    console.log("[Google OAuth] ANDROID_CID   :", androidClientId ?? "⚠️ YOK — EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID eksik");
+    console.log("[Google OAuth] request ready :", !!request);
     if (request) {
       const url = (request as any)?.url ?? "";
-      console.log("[Google OAuth] OAuth URL:", url);
+      const clientParam   = url.match(/client_id=([^&]+)/)?.[1];
       const redirectParam = url.match(/redirect_uri=([^&]+)/)?.[1];
-      if (redirectParam) {
-        console.log("[Google OAuth] redirect_uri param (decoded):", decodeURIComponent(redirectParam));
-      }
+      console.log("[Google OAuth] OAuth client_id   :", clientParam   ? decodeURIComponent(clientParam)   : "bulunamadı");
+      console.log("[Google OAuth] OAuth redirect_uri :", redirectParam ? decodeURIComponent(redirectParam) : "bulunamadı");
     }
   }, [request]);
 
