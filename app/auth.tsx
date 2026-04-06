@@ -190,21 +190,18 @@ const GOOGLE_REDIRECT_URI = "https://auth.expo.io/@dagkaranfil/tengriastroloji";
 function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonProps) {
   const [loading, setLoading] = useState(false);
 
-  const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
-  const webClientId     = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+  const clientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 
   const [request, response, promptAsync] = useIdTokenAuthRequest({
-    androidClientId,
-    webClientId,
+    clientId,
     redirectUri: GOOGLE_REDIRECT_URI,
   });
 
   useEffect(() => {
     console.log("=== [Google OAuth] CONFIG ===");
-    console.log("[Google OAuth] REDIRECT_URI  :", GOOGLE_REDIRECT_URI);
-    console.log("[Google OAuth] WEB_CLIENT_ID :", webClientId     ?? "⚠️ YOK — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik");
-    console.log("[Google OAuth] ANDROID_CID   :", androidClientId ?? "⚠️ YOK — EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID eksik");
-    console.log("[Google OAuth] request ready :", !!request);
+    console.log("[Google OAuth] REDIRECT_URI :", GOOGLE_REDIRECT_URI);
+    console.log("[Google OAuth] CLIENT_ID    :", clientId ?? "⚠️ YOK — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik");
+    console.log("[Google OAuth] request ready:", !!request);
     if (request) {
       const url = (request as any)?.url ?? "";
       const clientParam   = url.match(/client_id=([^&]+)/)?.[1];
@@ -291,9 +288,8 @@ function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonPr
     console.log("[Google OAuth] SABİT redirectUri:", GOOGLE_REDIRECT_URI);
 
     if (!request) {
-      console.warn("[Google OAuth] ⚠️ request null — androidClientId veya webClientId eksik olabilir");
-      console.warn("[Google OAuth] androidClientId:", androidClientId ? androidClientId.slice(0, 20) + "..." : "YOK");
-      console.warn("[Google OAuth] webClientId:", webClientId ? webClientId.slice(0, 20) + "..." : "YOK");
+      console.warn("[Google OAuth] ⚠️ request null — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik olabilir");
+      console.warn("[Google OAuth] clientId:", clientId ? (clientId.slice(0, 30) + "...") : "YOK");
       onError(lang === "tr"
         ? "Google girişi yapılandırılmamış. Geliştiriciyle iletişime geçin."
         : "Google sign-in not configured.");
