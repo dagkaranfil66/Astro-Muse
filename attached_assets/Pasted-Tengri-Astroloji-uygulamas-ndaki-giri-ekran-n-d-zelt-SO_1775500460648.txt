@@ -1,0 +1,47 @@
+Tengri Astroloji uygulamasındaki giriş ekranını düzelt.
+
+SORUNLAR:
+1) “Google ile Giriş Yap” butonundaki sembol bozuk görünüyor. Şu an yanlış karakter / font / emoji çıkıyor. Bunun yerine ORİJİNAL GOOGLE “G” logosu kullanılmalı.
+2) Google ile Giriş Yap butonuna basınca hata veriyor. Google login akışı stabil çalışmalı.
+
+İSTEKLER:
+1) Google giriş butonundaki mevcut yanlış ikon / karakter tamamen kaldır.
+2) Yerine resmi Google renklerine uygun, temiz ve profesyonel görünen orijinal Google “G” logosu ekle.
+   - Text karakter kullanma
+   - Emoji kullanma
+   - Font icon fallback kullanma
+   - Mümkünse asset olarak local bir png/svg kullan
+3) Buton tasarımı premium görünümünü korusun:
+   - mevcut koyu tema bozulmasın
+   - ikon solda
+   - yazı ortalanmış hissi versin
+   - padding ve hizalama düzgün olsun
+4) “Google ile Giriş Yap” butonuna basıldığında login akışı çalışsın.
+5) Google login hata veriyorsa kök nedeni bul ve düzelt.
+
+GOOGLE LOGIN TEKNİK KONTROL:
+- Google Sign-In / Auth yapılandırmasını kontrol et
+- Expo / React Native tarafında kullanılan login yöntemi doğru mu kontrol et
+- Android client id / web client id / package name eşleşmelerini kontrol et
+- SHA-1 / SHA-256 gerekiyorsa doğru bağlı mı kontrol et
+- redirect URI doğru mu kontrol et
+- Firebase kullanılıyorsa Google provider aktif mi kontrol et
+- app.json / app config içindeki android package değeri ile Google Console / Firebase package aynı mı kontrol et
+- Google sign-in başarısız olursa kullanıcıya boş hata yerine anlaşılır bir hata mesajı göster
+
+YAPILACAKLAR:
+1) Giriş ekranındaki Google butonunu profesyonel şekilde yeniden düzenle
+2) Google logosunu asset ile göster
+3) onPress içinde çalışan Google sign-in fonksiyonunu kontrol et
+4) try/catch ile hatayı logla
+5) Hata sebebini terminal/console logunda net göster
+6) Başarılı girişte kullanıcıyı doğru ekrana yönlendir
+
+BEKLEDİĞİM ÇIKTI:
+- Düzeltilmiş giriş ekranı kodu
+- Google butonu için kullanılan icon/logo çözümü
+- Google login hata sebebi
+- Çalışan nihai kod
+
+NOT:
+Sadece yüzeysel UI düzeltmesi yapma. Google login butonuna basınca gerçekten çalışan giriş akışı istiyorum.

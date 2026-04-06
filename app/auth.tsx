@@ -10,6 +10,7 @@ import {
   ScrollView,
   Image,
 } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -146,6 +147,30 @@ function LegalNote({ lang }: { lang: string }) {
   );
 }
 
+// ── Official Google "G" SVG Logo ──────────────────────────────────────────
+function GoogleGLogo({ size = 20 }: { size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+        fill="#4285F4"
+      />
+      <Path
+        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+        fill="#34A853"
+      />
+      <Path
+        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+        fill="#FBBC05"
+      />
+      <Path
+        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+        fill="#EA4335"
+      />
+    </Svg>
+  );
+}
+
 // ── Android Google button — OAuth flow via expo-auth-session/providers/google
 // Hook is called at the top level of this dedicated component (not conditionally)
 // which is what prevented the "Invalid hook call" crash before.
@@ -158,8 +183,6 @@ type AndroidGoogleButtonProps = {
 function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonProps) {
   const [loading, setLoading] = useState(false);
 
-  // useIdTokenAuthRequest returns idToken directly in response.authentication
-  // — no manual token-exchange step needed.
   const [request, response, promptAsync] = useIdTokenAuthRequest({
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
     webClientId:     process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
@@ -167,47 +190,79 @@ function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonPr
 
   useEffect(() => {
     if (!response) return;
+    console.log("[Google OAuth] Response type:", response.type);
 
     if (response.type === "success") {
       const idToken     = response.authentication?.idToken     ?? null;
       const accessToken = response.authentication?.accessToken ?? null;
+      console.log("[Google OAuth] idToken present:", !!idToken, "accessToken present:", !!accessToken);
       (async () => {
         try {
-          if (!idToken) throw new Error("No idToken in response");
-          const user        = await firebaseGoogleSignIn(idToken, accessToken);
-          const displayName = user?.displayName ?? (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
-          const email       = user?.email       ?? `google_${Date.now()}@tengri.social`;
+          if (!idToken) {
+            console.error("[Google OAuth] No idToken in response. Full response:", JSON.stringify(response));
+            throw new Error("No idToken in response");
+          }
+          const user = await firebaseGoogleSignIn(idToken, accessToken);
+          if (!user) {
+            console.error("[Google OAuth] Firebase returned null user");
+            throw new Error("Firebase sign-in returned null user");
+          }
+          const displayName = user.displayName ?? (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
+          const email       = user.email       ?? `google_${Date.now()}@tengri.social`;
+          console.log("[Google OAuth] Sign-in success:", email);
           onSuccess(displayName, email);
-        } catch (err) {
-          console.warn("[Google OAuth] Firebase sign-in error:", err);
-          onError(lang === "tr" ? "Google ile giriş başarısız." : "Google sign-in failed.");
+        } catch (err: any) {
+          console.error("[Google OAuth] Firebase sign-in error:", err?.code ?? err?.message ?? err);
+          const msg = err?.code === "auth/network-request-failed"
+            ? (lang === "tr" ? "Ağ hatası. İnternet bağlantınızı kontrol edin." : "Network error. Check your connection.")
+            : err?.code === "auth/invalid-credential"
+            ? (lang === "tr" ? "Geçersiz kimlik bilgisi. Lütfen tekrar deneyin." : "Invalid credential. Please try again.")
+            : (lang === "tr" ? "Google ile giriş başarısız: " + (err?.code ?? err?.message ?? "Bilinmeyen hata") : "Google sign-in failed: " + (err?.code ?? err?.message ?? "Unknown error"));
+          onError(msg);
         } finally {
           setLoading(false);
         }
       })();
     } else if (response.type === "error") {
+      console.error("[Google OAuth] Auth error:", response.error);
       setLoading(false);
-      onError(lang === "tr" ? "Google girişi başarısız oldu." : "Google sign-in failed.");
+      const errMsg = (response.error as any)?.message ?? "";
+      onError(lang === "tr"
+        ? "Google girişi başarısız: " + errMsg
+        : "Google sign-in failed: " + errMsg);
     } else {
-      // "dismiss" | "cancel" — user closed the popup
+      console.log("[Google OAuth] Dismissed/cancelled by user");
       setLoading(false);
     }
   }, [response]);
 
   const handlePress = () => {
-    if (!request) return;
+    console.log("[Google OAuth] Button pressed. request ready:", !!request);
+    if (!request) {
+      console.warn("[Google OAuth] request is null — client IDs may be missing");
+      onError(lang === "tr"
+        ? "Google girişi yapılandırılmamış."
+        : "Google sign-in not configured.");
+      return;
+    }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setLoading(true);
-    promptAsync().catch(() => setLoading(false));
+    promptAsync().catch((err) => {
+      console.error("[Google OAuth] promptAsync error:", err);
+      setLoading(false);
+      onError(lang === "tr" ? "Google girişi açılamadı." : "Could not open Google sign-in.");
+    });
   };
 
   return (
     <Pressable
       onPress={handlePress}
-      disabled={loading || !request}
+      disabled={loading}
       style={({ pressed }) => [styles.googleBtn, pressed && { opacity: 0.88 }]}
     >
-      <Ionicons name="logo-google" size={20} color="#EA4335" />
+      <View style={styles.googleLogoWrap}>
+        <GoogleGLogo size={20} />
+      </View>
       <Text style={styles.googleBtnText}>
         {loading
           ? (lang === "tr" ? "Bekleniyor..." : "Please wait...")
@@ -637,6 +692,12 @@ const styles = StyleSheet.create({
     gap: 12,
     borderWidth: 1,
     borderColor: Colors.cardBorder,
+  },
+  googleLogoWrap: {
+    width: 24,
+    height: 24,
+    alignItems: "center",
+    justifyContent: "center",
   },
   googleBtnText: {
     fontSize: 16,
