@@ -181,11 +181,10 @@ type AndroidGoogleButtonProps = {
   onError:   (msg: string) => void;
 };
 
-const APP_SCHEME = "tengriastrolojifalburlarmistikyolculuk";
-
-// ── SABİT redirectUri — dinamik hesaplama YOK ────────────────────────────
-// Bu değer Google Cloud Console → Authorized redirect URIs'e eklenmiş olmalı.
-const GOOGLE_REDIRECT_URI = "https://auth.expo.io/@dagkaranfil/tengriastroloji";
+// redirectUri, manifest'teki owner ("dagkaranfil") ve slug ("tengriastroloji")
+// değerlerinden otomatik üretilir: https://auth.expo.io/@dagkaranfil/tengriastroloji
+// Bu URL Google Cloud Console → Authorized redirect URIs listesinde olmalı.
+const GOOGLE_REDIRECT_URI = AuthSession.makeRedirectUri({ useProxy: true } as any);
 
 function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonProps) {
   const [loading, setLoading] = useState(false);
@@ -268,7 +267,7 @@ function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonPr
     } else if (response.type === "error") {
       console.error("[Google OAuth] ❌ OAuth hata:", JSON.stringify(response.error));
       console.error("[Google OAuth] ❌ Olası neden: Google Console'da bu redirectUri izinli değil.");
-      console.error("[Google OAuth] ❌ İzin verilmesi gereken redirectUri:", redirectUri);
+      console.error("[Google OAuth] ❌ İzin verilmesi gereken redirectUri:", GOOGLE_REDIRECT_URI);
       setLoading(false);
       const errCode = (response.error as any)?.code ?? "";
       const errMsg  = (response.error as any)?.message ?? errCode;
@@ -285,7 +284,7 @@ function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonPr
   const handlePress = () => {
     console.log("[Google OAuth] ── BUTTON PRESS ──");
     console.log("[Google OAuth] request hazır mı:", !!request);
-    console.log("[Google OAuth] SABİT redirectUri:", GOOGLE_REDIRECT_URI);
+    console.log("[Google OAuth] redirectUri (makeRedirectUri):", GOOGLE_REDIRECT_URI);
 
     if (!request) {
       console.warn("[Google OAuth] ⚠️ request null — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik olabilir");

@@ -1,6 +1,7 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import * as WebBrowser from "expo-web-browser";
 import React, { useEffect, useRef } from "react";
 import {
   Platform, View, StyleSheet,
@@ -29,6 +30,8 @@ import {
 import { getApiUrl } from "@/lib/query-client";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+
+WebBrowser.maybeCompleteAuthSession();
 
 console.log('APP_START');
 
