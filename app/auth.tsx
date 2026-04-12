@@ -189,17 +189,17 @@ const GOOGLE_REDIRECT_URI = AuthSession.makeRedirectUri({ useProxy: true } as an
 function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonProps) {
   const [loading, setLoading] = useState(false);
 
-  const expoClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+  const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 
   const [request, response, promptAsync] = useIdTokenAuthRequest({
-    expoClientId,
+    webClientId,
     redirectUri: GOOGLE_REDIRECT_URI,
   });
 
   useEffect(() => {
     console.log("=== [Google OAuth] CONFIG ===");
     console.log("[Google OAuth] REDIRECT_URI :", GOOGLE_REDIRECT_URI);
-    console.log("[Google OAuth] EXPO_CLIENT_ID:", expoClientId ?? "⚠️ YOK — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik");
+    console.log("[Google OAuth] WEB_CLIENT_ID:", webClientId ?? "⚠️ YOK — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik");
     console.log("[Google OAuth] request ready:", !!request);
     if (request) {
       const url = (request as any)?.url ?? "";
@@ -288,7 +288,7 @@ function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonPr
 
     if (!request) {
       console.warn("[Google OAuth] ⚠️ request null — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik olabilir");
-      console.warn("[Google OAuth] expoClientId:", expoClientId ? (expoClientId.slice(0, 30) + "...") : "YOK");
+      console.warn("[Google OAuth] webClientId:", webClientId ? (webClientId.slice(0, 30) + "...") : "YOK");
       onError(lang === "tr"
         ? "Google girişi yapılandırılmamış. Geliştiriciyle iletişime geçin."
         : "Google sign-in not configured.");
@@ -297,8 +297,8 @@ function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonPr
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setLoading(true);
-    // useProxy: true → tarayıcıyı auth.expo.io proxy üzerinden yönlendirir
-    promptAsync({ useProxy: true }).then((result) => {
+    // Redirect URI zaten makeRedirectUri({ useProxy: true }) ile oluşturuldu
+    promptAsync().then((result) => {
       console.log("[Google OAuth] promptAsync sonucu:", result?.type);
     }).catch((err) => {
       console.error("[Google OAuth] promptAsync hatası:", err?.message ?? err);

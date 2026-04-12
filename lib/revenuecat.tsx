@@ -309,7 +309,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       if (ci.nonSubscriptionTransactions?.length > 0) {
         const last = ci.nonSubscriptionTransactions[ci.nonSubscriptionTransactions.length - 1];
         console.log("[RC]   last transaction productId:", last.productIdentifier);
-        console.log("[RC]   last transaction purchaseDate:", last.purchaseDateMillis);
+        console.log("[RC]   last transaction purchaseDate:", last.purchaseDate);
       }
       return ci;
     },
