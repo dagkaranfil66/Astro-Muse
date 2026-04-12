@@ -1314,28 +1314,41 @@ function configureExpoAndLanding(app2) {
     return;
   }
   app2.use((req, res, next) => {
-    if (req.path.startsWith("/api")) {
-      return next();
-    }
-    if (req.path !== "/" && req.path !== "/manifest") {
-      return next();
-    }
-    const platform = req.header("expo-platform");
-    if (platform && (platform === "ios" || platform === "android")) {
-      return serveExpoManifest(platform, req, res);
-    }
-    if (req.path === "/") {
-      return serveLandingPage({
-        req,
-        res,
-        landingPageTemplate,
-        appName
-      });
+    if (req.path.startsWith("/api")) return next();
+    if (req.path === "/manifest" || req.path === "/") {
+      const platform = req.header("expo-platform");
+      if (platform && (platform === "ios" || platform === "android")) {
+        return serveExpoManifest(platform, req, res);
+      }
     }
     next();
   });
   app2.use("/assets", express.static(path2.resolve(process.cwd(), "assets")));
   app2.use(express.static(path2.resolve(process.cwd(), "static-build")));
+  const webDistPath = path2.resolve(process.cwd(), "dist");
+  const webIndexPath = path2.join(webDistPath, "index.html");
+  if (fs2.existsSync(webDistPath)) {
+    app2.use(express.static(webDistPath));
+    app2.use((req, res, next) => {
+      if (req.path.startsWith("/api")) return next();
+      if (fs2.existsSync(webIndexPath)) {
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        res.sendFile(webIndexPath);
+      } else {
+        next();
+      }
+    });
+    log("Web app: serving Expo web bundle from dist/");
+  } else {
+    app2.use((req, res, next) => {
+      if (req.path.startsWith("/api")) return next();
+      if (req.path === "/") {
+        return serveLandingPage({ req, res, landingPageTemplate, appName });
+      }
+      next();
+    });
+    log("Web app: no dist/ found, serving landing page");
+  }
   log("Expo routing: Checking expo-platform header on / and /manifest");
 }
 function setupErrorHandler(app2) {

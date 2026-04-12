@@ -269,34 +269,54 @@ function configureExpoAndLanding(app: express.Application) {
     return;
   }
 
+  // Serve native Expo manifest for native clients (Expo Go, custom builds)
+  // that send the expo-platform header.
   app.use((req: Request, res: Response, next: NextFunction) => {
-    if (req.path.startsWith("/api")) {
-      return next();
-    }
+    if (req.path.startsWith("/api")) return next();
 
-    if (req.path !== "/" && req.path !== "/manifest") {
-      return next();
-    }
-
-    const platform = req.header("expo-platform");
-    if (platform && (platform === "ios" || platform === "android")) {
-      return serveExpoManifest(platform, req, res);
-    }
-
-    if (req.path === "/") {
-      return serveLandingPage({
-        req,
-        res,
-        landingPageTemplate,
-        appName,
-      });
+    if (req.path === "/manifest" || req.path === "/") {
+      const platform = req.header("expo-platform");
+      if (platform && (platform === "ios" || platform === "android")) {
+        return serveExpoManifest(platform, req, res);
+      }
     }
 
     next();
   });
 
+  // Serve native bundle assets (iOS/Android JS bundles and images)
   app.use("/assets", express.static(path.resolve(process.cwd(), "assets")));
   app.use(express.static(path.resolve(process.cwd(), "static-build")));
+
+  // Serve the Expo web build (React Native Web) for ALL other visitors:
+  // browsers, WebView-based apps (Median), etc.
+  // This replaces the old Expo Go landing page.
+  const webDistPath = path.resolve(process.cwd(), "dist");
+  const webIndexPath = path.join(webDistPath, "index.html");
+  if (fs.existsSync(webDistPath)) {
+    app.use(express.static(webDistPath));
+    // SPA fallback: all unmatched routes return index.html
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      if (req.path.startsWith("/api")) return next();
+      if (fs.existsSync(webIndexPath)) {
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        res.sendFile(webIndexPath);
+      } else {
+        next();
+      }
+    });
+    log("Web app: serving Expo web bundle from dist/");
+  } else {
+    // Fallback: landing page if no web build exists
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      if (req.path.startsWith("/api")) return next();
+      if (req.path === "/") {
+        return serveLandingPage({ req, res, landingPageTemplate, appName });
+      }
+      next();
+    });
+    log("Web app: no dist/ found, serving landing page");
+  }
 
   log("Expo routing: Checking expo-platform header on / and /manifest");
 }

@@ -5,8 +5,9 @@ node_modules/
 
 # Expo
 .expo/
-dist/
 web-build/
+# Note: dist/ is intentionally NOT ignored — it contains the pre-built
+# Expo web bundle (React Native Web) served in production by Express.
 expo-env.d.ts
 
 # Native
