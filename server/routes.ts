@@ -404,6 +404,10 @@ Each section should be 2-3 sentences. Address the user as "you". Use mystical, f
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
+  app.get("/api", (_req: Request, res: Response) => {
+    res.json({ status: "ok" });
+  });
+
   app.get("/privacy", (_req: Request, res: Response) => {
     const templatePath = path.resolve(process.cwd(), "server", "templates", "privacy.html");
     res.setHeader("Content-Type", "text/html; charset=utf-8");
