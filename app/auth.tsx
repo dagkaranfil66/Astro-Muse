@@ -516,17 +516,19 @@ export default function AuthScreen() {
                 </Animated.View>
               )}
 
-              {/* 2. Google — tüm platformlar (expoClientId ile Expo Go'da çalışır) */}
-              <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.btnRow}>
-                <AndroidGoogleButton
-                  lang={lang}
-                  onSuccess={async (displayName, email) => {
-                    setError("");
-                    await finishLogin(displayName, email, "google");
-                  }}
-                  onError={(msg) => setError(msg)}
-                />
-              </Animated.View>
+              {/* 2. Google — iOS + Android (web'de expo-auth-session hook'u çalışmaz) */}
+              {Platform.OS !== "web" && (
+                <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.btnRow}>
+                  <AndroidGoogleButton
+                    lang={lang}
+                    onSuccess={async (displayName, email) => {
+                      setError("");
+                      await finishLogin(displayName, email, "google");
+                    }}
+                    onError={(msg) => setError(msg)}
+                  />
+                </Animated.View>
+              )}
 
               {/* 3. Email — all platforms */}
               <Animated.View entering={FadeInDown.delay(370).springify()} style={styles.btnRow}>
