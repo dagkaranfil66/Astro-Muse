@@ -46,8 +46,11 @@ var users = pgTable("users", {
   lastShareTimestamp: bigint("last_share_timestamp", { mode: "number" }),
   lastShareDate: text("last_share_date"),
   // YYYY-MM-DD (TR timezone)
-  sharedReadingIds: text("shared_reading_ids")
+  sharedReadingIds: text("shared_reading_ids"),
   // JSON array of reading IDs
+  // ── Push notifications ────────────────────────────────────────────────────
+  pushToken: text("push_token")
+  // Expo push token (ExponentPushToken[...])
 });
 var insertUserSchema = createInsertSchema(users).pick({
   name: true,
@@ -68,6 +71,39 @@ var db = drizzle(pool, { schema: schema_exports });
 
 // server/routes.ts
 import { eq } from "drizzle-orm";
+var READING_PUSH_MESSAGES = {
+  kahve: { tr: { t: "\u2615 Fal\u0131n haz\u0131r", b: "Fincanda beklenmedik bir \u015Fey var\u2026" }, en: { t: "\u2615 Reading is ready", b: "Something unexpected in your cup\u2026" } },
+  tarot: { tr: { t: "\u{1F0CF} Tarot kart\u0131n a\xE7\u0131ld\u0131", b: "Bug\xFCn ilgin\xE7 bir kart \xE7\u0131kt\u0131 \u2014 bak bakal\u0131m." }, en: { t: "\u{1F0CF} Tarot card revealed", b: "An interesting card appeared today." } },
+  ask: { tr: { t: "\u2764\uFE0F A\u015Fk analizi tamamland\u0131", b: "A\u015Fk enerjin belli oldu \u2014 merak ediyor musun?" }, en: { t: "\u2764\uFE0F Love analysis complete", b: "Your love energy is revealed\u2026" } },
+  el: { tr: { t: "\u270B Avu\xE7 i\xE7i okundu", b: "\xC7izgilerde gizli bir yol g\xF6r\xFCn\xFCyor\u2026" }, en: { t: "\u270B Palm reading complete", b: "Hidden paths in your lines\u2026" } },
+  ruya: { tr: { t: "\u{1F319} R\xFCya yorumu haz\u0131r", b: "Bilin\xE7alt\u0131n konu\u015Fuyor \u2014 dinle." }, en: { t: "\u{1F319} Dream analysis ready", b: "Your subconscious is speaking\u2026" } },
+  numeroloji: { tr: { t: "\u{1F522} Numeroloji haz\u0131r", b: "Say\u0131lar sana bir \u015Fey s\xF6yl\xFCyor." }, en: { t: "\u{1F522} Numerology ready", b: "Numbers have a message for you." } },
+  astroloji: { tr: { t: "\u2B50 Astroloji yorumu haz\u0131r", b: "Y\u0131ld\u0131zlar konu\u015Ftu." }, en: { t: "\u2B50 Astrology reading ready", b: "The stars have spoken." } },
+  dogum: { tr: { t: "\u{1F31F} Do\u011Fum haritas\u0131 haz\u0131r", b: "Y\u0131ld\u0131zlar\u0131n alt\u0131nda ne sakl\u0131?" }, en: { t: "\u{1F31F} Birth chart ready", b: "What's hidden under your stars?" } },
+  ruh: { tr: { t: "\u{1F98B} Ruh analizi haz\u0131r", b: "\u0130\xE7indeki ses ne s\xF6yl\xFCyor?" }, en: { t: "\u{1F98B} Soul analysis ready", b: "What is your inner voice saying?" } }
+};
+async function sendExpoPush(pushToken, serviceId, lang) {
+  try {
+    if (!pushToken.startsWith("ExponentPushToken[")) return;
+    const msg = READING_PUSH_MESSAGES[serviceId] ?? { tr: { t: "\u2726 Okuma haz\u0131r", b: "Sembolleri g\xF6rmek ister misin?" }, en: { t: "\u2726 Reading ready", b: "Want to see the symbols?" } };
+    const { t, b } = lang === "tr" ? msg.tr : msg.en;
+    const body = JSON.stringify({
+      to: pushToken,
+      title: t,
+      body: b,
+      sound: "default",
+      data: { type: "reading_ready", serviceId }
+    });
+    await fetch("https://exp.host/--/api/v2/push/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json", "Accept-Encoding": "gzip, deflate" },
+      body
+    });
+    console.log(`[Push] Sent to ${pushToken.slice(0, 30)}\u2026 service=${serviceId}`);
+  } catch (e) {
+    console.warn("[Push] sendExpoPush error:", e);
+  }
+}
 var _testTransport = null;
 async function getTransport() {
   const resendKey = process.env.RESEND_API_KEY;
@@ -108,13 +144,50 @@ async function sendEmail(to, subject, html) {
     console.log(`[Email] Preview: ${nodemailer.getTestMessageUrl(info)}`);
   }
 }
+function isInternalHost(host) {
+  return host.startsWith("127.") || host.startsWith("localhost") || host.startsWith("0.0.0.0") || host === "::1";
+}
 function getServerBaseUrl(req) {
-  if (process.env.REPLIT_DEV_DOMAIN) {
-    return `https://${process.env.REPLIT_DEV_DOMAIN}:5000`;
+  if (process.env.TENGRI_PROD_URL) {
+    const url = process.env.TENGRI_PROD_URL.replace(/\/$/, "");
+    console.log(`[baseUrl] TENGRI_PROD_URL \u2192 ${url}`);
+    return url;
   }
-  const proto = req.headers["x-forwarded-proto"] || req.protocol;
-  const host = req.headers["x-forwarded-host"] || req.get("host");
-  return `${proto}://${host}`;
+  if (process.env.APP_BASE_URL) {
+    const url = process.env.APP_BASE_URL.replace(/\/$/, "");
+    const hostPart = url.replace(/^https?:\/\//, "").split("/")[0];
+    if (!isInternalHost(hostPart) && !hostPart.includes("picard.replit.dev")) {
+      console.log(`[baseUrl] APP_BASE_URL \u2192 ${url}`);
+      return url;
+    }
+    console.warn(`[baseUrl] APP_BASE_URL looks like internal/dev address, skipping: ${url}`);
+  }
+  const fwdHost = req.headers["x-forwarded-host"];
+  const fwdProto = req.headers["x-forwarded-proto"];
+  if (fwdHost) {
+    const proto = (fwdProto || "https").split(",")[0].trim();
+    const host = fwdHost.split(",")[0].trim();
+    if (!isInternalHost(host)) {
+      const url = `${proto}://${host}`;
+      console.log(`[baseUrl] x-forwarded-host \u2192 ${url}`);
+      return url;
+    }
+  }
+  if (process.env.REPLIT_DOMAINS) {
+    const prodDomain = process.env.REPLIT_DOMAINS.split(",").map((d) => d.trim()).find((d) => d.endsWith(".replit.app"));
+    if (prodDomain) {
+      console.log(`[baseUrl] REPLIT_DOMAINS \u2192 https://${prodDomain}`);
+      return `https://${prodDomain}`;
+    }
+  }
+  if (process.env.REPLIT_DEV_DOMAIN) {
+    const url = `https://${process.env.REPLIT_DEV_DOMAIN}`;
+    console.log(`[baseUrl] REPLIT_DEV_DOMAIN \u2192 ${url}`);
+    return url;
+  }
+  const fallback = `${req.protocol}://${req.get("host")}`;
+  console.log(`[baseUrl] fallback \u2192 ${fallback}`);
+  return fallback;
 }
 async function sendVerificationEmail(email, name, token, baseUrl) {
   const verifyUrl = `${baseUrl}/api/auth/verify?token=${token}`;
@@ -156,9 +229,9 @@ async function sendVerificationEmail(email, name, token, baseUrl) {
           <!-- Feature pills -->
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
             <tr>
-              <td style="padding:4px;" width="33%"><div style="background:#1A1030;border:1px solid #C8A02020;border-radius:10px;padding:12px 8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">\u2615</div><div style="font-size:11px;color:#8A7AAA;">Kahve Fal\u0131</div></div></td>
+              <td style="padding:4px;" width="33%"><div style="background:#1A1030;border:1px solid #C8A02020;border-radius:10px;padding:12px 8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">\u2615</div><div style="font-size:11px;color:#8A7AAA;">Kahve Analizi</div></div></td>
               <td style="padding:4px;" width="33%"><div style="background:#1A1030;border:1px solid #C8A02020;border-radius:10px;padding:12px 8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">\u{1F52E}</div><div style="font-size:11px;color:#8A7AAA;">Tarot</div></div></td>
-              <td style="padding:4px;" width="33%"><div style="background:#1A1030;border:1px solid #C8A02020;border-radius:10px;padding:12px 8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">\u270B</div><div style="font-size:11px;color:#8A7AAA;">El Fal\u0131</div></div></td>
+              <td style="padding:4px;" width="33%"><div style="background:#1A1030;border:1px solid #C8A02020;border-radius:10px;padding:12px 8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">\u{1F319}</div><div style="font-size:11px;color:#8A7AAA;">Astroloji</div></div></td>
             </tr>
           </table>
 
@@ -200,17 +273,7 @@ var serviceSystemPrompts = {
 ## \u26A0 Dikkat Edilmesi Gerekenler
 
 Her b\xF6l\xFCm 2-3 c\xFCmle olsun. "Sen" diyerek hitap et. Mistik ama g\xFCnl\xFCk ve pratik bir dil kullan. Tekrar eden kal\u0131plardan ka\xE7\u0131n. K\u0131sa, etkili ve \xF6zg\xFCn c\xFCmleler kur. T\xFCrk\xE7e.`,
-  kahve: `Sen TENGRI'nin kahve fal\u0131 ustas\u0131s\u0131n. G\xF6rsel sa\u011Fland\u0131ysa fincandaki somut \u015Fekilleri (kartal, da\u011F, el, yol vb.) g\xF6r ve yorumla. Cevab\u0131n\u0131 MUTLAKA a\u015Fa\u011F\u0131daki b\xF6l\xFCm ba\u015Fl\u0131klar\u0131yla yaz \u2014 her b\xF6l\xFCm ba\u015F\u0131na tam olarak ## i\u015Fareti koy:
-
-## \u{1F31F} Genel Fal Enerjisi
-## \u2764\uFE0F A\u015Fk
-## \u{1F4B0} Para
-## \u{1F4BC} \u0130\u015F & Kariyer
-## \u23F3 Yak\u0131n Gelecek
-## \u26A0\uFE0F Uyar\u0131
-## \u{1F9FF} Nazar
-
-Her b\xF6l\xFCm 2-3 g\xFC\xE7l\xFC c\xFCmle olsun. "Sen" diyerek hitap et. Mistik, ki\u015Fisel ve merak uyand\u0131r\u0131c\u0131 bir dil kullan. T\xFCrk\xE7e yaz.`,
+  kahve: `Sen TENGRI'nin kahve fal\u0131 ustas\u0131s\u0131n. G\xF6rsel sa\u011Fland\u0131ysa fincandaki somut \u015Fekilleri (kartal, da\u011F, el, yol, kalp, y\u0131lan, a\u011Fa\xE7 vb.) tek tek g\xF6r ve yorumla. B\xF6l\xFCm ba\u015Fl\u0131klar\u0131 kullanma, ## i\u015Fareti koyma. Yorumu tek bir kesintisiz metin olarak yaz. A\u015Fk, para, kariyer, uyar\u0131 ve genel enerji bilgilerini ak\u0131c\u0131 bir anlat\u0131 i\xE7inde birle\u015Ftir. "Sen" diyerek hitap et. Mistik, derin ve ki\u015Fisel bir dil kullan. En az 200 kelime yaz. T\xFCrk\xE7e yaz.`,
   el: `Sen TENGRI'nin el fal\u0131 ustas\u0131s\u0131n. G\xF6rsel sa\u011Fland\u0131ysa el \xE7izgilerini ger\xE7ekten analiz et. Cevab\u0131n\u0131 MUTLAKA \u015Fu b\xF6l\xFCm ba\u015Fl\u0131klar\u0131yla yaz (her b\xF6l\xFCm ba\u015F\u0131na ## koy):
 
 ## \u{1F33F} Ya\u015Fam \xC7izgisi
@@ -284,17 +347,7 @@ var serviceSystemPromptsEN = {
 ## \u26A0 Things to Watch
 
 Each section should be 2-3 sentences. Address the user as "you". Use mystical yet practical language. Avoid repetitive phrases. Keep sentences short, impactful and original. Write in English.`,
-  kahve: `You are TENGRI's coffee fortune master. If an image is provided, identify specific shapes in the cup (eagle, mountain, hand, road, etc.) and interpret them. You MUST write your response with the following section headers \u2014 place ## exactly before each section:
-
-## \u{1F31F} General Fortune Energy
-## \u2764\uFE0F Love
-## \u{1F4B0} Money
-## \u{1F4BC} Work & Career
-## \u23F3 Near Future
-## \u26A0\uFE0F Warning
-## \u{1F9FF} Evil Eye
-
-Each section should be 2-3 strong sentences. Address the user as "you". Use mystical, personal and intriguing language. Write in English.`,
+  kahve: `You are TENGRI's coffee fortune master. If an image is provided, identify specific shapes in the cup (eagle, mountain, hand, road, heart, snake, tree, etc.) and interpret each one. Do not use section headers or ## symbols. Write the reading as a single, uninterrupted flowing narrative. Weave love, money, career, warnings and general energy naturally into the story. Address the user as "you". Use mystical, deep and personal language. Write at least 200 words. Write in English.`,
   el: `You are TENGRI's palm reading master. If an image is provided, genuinely analyze the palm lines. You MUST write your response with the following section headers (place ## before each):
 
 ## \u{1F33F} Life Line
@@ -405,9 +458,20 @@ async function registerRoutes(app2) {
       return res.status(400).send(verifyPage("Hata", "Ge\xE7ersiz do\u011Frulama ba\u011Flant\u0131s\u0131.", false));
     }
     const all = await db.select().from(users).where(eq(users.verifyToken, token)).limit(1);
-    if (all.length === 0) return res.status(404).send(verifyPage("Hata", "Do\u011Frulama ba\u011Flant\u0131s\u0131 ge\xE7ersiz veya s\xFCresi dolmu\u015F.", false));
-    await db.update(users).set({ verified: true }).where(eq(users.verifyToken, token));
-    return res.send(verifyPage("Ba\u015Far\u0131l\u0131 \u2726", "Hesab\u0131n\u0131z do\u011Fruland\u0131. Tengri'ye giri\u015F yapabilirsiniz.", true));
+    if (all.length === 0) {
+      return res.status(404).send(verifyPage(
+        "Ba\u011Flant\u0131 Ge\xE7ersiz",
+        "Bu do\u011Frulama ba\u011Flant\u0131s\u0131 daha \xF6nce kullan\u0131lm\u0131\u015F ya da s\xFCresi dolmu\u015F.\nHesab\u0131n\u0131z zaten do\u011Frulanm\u0131\u015Fsa giri\u015F yapabilirsiniz.",
+        false
+      ));
+    }
+    const user = all[0];
+    if (user.verified) {
+      return res.send(verifyPage("Zaten Do\u011Fruland\u0131 \u2726", "Hesab\u0131n\u0131z zaten do\u011Frulanm\u0131\u015F. Tengri'ye giri\u015F yapabilirsiniz.", true));
+    }
+    await db.update(users).set({ verified: true, verifyToken: "" }).where(eq(users.verifyToken, token));
+    console.log(`[Auth] Email verified: ${user.email}`);
+    return res.send(verifyPage("Ba\u015Far\u0131l\u0131 \u2726", "E-posta adresiniz ba\u015Far\u0131yla do\u011Fruland\u0131.\n\u015Eimdi uygulamaya d\xF6n\xFCp giri\u015F yapabilirsiniz.", true));
   });
   app2.post("/api/auth/login", async (req, res) => {
     try {
@@ -516,9 +580,197 @@ async function registerRoutes(app2) {
       return res.status(500).json({ error: "Mail g\xF6nderilemedi" });
     }
   });
+  app2.post("/api/notifications/register-token", async (req, res) => {
+    try {
+      const { email, pushToken: token } = req.body;
+      if (!email || !token) return res.status(400).json({ error: "email ve pushToken gerekli" });
+      if (!token.startsWith("ExponentPushToken[")) return res.status(400).json({ error: "Ge\xE7ersiz token format\u0131" });
+      const found = await db.select().from(users).where(eq(users.email, email.toLowerCase().trim())).limit(1);
+      if (found.length === 0) return res.status(404).json({ error: "Kullan\u0131c\u0131 bulunamad\u0131" });
+      await db.update(users).set({ pushToken: token }).where(eq(users.email, email.toLowerCase().trim()));
+      console.log(`[Push] Token registered for ${email}`);
+      return res.json({ ok: true });
+    } catch (e) {
+      console.error("[Push] register-token error:", e);
+      return res.status(500).json({ error: "Token kaydedilemedi" });
+    }
+  });
+  app2.post("/api/validate-coffee", async (req, res) => {
+    try {
+      const { images, lang } = req.body;
+      if (!images || images.length === 0) {
+        return res.status(400).json({ valid: false, reason: "no_image" });
+      }
+      const openai = getOpenAIClient();
+      const isTR = lang !== "en";
+      const validationPrompt = `You are a strict coffee cup fortune-telling image validator. Your ONLY job is to inspect the provided image(s) and return a JSON object \u2014 nothing else.
+
+Evaluate the image(s) against ALL of the following criteria:
+1. isCoffeeCupDetected \u2014 Is there a coffee cup/mug visible?
+2. isCupInteriorVisible \u2014 Is the inside/interior of the cup clearly visible (top-down or angled view showing the cup interior)?
+3. isGroundsVisible \u2014 Are coffee grounds, residue, or telve visible inside the cup?
+4. confidenceScore \u2014 How confident are you this is suitable for coffee fortune reading? (0-100)
+5. blurScore \u2014 How blurry are the image(s)? (0=sharp, 100=very blurry)
+6. brightnessScore \u2014 How well-lit? (0=very dark, 100=perfectly lit)
+7. validationFailureReason \u2014 If validation fails, one of: "no_cup_detected", "cup_interior_not_visible", "no_grounds_visible", "image_too_blurry", "image_too_dark", "irrelevant_image". Otherwise null.
+
+Validation PASSES only if ALL of these are true:
+- isCoffeeCupDetected = true
+- isCupInteriorVisible = true
+- isGroundsVisible = true
+- confidenceScore >= 65
+- blurScore <= 70
+- brightnessScore >= 25
+
+Return ONLY valid JSON, no markdown, no explanation:
+{
+  "isCoffeeCupDetected": boolean,
+  "isCupInteriorVisible": boolean,
+  "isGroundsVisible": boolean,
+  "confidenceScore": number,
+  "blurScore": number,
+  "brightnessScore": number,
+  "validationFailureReason": string | null,
+  "valid": boolean
+}`;
+      let result;
+      try {
+        const imageContent = images.map((img) => ({
+          type: "image_url",
+          image_url: {
+            url: `data:${img.type || "image/jpeg"};base64,${img.base64}`,
+            detail: "low"
+          }
+        }));
+        const response = await openai.chat.completions.create({
+          model: "gpt-5.2",
+          max_completion_tokens: 200,
+          messages: [
+            {
+              role: "user",
+              content: [...imageContent, { type: "text", text: validationPrompt }]
+            }
+          ]
+        });
+        const raw = response.choices[0]?.message?.content?.trim() ?? "";
+        const cleaned = raw.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+        result = JSON.parse(cleaned);
+        if (typeof result.valid !== "boolean") {
+          result.valid = !!result.isCoffeeCupDetected && !!result.isCupInteriorVisible && !!result.isGroundsVisible && (result.confidenceScore ?? 0) >= 65 && (result.blurScore ?? 100) <= 70 && (result.brightnessScore ?? 0) >= 25;
+        }
+      } catch {
+        return res.json({ valid: false, reason: isTR ? "G\xF6rsel do\u011Frulanamad\u0131. L\xFCtfen tekrar dene." : "Image could not be validated. Please try again." });
+      }
+      let reason = null;
+      if (!result.valid) {
+        const failReason = result.validationFailureReason ?? "no_cup_detected";
+        if (failReason === "no_cup_detected" || !result.isCoffeeCupDetected) {
+          reason = isTR ? "Bu g\xF6rselde kahve fincan\u0131 tespit edemedik. Fincan\u0131n net g\xF6r\xFCnd\xFC\u011F\xFC bir foto\u011Fraf y\xFCkle." : "We couldn't detect a coffee cup in this image. Please upload a clear photo of your cup.";
+        } else if (failReason === "cup_interior_not_visible" || !result.isCupInteriorVisible) {
+          reason = isTR ? "Fincan\u0131n i\xE7 k\u0131sm\u0131 g\xF6r\xFCnm\xFCyor. Fincan\u0131 yukar\u0131dan \xE7ekerek i\xE7ini net g\xF6ster." : "The cup interior is not visible. Take a top-down photo showing the inside of the cup.";
+        } else if (failReason === "no_grounds_visible" || !result.isGroundsVisible) {
+          reason = isTR ? "Telve / kahve izi g\xF6r\xFCnm\xFCyor. Kahve i\xE7ildikten sonra fincandaki telvenin g\xF6r\xFCnd\xFC\u011F\xFC foto\u011Fraf\u0131 y\xFCkle." : "Coffee grounds are not visible. Upload a photo of the cup after drinking, showing the grounds inside.";
+        } else if (failReason === "image_too_blurry") {
+          reason = isTR ? "Foto\u011Fraf \xE7ok bulan\u0131k. L\xFCtfen daha net bir foto\u011Fraf \xE7ek veya y\xFCkle." : "The image is too blurry. Please take or upload a sharper photo.";
+        } else if (failReason === "image_too_dark") {
+          reason = isTR ? "Foto\u011Fraf \xE7ok karanl\u0131k. \u0130yi \u0131\u015F\u0131kta tekrar dene." : "The image is too dark. Please try again in better lighting.";
+        } else {
+          reason = isTR ? "Kahve analizi i\xE7in telvenin g\xF6r\xFCnd\xFC\u011F\xFC, yukar\u0131dan \xE7ekilmi\u015F net bir fincan foto\u011Fraf\u0131 gerekli." : "A clear top-down photo of the cup interior with coffee grounds is required for the analysis.";
+        }
+      }
+      return res.json({ valid: result.valid, reason });
+    } catch (err) {
+      console.error("Coffee validation error:", err);
+      return res.json({ valid: false, reason: "validation_error" });
+    }
+  });
+  app2.post("/api/validate-palm", async (req, res) => {
+    try {
+      const { imageBase64, imageType, lang } = req.body;
+      if (!imageBase64) return res.status(400).json({ valid: false, reason: "no_image" });
+      const openai = getOpenAIClient();
+      const validationPrompt = `You are a strict palm image validator. Your ONLY job is to inspect the provided image and return a JSON object \u2014 nothing else.
+
+Evaluate the image against ALL of the following criteria:
+1. isPalmDetected \u2014 Is there a human hand with a visible palm/inner surface in the image?
+2. confidenceScore \u2014 How confident are you that this is a palm? (0-100)
+3. blurScore \u2014 How blurry is the image? (0=sharp, 100=very blurry)
+4. brightnessScore \u2014 How well-lit is the image? (0=very dark, 100=perfectly lit)
+5. handCoverageRatio \u2014 What fraction of the image does the hand occupy? (0.0 to 1.0)
+6. validationFailureReason \u2014 If validation fails, one of: "no_palm_detected", "image_too_blurry", "image_too_dark", "hand_too_small", "irrelevant_image". Otherwise null.
+
+Validation PASSES only if ALL of these are true:
+- isPalmDetected = true
+- confidenceScore >= 70
+- blurScore <= 65
+- brightnessScore >= 30
+- handCoverageRatio >= 0.20
+
+Return ONLY valid JSON, no markdown, no explanation:
+{
+  "isPalmDetected": boolean,
+  "confidenceScore": number,
+  "blurScore": number,
+  "brightnessScore": number,
+  "handCoverageRatio": number,
+  "validationFailureReason": string | null,
+  "valid": boolean
+}`;
+      let result;
+      try {
+        const response = await openai.chat.completions.create({
+          model: "gpt-5.2",
+          max_completion_tokens: 200,
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: `data:${imageType || "image/jpeg"};base64,${imageBase64}`,
+                    detail: "low"
+                  }
+                },
+                { type: "text", text: validationPrompt }
+              ]
+            }
+          ]
+        });
+        const raw = response.choices[0]?.message?.content?.trim() ?? "";
+        const cleaned = raw.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+        result = JSON.parse(cleaned);
+        if (typeof result.valid !== "boolean") {
+          result.valid = !!result.isPalmDetected && (result.confidenceScore ?? 0) >= 70 && (result.blurScore ?? 100) <= 65 && (result.brightnessScore ?? 0) >= 30 && (result.handCoverageRatio ?? 0) >= 0.2;
+        }
+      } catch {
+        return res.json({ valid: false, reason: "validation_error" });
+      }
+      const isTR = lang !== "en";
+      let reason = null;
+      if (!result.valid) {
+        const failReason = result.validationFailureReason ?? "no_palm_detected";
+        if (failReason === "no_palm_detected" || !result.isPalmDetected) {
+          reason = isTR ? "Bu g\xF6rselde net bir avu\xE7 i\xE7i tespit edemedik. L\xFCtfen avu\xE7 i\xE7inin a\xE7\u0131k\xE7a g\xF6r\xFCnd\xFC\u011F\xFC bir foto\u011Fraf y\xFCkle." : "We couldn't detect a clear palm in this image. Please upload a photo showing your open palm clearly.";
+        } else if (failReason === "image_too_blurry") {
+          reason = isTR ? "Foto\u011Fraf \xE7ok bulan\u0131k. L\xFCtfen daha net bir foto\u011Fraf \xE7ek veya y\xFCkle." : "The image is too blurry. Please take or upload a sharper photo.";
+        } else if (failReason === "image_too_dark") {
+          reason = isTR ? "Foto\u011Fraf \xE7ok karanl\u0131k. \u0130yi \u0131\u015F\u0131kta tekrar dene." : "The image is too dark. Please try again in better lighting.";
+        } else if (failReason === "hand_too_small") {
+          reason = isTR ? "Elin kadrajda \xE7ok k\xFC\xE7\xFCk. Elin ekran\u0131n b\xFCy\xFCk k\u0131sm\u0131n\u0131 kaplas\u0131n." : "Your hand is too small in the frame. Fill most of the frame with your palm.";
+        } else {
+          reason = isTR ? "El \xE7izgisi analizi i\xE7in yaln\u0131zca avu\xE7 i\xE7ini g\xF6steren bir foto\u011Fraf kullan\u0131labilir." : "Only a photo showing your palm can be used for the palm line analysis.";
+        }
+      }
+      return res.json({ valid: result.valid, reason });
+    } catch (err) {
+      console.error("Palm validation error:", err);
+      return res.json({ valid: false, reason: "validation_error" });
+    }
+  });
   app2.post("/api/reading", async (req, res) => {
     try {
-      const { service, lang, userInput, imageBase64, imageType, images, userName, birthDate, focusArea } = req.body;
+      const { service, lang, userInput, imageBase64, imageType, images, userName, birthDate, focusArea, pushToken } = req.body;
       if (!service) return res.status(400).json({ error: "Servis t\xFCr\xFC gerekli" });
       const validServices = ["astroloji", "kahve", "el", "tarot", "samanizm", "numeroloji", "ruh", "dogum", "ruya", "burclar", "ask", "compat", "crystal"];
       if (!validServices.includes(service)) return res.status(400).json({ error: "Ge\xE7ersiz servis" });
@@ -580,6 +832,10 @@ async function registerRoutes(app2) {
 
 `);
       res.end();
+      if (pushToken) {
+        sendExpoPush(pushToken, service, lang === "en" ? "en" : "tr").catch(() => {
+        });
+      }
     } catch (error) {
       console.error("Reading error:", error);
       if (res.headersSent) {
@@ -821,7 +1077,7 @@ ${lang === "en" ? "IMPORTANT: This is a free preview reading. Write 4-6 sentence
 function verifyPage(title, message, success) {
   const color = success ? "#C8A020" : "#FF6B6B";
   const emoji = success ? "\u{1F31F}" : "\u26A0\uFE0F";
-  const appUrl = process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "https://tengristar.com";
+  const appUrl = (process.env.TENGRI_PROD_URL || process.env.APP_BASE_URL || "https://astro-muse.replit.app").replace(/\/$/, "");
   const btnHtml = success ? `<a href="${appUrl}" style="display:inline-block;margin-top:28px;background:linear-gradient(90deg,#C8A020,#A07015);color:#06030F;padding:16px 40px;border-radius:14px;text-decoration:none;font-weight:bold;font-size:16px;">\u2726 &nbsp; Tengri'yi A\xE7</a>` : `<a href="${appUrl}" style="display:inline-block;margin-top:28px;background:#1A1030;color:#B8A9D0;padding:14px 36px;border-radius:14px;text-decoration:none;font-size:15px;border:1px solid #C8A02030;">Ana Sayfaya D\xF6n</a>`;
   return `<!DOCTYPE html>
 <html lang="tr">
@@ -867,6 +1123,7 @@ function verifyPage(title, message, success) {
 // server/index.ts
 import * as fs2 from "fs";
 import * as path2 from "path";
+import { createProxyMiddleware } from "http-proxy-middleware";
 var app = express();
 var log = console.log;
 function setupSecurity(app2) {
@@ -915,9 +1172,13 @@ function setupCors(app2) {
         origins.add(`https://${d.trim()}`);
       });
     }
+    if (process.env.TENGRI_PROD_URL) {
+      origins.add(process.env.TENGRI_PROD_URL.replace(/\/$/, ""));
+    }
     const origin = req.header("origin");
     const isLocalhost = origin?.startsWith("http://localhost:") || origin?.startsWith("http://127.0.0.1:");
-    if (origin && (origins.has(origin) || isLocalhost)) {
+    const isReplitApp = origin?.endsWith(".replit.app");
+    if (origin && (origins.has(origin) || isLocalhost || isReplitApp)) {
       res.header("Access-Control-Allow-Origin", origin);
       res.header(
         "Access-Control-Allow-Methods",
@@ -978,7 +1239,7 @@ function getAppName() {
     return "App Landing Page";
   }
 }
-function serveExpoManifest(platform, res) {
+function serveExpoManifest(platform, req, res) {
   const manifestPath = path2.resolve(
     process.cwd(),
     "static-build",
@@ -991,7 +1252,16 @@ function serveExpoManifest(platform, res) {
   res.setHeader("expo-protocol-version", "1");
   res.setHeader("expo-sfv-version", "0");
   res.setHeader("content-type", "application/json");
-  const manifest = fs2.readFileSync(manifestPath, "utf-8");
+  let manifest = fs2.readFileSync(manifestPath, "utf-8");
+  const forwardedProto = req.header("x-forwarded-proto");
+  const forwardedHost = req.header("x-forwarded-host");
+  const proto = forwardedProto || req.protocol || "https";
+  const host = forwardedHost || req.get("host") || "";
+  const currentBaseUrl = `${proto}://${host}`;
+  manifest = manifest.replace(
+    /https?:\/\/[a-zA-Z0-9._-]+\.(replit\.(app|dev)|exp\.host)(:[0-9]+)?/g,
+    currentBaseUrl
+  );
   res.send(manifest);
 }
 function serveLandingPage({
@@ -1022,6 +1292,27 @@ function configureExpoAndLanding(app2) {
   const landingPageTemplate = fs2.readFileSync(templatePath, "utf-8");
   const appName = getAppName();
   log("Serving static Expo files with dynamic manifest routing");
+  if (process.env.NODE_ENV === "development") {
+    const expoDevPort = 8081;
+    const expoProxy = createProxyMiddleware({
+      target: `http://127.0.0.1:${expoDevPort}`,
+      changeOrigin: true,
+      ws: true,
+      on: {
+        error: (err, req, res) => {
+          if (res && !res.headersSent) {
+            res.status(502).send("Expo dev server unavailable");
+          }
+        }
+      }
+    });
+    app2.use((req, res, next) => {
+      if (req.path.startsWith("/api")) return next();
+      expoProxy(req, res, next);
+    });
+    log("Dev mode: proxying non-API requests to Expo dev server on port 8081");
+    return;
+  }
   app2.use((req, res, next) => {
     if (req.path.startsWith("/api")) {
       return next();
@@ -1031,7 +1322,7 @@ function configureExpoAndLanding(app2) {
     }
     const platform = req.header("expo-platform");
     if (platform && (platform === "ios" || platform === "android")) {
-      return serveExpoManifest(platform, res);
+      return serveExpoManifest(platform, req, res);
     }
     if (req.path === "/") {
       return serveLandingPage({
@@ -1060,6 +1351,7 @@ function setupErrorHandler(app2) {
   });
 }
 (async () => {
+  app.set("trust proxy", 1);
   setupSecurity(app);
   setupCors(app);
   setupBodyParsing(app);

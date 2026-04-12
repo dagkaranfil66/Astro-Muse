@@ -60,14 +60,21 @@ function setupCors(app: express.Application) {
   app.use((req, res, next) => {
     const origins = new Set<string>();
 
+    // Dev domain
     if (process.env.REPLIT_DEV_DOMAIN) {
       origins.add(`https://${process.env.REPLIT_DEV_DOMAIN}`);
     }
 
+    // All Replit-managed domains (production deployment + any custom domain)
     if (process.env.REPLIT_DOMAINS) {
       process.env.REPLIT_DOMAINS.split(",").forEach((d) => {
         origins.add(`https://${d.trim()}`);
       });
+    }
+
+    // Explicit production URL (set in .replit [userenv.production])
+    if (process.env.TENGRI_PROD_URL) {
+      origins.add(process.env.TENGRI_PROD_URL.replace(/\/$/, ""));
     }
 
     const origin = req.header("origin");
@@ -77,7 +84,10 @@ function setupCors(app: express.Application) {
       origin?.startsWith("http://localhost:") ||
       origin?.startsWith("http://127.0.0.1:");
 
-    if (origin && (origins.has(origin) || isLocalhost)) {
+    // Allow any *.replit.app origin (covers production + preview deployments)
+    const isReplitApp = origin?.endsWith(".replit.app");
+
+    if (origin && (origins.has(origin) || isLocalhost || isReplitApp)) {
       res.header("Access-Control-Allow-Origin", origin);
       res.header(
         "Access-Control-Allow-Methods",
@@ -152,7 +162,7 @@ function getAppName(): string {
   }
 }
 
-function serveExpoManifest(platform: string, res: Response) {
+function serveExpoManifest(platform: string, req: Request, res: Response) {
   const manifestPath = path.resolve(
     process.cwd(),
     "static-build",
@@ -170,7 +180,24 @@ function serveExpoManifest(platform: string, res: Response) {
   res.setHeader("expo-sfv-version", "0");
   res.setHeader("content-type", "application/json");
 
-  const manifest = fs.readFileSync(manifestPath, "utf-8");
+  let manifest = fs.readFileSync(manifestPath, "utf-8");
+
+  // Dynamically rewrite any baked-in domain (dev or otherwise) with the actual
+  // request host. This ensures native Expo clients download assets from the
+  // correct server (e.g. production astro-muse.replit.app), not the dev domain
+  // that was embedded at bundle-build time.
+  const forwardedProto = req.header("x-forwarded-proto");
+  const forwardedHost = req.header("x-forwarded-host");
+  const proto = forwardedProto || req.protocol || "https";
+  const host = forwardedHost || req.get("host") || "";
+  const currentBaseUrl = `${proto}://${host}`;
+
+  // Replace any absolute URL whose host is a Replit or exp.host domain
+  manifest = manifest.replace(
+    /https?:\/\/[a-zA-Z0-9._-]+\.(replit\.(app|dev)|exp\.host)(:[0-9]+)?/g,
+    currentBaseUrl,
+  );
+
   res.send(manifest);
 }
 
@@ -253,7 +280,7 @@ function configureExpoAndLanding(app: express.Application) {
 
     const platform = req.header("expo-platform");
     if (platform && (platform === "ios" || platform === "android")) {
-      return serveExpoManifest(platform, res);
+      return serveExpoManifest(platform, req, res);
     }
 
     if (req.path === "/") {
@@ -296,6 +323,11 @@ function setupErrorHandler(app: express.Application) {
 }
 
 (async () => {
+  // Trust Replit's reverse proxy so express-rate-limit can read X-Forwarded-For
+  // correctly in production. Without this, the rate limiter throws
+  // ERR_ERL_UNEXPECTED_X_FORWARDED_FOR and crashes every auth request.
+  app.set("trust proxy", 1);
+
   setupSecurity(app);
   setupCors(app);
   setupBodyParsing(app);

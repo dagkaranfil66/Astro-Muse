@@ -3,12 +3,18 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 /**
  * Gets the base URL for the Express API server.
- * On web (Median WebView / browser), uses the current page origin so that API
- * requests are same-origin (port 80/443). The Expo Metro dev server proxies
- * /api/* requests to the Express backend on port 5000 internally.
- * On native (iOS/Android React Native), uses EXPO_PUBLIC_DOMAIN with port.
+ *
+ * Priority order:
+ * 1. EXPO_PUBLIC_API_URL — explicit override baked in at build time (production builds)
+ * 2. window.location.origin — on web/Median WebView, uses the current page origin
+ *    so API requests are same-origin (no CORS). Metro dev server proxies /api/*
+ *    to Express (port 5000) internally.
+ * 3. EXPO_PUBLIC_DOMAIN — fallback for native Expo runtime (dev/local builds)
  */
 export function getApiUrl(): string {
+  // 1. On web (Median WebView / browser): use current page origin.
+  //    This auto-adapts to dev domain in development and production domain in
+  //    production without needing an explicit env var override.
   if (
     typeof window !== "undefined" &&
     typeof window.location !== "undefined" &&
@@ -18,15 +24,20 @@ export function getApiUrl(): string {
     return window.location.origin;
   }
 
-  let host = process.env.EXPO_PUBLIC_DOMAIN;
-
-  if (!host) {
-    throw new Error("EXPO_PUBLIC_DOMAIN is not set");
+  // 2. On native (iOS/Android Expo runtime, no window.location):
+  //    Use the explicit API URL baked in at bundle build time.
+  //    EXPO_PUBLIC_API_URL is set to the production URL for production builds.
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL.replace(/\/$/, "");
   }
 
-  let url = new URL(`https://${host}`);
+  // 3. Native fallback: derive URL from EXPO_PUBLIC_DOMAIN (dev builds)
+  const host = process.env.EXPO_PUBLIC_DOMAIN;
+  if (!host) {
+    throw new Error("Neither EXPO_PUBLIC_API_URL nor EXPO_PUBLIC_DOMAIN is set");
+  }
 
-  return url.href;
+  return new URL(`https://${host}`).origin;
 }
 
 async function throwIfResNotOk(res: Response) {

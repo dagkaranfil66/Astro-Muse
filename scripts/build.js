@@ -39,11 +39,23 @@ function stripProtocol(domain) {
 }
 
 function getDeploymentDomain() {
-  // Check Replit deployment environment variables first
+  // Explicit production API URL takes highest priority
+  // (set as EXPO_PUBLIC_API_URL shared env var for production builds)
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return stripProtocol(process.env.EXPO_PUBLIC_API_URL);
+  }
+
+  // Replit deployment internal domain (set during EAS/deployment builds)
   if (process.env.REPLIT_INTERNAL_APP_DOMAIN) {
     return stripProtocol(process.env.REPLIT_INTERNAL_APP_DOMAIN);
   }
 
+  // Production URL env var (set in .replit [userenv.production] or shared)
+  if (process.env.TENGRI_PROD_URL) {
+    return stripProtocol(process.env.TENGRI_PROD_URL);
+  }
+
+  // Dev domain fallback (used in local development)
   if (process.env.REPLIT_DEV_DOMAIN) {
     return stripProtocol(process.env.REPLIT_DEV_DOMAIN);
   }
@@ -53,7 +65,7 @@ function getDeploymentDomain() {
   }
 
   console.error(
-    "ERROR: No deployment domain found. Set REPLIT_INTERNAL_APP_DOMAIN, REPLIT_DEV_DOMAIN, or EXPO_PUBLIC_DOMAIN",
+    "ERROR: No deployment domain found. Set EXPO_PUBLIC_API_URL, TENGRI_PROD_URL, REPLIT_INTERNAL_APP_DOMAIN, REPLIT_DEV_DOMAIN, or EXPO_PUBLIC_DOMAIN",
   );
   process.exit(1);
 }
