@@ -8,7 +8,6 @@ import {
   AppState, AppStateStatus, StatusBar,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { KeyboardProvider } from "react-native-keyboard-controller";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { queryClient } from "@/lib/query-client";
 import { AppProvider, useApp } from "@/context/AppContext";
@@ -189,9 +188,7 @@ export default function RootLayout() {
             <AppProvider>
               <LanguageProvider>
                 <GestureHandlerRootView style={styles.gesture}>
-                  <KeyboardProvider>
-                    <RootLayoutNav />
-                  </KeyboardProvider>
+                  <RootLayoutNav />
                 </GestureHandlerRootView>
               </LanguageProvider>
             </AppProvider>

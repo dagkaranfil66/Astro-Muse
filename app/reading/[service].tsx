@@ -14,8 +14,8 @@ import {
   Dimensions,
   Alert,
   Modal,
+  KeyboardAvoidingView,
 } from "react-native";
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
