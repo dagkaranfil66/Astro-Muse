@@ -100,6 +100,17 @@ Turkish mystical guidance app with AI-powered readings (tengristar.com).
 - Backend: `npm run server:dev` (port 5000)
 - Frontend: `npm run expo:dev` (port 8081)
 
+## Networking Architecture (Critical for Android / Median WebView)
+- Replit only exposes port 8081 externally (mapped to externalPort=80). Port 5000 is NOT accessible from external Android devices/Median WebView.
+- **API Proxy in Metro** (`metro.config.js`): Metro dev server (port 8081) proxies all `/api/*` requests to Express (port 5000) internally using `http-proxy-middleware` via `config.server.enhanceMiddleware`.
+- **API Proxy in Express** (`server/index.ts`): Express (port 5000) in dev mode proxies non-API requests to Metro (port 8081) so the Replit browser preview also works via port 5000.
+- **`getApiUrl()` in `lib/query-client.ts`**: On web (browser/Median WebView), returns `window.location.origin` (same origin, no port → same-origin request, no CORS). On native Expo, uses `EXPO_PUBLIC_DOMAIN` (includes `:5000` for direct internal access).
+
+## Auth
+- **Google Sign-In**: Uses `AuthSession.makeRedirectUri({ useProxy: true })` → `https://auth.expo.io/@dagkaranfil/tengriastroloji`. This URI must be in Google Cloud Console → OAuth 2.0 → Web Client → Authorized redirect URIs.
+- **Expo owner/slug**: `dagkaranfil` / `tengriastroloji` (no hyphen) — must match for `auth.expo.io` proxy to work.
+- `WebBrowser.maybeCompleteAuthSession()` called in both `app/_layout.tsx` and `app/auth.tsx`.
+
 ## Workflow Notes
 - Start Frontend is configured as `outputType: "console"` (NOT webview) — Metro takes ~10s to bind port 8081 and the Replit HTTP health-check times out on webview type. Console type has no health check and Metro runs fine.
 - To restart frontend after code changes: use `configureWorkflow({ name: "Start Frontend", command: "npm run expo:dev", outputType: "console", autoStart: true })` — do NOT use restart_workflow which will fail the health check and kill Metro.

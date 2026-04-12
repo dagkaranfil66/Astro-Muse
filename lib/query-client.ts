@@ -2,10 +2,22 @@ import { fetch } from "expo/fetch";
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 /**
- * Gets the base URL for the Express API server (e.g., "http://localhost:3000")
- * @returns {string} The API base URL
+ * Gets the base URL for the Express API server.
+ * On web (Median WebView / browser), uses the current page origin so that API
+ * requests are same-origin (port 80/443). The Expo Metro dev server proxies
+ * /api/* requests to the Express backend on port 5000 internally.
+ * On native (iOS/Android React Native), uses EXPO_PUBLIC_DOMAIN with port.
  */
 export function getApiUrl(): string {
+  if (
+    typeof window !== "undefined" &&
+    typeof window.location !== "undefined" &&
+    window.location.origin &&
+    window.location.origin !== "null"
+  ) {
+    return window.location.origin;
+  }
+
   let host = process.env.EXPO_PUBLIC_DOMAIN;
 
   if (!host) {

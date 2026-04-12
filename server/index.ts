@@ -5,6 +5,7 @@ import { rateLimit } from "express-rate-limit";
 import { registerRoutes } from "./routes";
 import * as fs from "fs";
 import * as path from "path";
+import { createProxyMiddleware } from "http-proxy-middleware";
 
 const app = express();
 const log = console.log;
@@ -214,6 +215,32 @@ function configureExpoAndLanding(app: express.Application) {
   const appName = getAppName();
 
   log("Serving static Expo files with dynamic manifest routing");
+
+  // In development, proxy non-API traffic to the Expo dev server (port 8081)
+  // so that the Express backend (port 5000) can be the sole externally exposed port.
+  if (process.env.NODE_ENV === "development") {
+    const expoDevPort = 8081;
+    const expoProxy = createProxyMiddleware({
+      target: `http://127.0.0.1:${expoDevPort}`,
+      changeOrigin: true,
+      ws: true,
+      on: {
+        error: (err: Error, req: any, res: any) => {
+          if (res && !res.headersSent) {
+            res.status(502).send("Expo dev server unavailable");
+          }
+        },
+      },
+    });
+
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      if (req.path.startsWith("/api")) return next();
+      (expoProxy as any)(req, res, next);
+    });
+
+    log("Dev mode: proxying non-API requests to Expo dev server on port 8081");
+    return;
+  }
 
   app.use((req: Request, res: Response, next: NextFunction) => {
     if (req.path.startsWith("/api")) {
