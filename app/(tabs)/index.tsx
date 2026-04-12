@@ -372,17 +372,18 @@ const SERVICE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   dogum: "planet-outline",
   ruya: "cloud-outline",
   ask: "heart-outline",
+  burclar: "telescope-outline",
 };
 const SERVICE_COLORS: Record<string, string> = {
   astroloji: "#6B4FBB", kahve: "#C0932A", el: "#1ABFB8", tarot: "#E7B008",
   samanizm: "#4CAF7A", numeroloji: "#E74C8B", ruh: "#9B59B6",
-  dogum: "#FF8C42", ruya: "#5B9BD5", ask: "#FF4757",
+  dogum: "#FF8C42", ruya: "#5B9BD5", ask: "#FF4757", burclar: "#FF6B9D",
 };
 const SERVICE_GRADIENTS: Record<string, [string, string]> = {
   astroloji: ["#1A0F35", "#0D1526"], kahve: ["#2A1A05", "#0D1526"], el: ["#051A1A", "#0D1526"],
   tarot: ["#1A1205", "#0D1526"], samanizm: ["#051A0D", "#0D1526"], numeroloji: ["#1A0510", "#0D1526"],
   ruh: ["#150E25", "#0D1526"], dogum: ["#1A0E05", "#0D1526"], ruya: ["#051020", "#0D1526"],
-  ask: ["#1A0508", "#0D1526"],
+  ask: ["#1A0508", "#0D1526"], burclar: ["#1A0515", "#0D1526"],
 };
 
 const SERVICE_IMAGES: Record<string, any> = {
@@ -396,11 +397,12 @@ const SERVICE_IMAGES: Record<string, any> = {
   dogum:     require("@/assets/images/services/dogum.png"),
   ruya:      require("@/assets/images/services/ruya.png"),
   ask:       require("@/assets/images/services/ask.png"),
+  burclar:   require("@/assets/images/services/burclar.png"),
 };
 
-// Ordered 8 services shown on home
+// Ordered 9 services shown on home
 const HOME_SERVICES_ORDERED = [
-  "kahve", "tarot", "astroloji", "el", "numeroloji", "ruya", "ask", "samanizm",
+  "kahve", "tarot", "astroloji", "burclar", "el", "numeroloji", "ruya", "ask", "samanizm",
 ];
 const POPULAR_SERVICE = "kahve";
 
