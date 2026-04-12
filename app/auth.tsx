@@ -189,17 +189,17 @@ const GOOGLE_REDIRECT_URI = AuthSession.makeRedirectUri({ useProxy: true } as an
 function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonProps) {
   const [loading, setLoading] = useState(false);
 
-  const clientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+  const expoClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 
   const [request, response, promptAsync] = useIdTokenAuthRequest({
-    clientId,
+    expoClientId,
     redirectUri: GOOGLE_REDIRECT_URI,
   });
 
   useEffect(() => {
     console.log("=== [Google OAuth] CONFIG ===");
     console.log("[Google OAuth] REDIRECT_URI :", GOOGLE_REDIRECT_URI);
-    console.log("[Google OAuth] CLIENT_ID    :", clientId ?? "⚠️ YOK — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik");
+    console.log("[Google OAuth] EXPO_CLIENT_ID:", expoClientId ?? "⚠️ YOK — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik");
     console.log("[Google OAuth] request ready:", !!request);
     if (request) {
       const url = (request as any)?.url ?? "";
@@ -288,7 +288,7 @@ function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonPr
 
     if (!request) {
       console.warn("[Google OAuth] ⚠️ request null — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik olabilir");
-      console.warn("[Google OAuth] clientId:", clientId ? (clientId.slice(0, 30) + "...") : "YOK");
+      console.warn("[Google OAuth] expoClientId:", expoClientId ? (expoClientId.slice(0, 30) + "...") : "YOK");
       onError(lang === "tr"
         ? "Google girişi yapılandırılmamış. Geliştiriciyle iletişime geçin."
         : "Google sign-in not configured.");
@@ -516,19 +516,17 @@ export default function AuthScreen() {
                 </Animated.View>
               )}
 
-              {/* 2. Google — Android only */}
-              {Platform.OS === "android" && (
-                <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.btnRow}>
-                  <AndroidGoogleButton
-                    lang={lang}
-                    onSuccess={async (displayName, email) => {
-                      setError("");
-                      await finishLogin(displayName, email, "google");
-                    }}
-                    onError={(msg) => setError(msg)}
-                  />
-                </Animated.View>
-              )}
+              {/* 2. Google — tüm platformlar (expoClientId ile Expo Go'da çalışır) */}
+              <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.btnRow}>
+                <AndroidGoogleButton
+                  lang={lang}
+                  onSuccess={async (displayName, email) => {
+                    setError("");
+                    await finishLogin(displayName, email, "google");
+                  }}
+                  onError={(msg) => setError(msg)}
+                />
+              </Animated.View>
 
               {/* 3. Email — all platforms */}
               <Animated.View entering={FadeInDown.delay(370).springify()} style={styles.btnRow}>
