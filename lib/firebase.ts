@@ -27,15 +27,28 @@ import {
 } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-  authDomain: 'tengri-astroloji.firebaseapp.com',
-  projectId: 'tengri-astroloji',
-  storageBucket: 'tengri-astroloji.firebasestorage.app',
+  apiKey:            process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain:        'tengri-astroloji.firebaseapp.com',
+  projectId:         'tengri-astroloji',
+  storageBucket:     'tengri-astroloji.firebasestorage.app',
   messagingSenderId: '317895705040',
-  appId: '1:317895705040:web:ffd878c9a9a64fe10b5339',
+  appId:             '1:317895705040:web:ffd878c9a9a64fe10b5339',
 };
 
+// Null stubs returned when Firebase cannot initialize (missing key, etc.)
+const NULL_STUBS = { app: null as any, db: null as any, auth: null as any };
+
 function initFirebase() {
+  // ── Guard: require API key before attempting init ────────────────────────
+  if (!firebaseConfig.apiKey) {
+    console.warn(
+      '[Firebase] FIREBASE_INIT SKIPPED — EXPO_PUBLIC_FIREBASE_API_KEY is not set.\n' +
+      '  App will run without Firebase (auth/Firestore disabled).\n' +
+      '  Set the key in Replit Secrets → EXPO_PUBLIC_FIREBASE_API_KEY.'
+    );
+    return NULL_STUBS;
+  }
+
   try {
     const a = getApps().length === 0
       ? initializeApp(firebaseConfig)
@@ -46,8 +59,7 @@ function initFirebase() {
     return { app: a, db: firestoreDb, auth: firebaseAuth };
   } catch (e) {
     console.error('[Firebase] FIREBASE_INIT FAILED:', e);
-    // Return null-safe stubs so module imports don't crash
-    return { app: null as any, db: null as any, auth: null as any };
+    return NULL_STUBS;
   }
 }
 
@@ -59,27 +71,27 @@ const auth = _fb.auth;
 export { app, db, auth };
 
 // ── Firebase Auth: Google sign-in via redirect (web only) ────────────────
-// Redirects the page to Google OAuth, returns control after the user
-// authenticates. Call getGoogleRedirectResult() on the next page load.
 export async function firebaseGoogleSignInRedirect(): Promise<void> {
+  if (!auth) { console.warn('[Firebase] auth not initialized'); return; }
   const provider = new GoogleAuthProvider();
-  provider.addScope("profile");
-  provider.addScope("email");
+  provider.addScope('profile');
+  provider.addScope('email');
   await signInWithRedirect(auth, provider);
 }
 
 // Call this on auth screen mount (web only) to pick up the redirect result.
 export async function getGoogleRedirectResult(): Promise<{ email: string; name: string } | null> {
+  if (!auth) return null;
   try {
     const result = await getRedirectResult(auth);
     if (!result) return null;
     return {
       email: result.user.email ?? `google_${Date.now()}@tengri.social`,
-      name:  result.user.displayName ?? "",
+      name:  result.user.displayName ?? '',
     };
   } catch (e: any) {
-    if (e?.code !== "auth/null-user") {
-      console.warn("[Firebase] Google redirect result error:", e?.code ?? e);
+    if (e?.code !== 'auth/null-user') {
+      console.warn('[Firebase] Google redirect result error:', e?.code ?? e);
     }
     return null;
   }
@@ -90,12 +102,9 @@ export async function firebaseGoogleSignIn(
   idToken: string | null,
   accessToken?: string | null,
 ): Promise<FirebaseUser | null> {
+  if (!auth) { console.warn('[Firebase] auth not initialized'); return null; }
   try {
-    // GoogleAuthProvider accepts idToken, accessToken, or both
-    const credential = GoogleAuthProvider.credential(
-      idToken    || null,
-      accessToken || undefined,
-    );
+    const credential = GoogleAuthProvider.credential(idToken || null, accessToken || undefined);
     const result = await signInWithCredential(auth, credential);
     return result.user;
   } catch (e) {
@@ -109,6 +118,7 @@ export async function firebaseAppleSignIn(
   identityToken: string,
   rawNonce: string,
 ): Promise<FirebaseUser | null> {
+  if (!auth) { console.warn('[Firebase] auth not initialized'); return null; }
   try {
     const provider   = new OAuthProvider('apple.com');
     const credential = provider.credential({ idToken: identityToken, rawNonce });
@@ -122,6 +132,7 @@ export async function firebaseAppleSignIn(
 
 // ── Firebase Auth state listener ───────────────────────────────────────────
 export function onFirebaseAuthState(cb: (user: FirebaseUser | null) => void) {
+  if (!auth) { cb(null); return () => {}; }
   return onAuthStateChanged(auth, cb);
 }
 
@@ -161,7 +172,6 @@ function safeEmail(email: string) {
   return email.toLowerCase().replace(/[^a-z0-9]/g, '_');
 }
 
-// Get or create user document
 export async function fsGetUser(email: string): Promise<FSUserData | null> {
   if (!db) return null;
   try {
@@ -175,7 +185,6 @@ export async function fsGetUser(email: string): Promise<FSUserData | null> {
   }
 }
 
-// Create a new user document
 export async function fsCreateUser(data: FSUserData): Promise<void> {
   if (!db) return;
   try {
@@ -186,7 +195,6 @@ export async function fsCreateUser(data: FSUserData): Promise<void> {
   }
 }
 
-// Partial update of user document
 export async function fsUpdateUser(email: string, fields: Partial<FSUserData>): Promise<void> {
   if (!db) return;
   try {
@@ -197,7 +205,6 @@ export async function fsUpdateUser(email: string, fields: Partial<FSUserData>): 
   }
 }
 
-// Add a reading to the user's subcollection
 export async function fsAddReading(email: string, reading: FSReading): Promise<void> {
   if (!db) return;
   try {
@@ -208,7 +215,6 @@ export async function fsAddReading(email: string, reading: FSReading): Promise<v
   }
 }
 
-// Load readings from Firestore (latest 50)
 export async function fsGetReadings(email: string): Promise<FSReading[]> {
   if (!db) return [];
   try {

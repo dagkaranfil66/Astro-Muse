@@ -6,6 +6,9 @@ import Constants from "expo-constants";
 const PENDING_READING_NOTIF_KEY = "tengri_pending_reading_notif";
 const PUSH_TOKEN_CACHE_KEY = "tengri_expo_push_token";
 
+// Expo Go (storeClient) cannot use push tokens — requires a development/production build.
+const IS_EXPO_GO = Constants.executionEnvironment === "storeClient";
+
 let N: typeof NotificationsType | null = null;
 if (Platform.OS !== "web") {
   try { N = require("expo-notifications"); } catch {}
@@ -45,6 +48,11 @@ export async function requestNotificationPermission(): Promise<boolean> {
 // ─── Expo Push Token ────────────────────────────────────────────────────────────
 export async function getExpoPushToken(): Promise<string | null> {
   if (!N || Platform.OS === "web") return null;
+  // Push tokens require a development or production build — skip in Expo Go
+  if (IS_EXPO_GO) {
+    console.log("[Push] Expo Go detected — skipping push token (requires dev/prod build)");
+    return null;
+  }
   try {
     // Return cached token if available
     const cached = await AsyncStorage.getItem(PUSH_TOKEN_CACHE_KEY);
