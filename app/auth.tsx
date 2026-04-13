@@ -533,7 +533,7 @@ export default function AuthScreen() {
               {/* 3. Email — all platforms */}
               <Animated.View entering={FadeInDown.delay(370).springify()} style={styles.btnRow}>
                 <Pressable
-                  onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setView("email"); }}
+                  onPress={() => { setView("email"); }}
                   style={({ pressed }) => [styles.emailBtn, pressed && { opacity: 0.88 }]}
                 >
                   <Ionicons name="mail-outline" size={20} color={Colors.text} style={{ opacity: 0.7 }} />
@@ -618,7 +618,7 @@ export default function AuthScreen() {
               {!!error && <Text style={styles.errorText}>{error}</Text>}
 
               <Pressable
-                onPress={handleEmailSubmit}
+                onPress={() => { console.log("TEST_SUBMIT email=" + email + " mode=" + mode); }}
                 disabled={loading}
                 style={({ pressed }) => [styles.submitBtn, pressed && { opacity: 0.85 }]}
               >
