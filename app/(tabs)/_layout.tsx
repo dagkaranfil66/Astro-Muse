@@ -1,30 +1,52 @@
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs } from "expo-router";
-import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
 import { BlurView } from "expo-blur";
 import { Platform, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
 import { useLang } from "@/context/LanguageContext";
+import Constants from "expo-constants";
 
+// Expo Go cannot load the ExpoGlassEffect or react-native-screens BottomTabs
+// native modules — always use ClassicTabLayout there.
+const IS_EXPO_GO = Constants.executionEnvironment === "storeClient";
+
+// Safely check liquid glass availability without crashing in Expo Go
+function checkLiquidGlass(): boolean {
+  if (IS_EXPO_GO || Platform.OS !== "ios") return false;
+  try {
+    const { isLiquidGlassAvailable } = require("expo-glass-effect");
+    return !!isLiquidGlassAvailable();
+  } catch {
+    return false;
+  }
+}
+
+const USE_NATIVE_TABS = checkLiquidGlass();
+
+// Lazy-load NativeTabLayout only when needed (avoids loading native modules in Expo Go)
 function NativeTabLayout() {
   const { lang } = useLang();
-  return (
-    <NativeTabs>
-      <NativeTabs.Trigger name="index">
-        <Icon sf={{ default: "moon.stars", selected: "moon.stars.fill" }} />
-        <Label>{lang === "tr" ? "Keşfet" : "Explore"}</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="profile">
-        <Icon sf={{ default: "person.circle", selected: "person.circle.fill" }} />
-        <Label>{lang === "tr" ? "Profil" : "Profile"}</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="history">
-        <Icon sf={{ default: "scroll", selected: "scroll.fill" }} />
-        <Label>{lang === "tr" ? "Geçmiş" : "History"}</Label>
-      </NativeTabs.Trigger>
-    </NativeTabs>
-  );
+  try {
+    const { NativeTabs, Icon, Label } = require("expo-router/unstable-native-tabs");
+    return (
+      <NativeTabs>
+        <NativeTabs.Trigger name="index">
+          <Icon sf={{ default: "moon.stars", selected: "moon.stars.fill" }} />
+          <Label>{lang === "tr" ? "Keşfet" : "Explore"}</Label>
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="profile">
+          <Icon sf={{ default: "person.circle", selected: "person.circle.fill" }} />
+          <Label>{lang === "tr" ? "Profil" : "Profile"}</Label>
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="history">
+          <Icon sf={{ default: "scroll", selected: "scroll.fill" }} />
+          <Label>{lang === "tr" ? "Geçmiş" : "History"}</Label>
+        </NativeTabs.Trigger>
+      </NativeTabs>
+    );
+  } catch {
+    return <ClassicTabLayout />;
+  }
 }
 
 function ClassicTabLayout() {
@@ -86,7 +108,7 @@ function ClassicTabLayout() {
 }
 
 export default function TabLayout() {
-  if (isLiquidGlassAvailable()) {
+  if (USE_NATIVE_TABS) {
     return <NativeTabLayout />;
   }
   return <ClassicTabLayout />;
