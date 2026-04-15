@@ -618,7 +618,7 @@ export default function AuthScreen() {
               {!!error && <Text style={styles.errorText}>{error}</Text>}
 
               <Pressable
-                onPress={() => { console.log("TEST_SUBMIT email=" + email + " mode=" + mode); }}
+                onPress={handleEmailSubmit}
                 disabled={loading}
                 style={({ pressed }) => [styles.submitBtn, pressed && { opacity: 0.85 }]}
               >
