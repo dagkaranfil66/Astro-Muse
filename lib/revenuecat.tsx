@@ -143,7 +143,11 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         }
 
         if (IS_EXPO_GO) {
-          console.log("[RC] ℹ️ Expo Go detected — RC runs in Preview API Mode (purchases are simulated)");
+          console.log("[RC] ℹ️ Expo Go detected — skipping Purchases.configure() (production keys require native build)");
+          clearTimeout(initTimeout);
+          setRcConfigured(false);
+          setIsReady(true);
+          return;
         }
 
         console.log("[RC] Calling Purchases.configure()...");

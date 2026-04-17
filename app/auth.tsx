@@ -503,16 +503,19 @@ export default function AuthScreen() {
           {view === "choice" && (
             <Animated.View entering={FadeInDown.delay(260).springify()} style={styles.btnStack}>
 
-              {/* 1. Apple — iOS only */}
+              {/* 1. Apple — iOS only (custom button for Turkish locale support) */}
               {Platform.OS === "ios" && (
                 <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.btnRow}>
-                  <AppleAuthentication.AppleAuthenticationButton
-                    buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-                    buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-                    cornerRadius={18}
-                    style={styles.appleBtn}
+                  <Pressable
                     onPress={handleAppleSignIn}
-                  />
+                    disabled={appleLoading}
+                    style={({ pressed }) => [styles.appleBtnCustom, pressed && { opacity: 0.85 }]}
+                  >
+                    <Ionicons name="logo-apple" size={20} color="#FFFFFF" style={{ marginRight: 8, marginTop: -2 }} />
+                    <Text style={styles.appleBtnText}>
+                      {lang === "tr" ? "Apple ile Giriş Yap" : "Sign in with Apple"}
+                    </Text>
+                  </Pressable>
                 </Animated.View>
               )}
 
@@ -733,6 +736,21 @@ const styles = StyleSheet.create({
   btnRow:   { width: "100%" },
 
   appleBtn: { width: "100%", height: 58, borderRadius: 14 },
+  appleBtnCustom: {
+    width: "100%",
+    height: 58,
+    borderRadius: 18,
+    backgroundColor: "#000000",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  appleBtnText: {
+    color: "#FFFFFF",
+    fontSize: 17,
+    fontWeight: "600",
+    letterSpacing: 0.2,
+  },
 
   googleBtn: {
     width: "100%",
