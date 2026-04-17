@@ -516,8 +516,8 @@ export default function AuthScreen() {
                 </Animated.View>
               )}
 
-              {/* 2. Google — iOS + Android (web'de expo-auth-session hook'u çalışmaz) */}
-              {Platform.OS !== "web" && (
+              {/* 2. Google — Android only (iOS'ta Apple Sign In kullanılıyor, web'de expo-auth-session hook'u çalışmaz) */}
+              {Platform.OS === "android" && (
                 <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.btnRow}>
                   <AndroidGoogleButton
                     lang={lang}
