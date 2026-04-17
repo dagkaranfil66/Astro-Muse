@@ -477,7 +477,8 @@ function ServiceCard({ serviceId, index, label, desc, onPress }: {
           <LinearGradient colors={gradient} style={styles.card} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
             {serviceId === POPULAR_SERVICE && (
               <View style={styles.popularBadge}>
-                <Text style={styles.popularBadgeText}>⭐ En Popüler</Text>
+                <Ionicons name="star" size={9} color="#000" />
+                <Text style={styles.popularBadgeText}>En Popüler</Text>
               </View>
             )}
             <Animated.View style={[styles.iconCircle, { borderColor: color + "50" }, iconStyle]}>
@@ -592,9 +593,12 @@ function DailyFreeCard() {
           </Text>
 
           {/* Mystical energy text */}
-          <Text style={styles.freeMysticalText}>
-            {lang === "tr" ? "✨ Enerjin fincana yansıdı…" : "✨ Your energy reflects in the cup…"}
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
+            <Ionicons name="sparkles" size={12} color={Colors.gold} />
+            <Text style={styles.freeMysticalText}>
+              {lang === "tr" ? "Enerjin fincana yansıdı…" : "Your energy reflects in the cup…"}
+            </Text>
+          </View>
 
           {/* Shimmer CTA button */}
           <View style={styles.freeBannerBtn}>
@@ -689,7 +693,7 @@ function AIIdentityBanner({ lang }: { lang: string }) {
       <View style={styles.aiBannerRow}>
         <Ionicons name="sparkles" size={16} color="#00C8FF" />
         <Text style={styles.aiBannerTitle}>
-          {lang === "tr" ? "✨ AI Destekli Mistik Analiz" : "✨ AI-Powered Mystic Analysis"}
+          {lang === "tr" ? "AI Destekli Mistik Analiz" : "AI-Powered Mystic Analysis"}
         </Text>
       </View>
       <Text style={styles.aiBannerDesc}>
@@ -1057,6 +1061,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#C0932A", borderRadius: 6,
     paddingHorizontal: 7, paddingVertical: 3,
     zIndex: 10,
+    flexDirection: "row", alignItems: "center", gap: 3,
   },
   popularBadgeText: { fontSize: 9, fontFamily: "Lora_700Bold", color: "#000", letterSpacing: 0.3 },
 

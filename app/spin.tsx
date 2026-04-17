@@ -234,7 +234,7 @@ export default function SpinScreen() {
           </Text>
           {canSpin ? (
             <Text style={styles.infoDesc}>
-              {lang === "tr" ? "🎡 Şans Çarkı seni bekliyor — döndür ve altın kazan!" : "🎡 The Lucky Wheel awaits — spin and win gold!"}
+              {lang === "tr" ? "Şans Çarkı seni bekliyor — döndür ve altın kazan!" : "The Lucky Wheel awaits — spin and win gold!"}
             </Text>
           ) : (
             <View style={styles.countdownWrap}>

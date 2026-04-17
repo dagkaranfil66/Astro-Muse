@@ -166,8 +166,9 @@ function GoldPackageCard({
     >
       <Animated.View style={[styles.pkgCard, display.popular && styles.pkgCardPopular, display.advantage && styles.pkgCardAdvantage, animStyle]}>
         {display.popular && !isThisBought && (
-          <View style={styles.popularBadge}>
-            <Text style={styles.popularBadgeText}>⭐ POPÜLER</Text>
+          <View style={[styles.popularBadge, { flexDirection: "row", alignItems: "center", gap: 3 }]}>
+            <Ionicons name="star" size={9} color="#000" />
+            <Text style={styles.popularBadgeText}>POPÜLER</Text>
           </View>
         )}
         {display.advantage && !isThisBought && (
@@ -225,8 +226,9 @@ function UnavailablePackageCard({ pkgId, lang }: { pkgId: string; lang: string }
   return (
     <Animated.View style={[styles.pkgCard, display.popular && styles.pkgCardPopular, display.advantage && styles.pkgCardAdvantage]}>
       {display.popular && (
-        <View style={styles.popularBadge}>
-          <Text style={styles.popularBadgeText}>⭐ POPÜLER</Text>
+        <View style={[styles.popularBadge, { flexDirection: "row", alignItems: "center", gap: 3 }]}>
+          <Ionicons name="star" size={9} color="#000" />
+          <Text style={styles.popularBadgeText}>POPÜLER</Text>
         </View>
       )}
       {display.advantage && (

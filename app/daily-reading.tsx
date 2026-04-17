@@ -447,7 +447,7 @@ export default function DailyReadingScreen() {
               {canDailyFree ? (
                 <>
                   <Text style={s.ctaTitle}>
-                    {lang === "tr" ? "🔮 Bugünün Enerjisini Keşfet" : "🔮 Discover Today's Energy"}
+                    {lang === "tr" ? "Bugünün Enerjisini Keşfet" : "Discover Today's Energy"}
                   </Text>
                   <Text style={s.ctaDesc}>
                     {lang === "tr"
