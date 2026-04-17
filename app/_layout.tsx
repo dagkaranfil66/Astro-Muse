@@ -141,7 +141,12 @@ export default function RootLayout() {
   // Initialize native SDKs AFTER the component mounts (safe for iOS)
   useEffect(() => {
     console.log('NOTIFICATIONS_INIT_START');
-    if (Platform.OS !== "web") {
+    // Expo Go on Android (SDK 53+) removed push notifications; loading the
+    // module triggers a console error popup. Skip in that case.
+    const Constants = require("expo-constants").default;
+    const isExpoGo = Constants.executionEnvironment === "storeClient";
+    const skip = Platform.OS === "web" || (isExpoGo && Platform.OS === "android");
+    if (!skip) {
       try {
         const N = require("expo-notifications") as typeof NotificationsType;
         Notifications = N;
@@ -158,6 +163,8 @@ export default function RootLayout() {
       } catch (e) {
         console.warn("NOTIFICATIONS_INIT_FAILED:", e);
       }
+    } else {
+      console.log('NOTIFICATIONS_INIT_SKIPPED (expo-go android or web)');
     }
   }, []);
 
