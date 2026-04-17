@@ -10,7 +10,10 @@ const PUSH_TOKEN_CACHE_KEY = "tengri_expo_push_token";
 const IS_EXPO_GO = Constants.executionEnvironment === "storeClient";
 
 let N: typeof NotificationsType | null = null;
-if (Platform.OS !== "web") {
+// Expo Go on Android (SDK 53+) removed push notifications; loading the module
+// triggers a console warning. Skip the require entirely in that case.
+const SKIP_NOTIFICATIONS = Platform.OS === "web" || (IS_EXPO_GO && Platform.OS === "android");
+if (!SKIP_NOTIFICATIONS) {
   try { N = require("expo-notifications"); } catch {}
 }
 
