@@ -232,6 +232,15 @@ function getOpenAIClient(): OpenAI {
   });
 }
 
+// ─── AI Model Configuration ─────────────────────────────────────────────────
+// Centralized model name. Change OPENAI_MODEL in Replit Secrets to swap
+// (e.g., "gpt-4o-mini" cheapest, "gpt-5-nano" if available, "gpt-5.2" reasoning).
+// Default: gpt-4o-mini — most economical, supports vision + JSON mode.
+const AI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
+// Reasoning models (gpt-5*) consume tokens internally before output.
+// gpt-4o-mini does not, so smaller token budgets work fine.
+const IS_REASONING_MODEL = AI_MODEL.startsWith("gpt-5");
+
 const serviceSystemPrompts: Record<string, string> = {
   astroloji: `Sen TENGRI'nin astroloji ustasısın. Bugünün gökyüzü enerjisini şu başlıklara ayırarak yorumla. Her bölüm için ## ile başlayan başlık kullan:
 
@@ -665,7 +674,7 @@ Return ONLY valid JSON, no markdown, no explanation:
         }));
 
         const response = await openai.chat.completions.create({
-          model: "gpt-5.2",
+          model: AI_MODEL,
           max_completion_tokens: 2000,
           response_format: { type: "json_object" },
           messages: [
@@ -788,7 +797,7 @@ Return ONLY valid JSON, no markdown, no explanation:
 
       try {
         const response = await openai.chat.completions.create({
-          model: "gpt-5.2",
+          model: AI_MODEL,
           max_completion_tokens: 2000,
           response_format: { type: "json_object" },
           messages: [
@@ -920,7 +929,7 @@ Return ONLY valid JSON, no markdown, no explanation:
         messages = [{ role: "system", content: systemPrompt }, { role: "user", content: userMessage }];
       }
       const openai = getOpenAIClient();
-      const stream = await openai.chat.completions.create({ model: "gpt-5.2", messages, stream: true, max_completion_tokens: 400 });
+      const stream = await openai.chat.completions.create({ model: AI_MODEL, messages, stream: true, max_completion_tokens: 400 });
       for await (const chunk of stream) {
         const content = chunk.choices[0]?.delta?.content || "";
         if (content) res.write(`data: ${JSON.stringify({ content })}\n\n`);
@@ -1006,7 +1015,7 @@ ${lang === "en" ? "IMPORTANT: This is a free preview reading. Write 4-6 sentence
       }
 
       const stream = await openai.chat.completions.create({
-        model: "gpt-5.2",
+        model: AI_MODEL,
         messages,
         stream: true,
         max_completion_tokens: 500,
@@ -1033,7 +1042,7 @@ ${lang === "en" ? "IMPORTANT: This is a free preview reading. Write 4-6 sentence
       res.setHeader("Connection", "keep-alive");
       const openai = getOpenAIClient();
       const stream = await openai.chat.completions.create({
-        model: "gpt-5.2",
+        model: AI_MODEL,
         messages: [
           { role: "system", content: `Sen Tengri'nin bilge burç ustasısın. Kullanıcının bugünkü burç yorumunu 2-3 cümleyle özetle. Gizemli, çekici ve merak uyandırıcı bir dil kullan. Tam yorumu okumak için devamını beklemeleri gerektiğini ima et. Türkçe yaz.` },
           { role: "user", content: `${zodiacSign} burcu için bugünün kısa mistik mesajını ver.` },
@@ -1066,7 +1075,7 @@ ${lang === "en" ? "IMPORTANT: This is a free preview reading. Write 4-6 sentence
       const now = new Date();
       const weekStr = `${now.getFullYear()} yılının ${Math.ceil((now.getDate() + new Date(now.getFullYear(), now.getMonth(), 1).getDay()) / 7)}. haftası`;
       const stream = await openai.chat.completions.create({
-        model: "gpt-5.2",
+        model: AI_MODEL,
         messages: [
           {
             role: "system",
