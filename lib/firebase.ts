@@ -32,7 +32,8 @@ const firebaseConfig = {
   projectId:         'tengri-astroloji',
   storageBucket:     'tengri-astroloji.firebasestorage.app',
   messagingSenderId: '317895700540',
-  appId:             '1:317895700540:web:ffd878c9a9a64fe10b5339',
+  appId:             '1:317895700540:web:782e3dea603bb8050b5339',
+  measurementId:     'G-50E0DVTGC1',
 };
 
 // Null stubs returned when Firebase cannot initialize (missing key, etc.)
