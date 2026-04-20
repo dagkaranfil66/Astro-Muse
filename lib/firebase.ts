@@ -76,7 +76,7 @@ export { app, db, auth };
 // because it bypasses Firebase's tengri-astroloji.firebaseapp.com auth
 // handler entirely and redirects back to our own domain (`/auth`).
 const GOOGLE_WEB_CLIENT_ID =
-  '317895700540-7uf6115hi8u4pu9cp46e0liugpi98s9i.apps.googleusercontent.com';
+  '317895700540-n4ieov0gl12i8jj69c6uurnogi49nfbq.apps.googleusercontent.com';
 
 export function firebaseGoogleSignInImplicit(): void {
   if (typeof window === 'undefined') return;
