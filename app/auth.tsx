@@ -411,15 +411,30 @@ export default function AuthScreen() {
     provider: "email" | "apple" | "google" = "email",
     appleUserId?: string,
   ) => {
-    await setUserProfile({
-      name: displayName,
-      email: providerEmail,
-      joinDate: new Date().toISOString(),
-      loginProvider: provider,
-      appleUserId,
-    });
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    router.replace("/(tabs)");
+    try {
+      await setUserProfile({
+        name: displayName,
+        email: providerEmail,
+        joinDate: new Date().toISOString(),
+        loginProvider: provider,
+        appleUserId,
+      });
+    } catch (e) {
+      console.warn("[finishLogin] setUserProfile error:", e);
+    }
+    try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
+    // Use setTimeout to escape the current call stack before navigating —
+    // ensures router is ready and avoids navigation-during-render issues.
+    setTimeout(() => {
+      try {
+        router.replace("/(tabs)");
+      } catch (e) {
+        console.warn("[finishLogin] router.replace error:", e);
+        if (Platform.OS === "web" && typeof window !== "undefined") {
+          window.location.href = "/";
+        }
+      }
+    }, 0);
   };
 
   // ── Apple Sign-In — iOS only ───────────────────────────────────────────
