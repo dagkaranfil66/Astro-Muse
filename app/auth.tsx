@@ -606,8 +606,15 @@ export default function AuthScreen() {
                 </Animated.View>
               )}
 
-              {/* 2b. Google — Web (Firebase signInWithRedirect) — Median APK WebView için kritik */}
-              {Platform.OS === "web" && (
+              {/* 2b. Google — Web only, but hidden inside Median Android WebView
+                  because Google blocks OAuth in embedded WebViews (404 / disallowed_useragent).
+                  iOS WebView (Median) and regular browsers still show the button. */}
+              {Platform.OS === "web" && (() => {
+                if (typeof navigator === "undefined") return true;
+                const ua = navigator.userAgent || "";
+                const isMedianAndroid = /Android/i.test(ua) && (/Median|GonativeIO|gonative/i.test(ua) || /; wv\)/i.test(ua));
+                return !isMedianAndroid;
+              })() && (
                 <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.btnRow}>
                   <Pressable
                     onPress={handleWebGoogleSignIn}
