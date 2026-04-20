@@ -20,6 +20,10 @@ function setupSecurity(app: express.Application) {
   app.use(helmet({
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false,
+    // Allow Firebase Auth popups to communicate back to the opener window.
+    // Default "same-origin" breaks signInWithPopup because the auth handler
+    // lives on tengri-astroloji.firebaseapp.com.
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
   }));
 
   const authLimiter = rateLimit({
