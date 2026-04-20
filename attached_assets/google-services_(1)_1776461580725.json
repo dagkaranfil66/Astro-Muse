@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:317895700540:android:40fea973236eafab0b5339",
         "android_client_info": {
-          "package_name": "com.median.android.bnljzke"
+          "package_name": "co.median.android.bnljzke"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "317895700540-7uf6115hi8u4pu9cp46e0liugpi98s9i.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.median.android.bnljzke",
+            "package_name": "co.median.android.bnljzke",
             "certificate_hash": "2507acfca2856b43322fb2de5e6db144c1c6aecb"
           }
         },
@@ -25,7 +25,7 @@
           "client_id": "317895700540-apobbttd3hfdbdidmla6po1es2bd7jfj.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.median.android.bnljzke",
+            "package_name": "co.median.android.bnljzke",
             "certificate_hash": "ca23656c23e96c6ece19cf2471c144ec9b5e3407"
           }
         },

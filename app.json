@@ -60,7 +60,7 @@
       }
     },
     "android": {
-      "package": "com.median.android.bnljzke",
+      "package": "co.median.android.bnljzke",
       "versionCode": 4,
       "adaptiveIcon": {
         "backgroundColor": "#070D1A",
@@ -92,7 +92,7 @@
           "autoVerify": true,
           "data": [
             {
-              "scheme": "com.googleusercontent.apps.1089983373217-9k94d2j6lmbofmog3tf45tep72rqueh8"
+              "scheme": "com.googleusercontent.apps.317895700540-51jsskhqb9ncdta2d56obtt0voadal79"
             }
           ],
           "category": ["BROWSABLE", "DEFAULT"]
