@@ -376,54 +376,19 @@ export default function AuthScreen() {
   }, []);
 
   // ── Web: Start Google sign-in ─────────────────────────────────────────
-  // In embedded WebViews (Median Android APK) Google blocks Firebase's auth
-  // handler, so we use OAuth implicit flow against accounts.google.com directly
-  // and let it redirect back to /#id_token=...  Regular browsers also work fine.
+  // We ALWAYS use OAuth implicit flow against accounts.google.com directly,
+  // because Firebase's signInWithPopup / signInWithRedirect rely on the
+  // tengri-astroloji.firebaseapp.com auth handler which is blocked inside
+  // embedded WebViews (Median Android APK, Replit "Simulate on Android"
+  // iframe, in-app browsers, etc.) and produces a 404 on accounts.google.com.
+  // Implicit flow returns straight back to /auth#id_token=... which works in
+  // every browser environment.
   const handleWebGoogleSignIn = async () => {
     if (Platform.OS !== "web") return;
-    try {
-      setGoogleWebLoading(true);
-      setError("");
-      const ua = typeof navigator !== "undefined" ? navigator.userAgent || "" : "";
-      const isWebView =
-        /; wv\)/i.test(ua) ||
-        /Median|GonativeIO|gonative/i.test(ua) ||
-        // iOS WKWebView heuristic: missing "Safari" while on iOS
-        (/(iPhone|iPad|iPod)/i.test(ua) && !/Safari/i.test(ua));
-      if (isWebView) {
-        firebaseGoogleSignInImplicit();
-        return; // page will navigate away
-      }
-      const result = await firebaseGoogleSignInPopup();
-      if (result) {
-        await finishLogin(
-          result.name || (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User"),
-          result.email,
-          "google",
-        );
-      } else {
-        setGoogleWebLoading(false);
-      }
-    } catch (e: any) {
-      console.error("[Web Google] popup error:", e?.code, e?.message);
-      // Popup blocked or closed → fall back to redirect
-      if (e?.code === "auth/popup-blocked" || e?.code === "auth/cancelled-popup-request") {
-        try {
-          await firebaseGoogleSignInRedirect();
-          return;
-        } catch (re: any) {
-          console.error("[Web Google] redirect fallback error:", re?.code, re?.message);
-        }
-      }
-      setGoogleWebLoading(false);
-      if (e?.code === "auth/popup-closed-by-user") {
-        // User closed popup — silent
-        return;
-      }
-      setError(lang === "tr"
-        ? "Google girişi başarısız: " + (e?.code ?? e?.message ?? "")
-        : "Google sign-in failed: " + (e?.code ?? e?.message ?? ""));
-    }
+    setGoogleWebLoading(true);
+    setError("");
+    firebaseGoogleSignInImplicit();
+    // page will navigate away to accounts.google.com and come back to /auth#id_token=...
   };
 
   // ── Finish login ──────────────────────────────────────────────────────
