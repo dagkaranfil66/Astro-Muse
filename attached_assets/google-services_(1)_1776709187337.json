@@ -1,0 +1,74 @@
+{
+  "project_info": {
+    "project_number": "317895700540",
+    "project_id": "tengri-astroloji",
+    "storage_bucket": "tengri-astroloji.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:317895700540:android:0da9f28f2dd37d2e0b5339",
+        "android_client_info": {
+          "package_name": "co.median.android.bnljzke"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "317895700540-51jsskhqb9ncdta2d56obtt0voadal79.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB42XaaAKluym1VqOrWh8ylzuw7U1pikgo"
+        },
+        {
+          "current_key": "AIzaSyArtN8Pev3E5-yHFPyh6CPxO4kJzxS87co"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "317895700540-51jsskhqb9ncdta2d56obtt0voadal79.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:317895700540:android:40fea973236eafab0b5339",
+        "android_client_info": {
+          "package_name": "com.median.android.bnljzke"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "317895700540-51jsskhqb9ncdta2d56obtt0voadal79.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB42XaaAKluym1VqOrWh8ylzuw7U1pikgo"
+        },
+        {
+          "current_key": "AIzaSyArtN8Pev3E5-yHFPyh6CPxO4kJzxS87co"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "317895700540-51jsskhqb9ncdta2d56obtt0voadal79.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
