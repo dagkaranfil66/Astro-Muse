@@ -37,7 +37,7 @@ import { Colors } from "@/constants/colors";
 import { useLang } from "@/context/LanguageContext";
 import { useApp } from "@/context/AppContext";
 import { getApiUrl } from "@/lib/query-client";
-import { firebaseAppleSignIn, firebaseGoogleSignIn } from "@/lib/firebase";
+import { firebaseAppleSignIn, firebaseGoogleSignIn, firebaseGoogleSignInRedirect, getGoogleRedirectResult } from "@/lib/firebase";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -349,6 +349,38 @@ export default function AuthScreen() {
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
+  const [googleWebLoading, setGoogleWebLoading] = useState(false);
+
+  // ── Web: Pick up Google redirect result on mount ──────────────────────
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    (async () => {
+      try {
+        const result = await getGoogleRedirectResult();
+        if (result) {
+          await finishLogin(result.name || (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User"), result.email, "google");
+        }
+      } catch (e: any) {
+        console.warn("[Web Google] redirect result error:", e?.code ?? e);
+      }
+    })();
+  }, []);
+
+  // ── Web: Start Google sign-in via redirect ────────────────────────────
+  const handleWebGoogleSignIn = async () => {
+    if (Platform.OS !== "web") return;
+    try {
+      setGoogleWebLoading(true);
+      setError("");
+      await firebaseGoogleSignInRedirect();
+    } catch (e: any) {
+      setGoogleWebLoading(false);
+      console.error("[Web Google] sign-in start error:", e?.code, e?.message);
+      setError(lang === "tr"
+        ? "Google girişi başlatılamadı: " + (e?.code ?? e?.message ?? "")
+        : "Could not start Google sign-in: " + (e?.code ?? e?.message ?? ""));
+    }
+  };
 
   // ── Finish login ──────────────────────────────────────────────────────
   const finishLogin = async (
@@ -523,7 +555,7 @@ export default function AuthScreen() {
                 </Animated.View>
               )}
 
-              {/* 2. Google — Android only (iOS'ta Apple Sign In kullanılıyor, web'de expo-auth-session hook'u çalışmaz) */}
+              {/* 2. Google — Android (expo-auth-session) */}
               {Platform.OS === "android" && (
                 <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.btnRow}>
                   <AndroidGoogleButton
@@ -534,6 +566,26 @@ export default function AuthScreen() {
                     }}
                     onError={(msg) => setError(msg)}
                   />
+                </Animated.View>
+              )}
+
+              {/* 2b. Google — Web (Firebase signInWithRedirect) — Median APK WebView için kritik */}
+              {Platform.OS === "web" && (
+                <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.btnRow}>
+                  <Pressable
+                    onPress={handleWebGoogleSignIn}
+                    disabled={googleWebLoading}
+                    style={({ pressed }) => [styles.googleBtn, pressed && { opacity: 0.88 }]}
+                  >
+                    <View style={styles.googleLogoWrap}>
+                      <GoogleGLogo size={20} />
+                    </View>
+                    <Text style={styles.googleBtnText}>
+                      {googleWebLoading
+                        ? (lang === "tr" ? "Yönlendiriliyor..." : "Redirecting...")
+                        : (lang === "tr" ? "Google ile Giriş Yap" : "Continue with Google")}
+                    </Text>
+                  </Pressable>
                 </Animated.View>
               )}
 
