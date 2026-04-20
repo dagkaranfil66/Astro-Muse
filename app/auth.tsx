@@ -7,6 +7,7 @@ import {
   Pressable,
   Platform,
   KeyboardAvoidingView,
+  ActivityIndicator,
   ScrollView,
   Image,
 } from "react-native";
@@ -351,6 +352,14 @@ export default function AuthScreen() {
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
   const [googleWebLoading, setGoogleWebLoading] = useState(false);
 
+  // If we land on /auth with #id_token=... in the URL we are completing a
+  // Google OAuth redirect — hide the auth UI immediately to avoid a flash
+  // of the login screen before navigating to home.
+  const [oauthReturning, setOauthReturning] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return /[#&]id_token=/i.test(window.location.hash || "");
+  });
+
   // ── Web: Pick up Google sign-in result on mount ───────────────────────
   // Handles both: (1) implicit OAuth flow returning #id_token=... in the URL
   // hash, and (2) the legacy Firebase signInWithRedirect result.
@@ -368,9 +377,13 @@ export default function AuthScreen() {
         const result = await getGoogleRedirectResult();
         if (result) {
           await finishLogin(result.name || (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User"), result.email, "google");
+          return;
         }
+        // No pending OAuth result → reveal the auth UI again.
+        setOauthReturning(false);
       } catch (e: any) {
         console.warn("[Web Google] result error:", e?.code ?? e);
+        setOauthReturning(false);
       }
     })();
   }, []);
@@ -526,6 +539,17 @@ export default function AuthScreen() {
   };
 
   // ── Render ────────────────────────────────────────────────────────────
+  if (oauthReturning) {
+    return (
+      <View style={[styles.root, { alignItems: "center", justifyContent: "center" }]}>
+        <LinearGradient colors={["#08051A", "#070D1A", "#0D0820"]} style={StyleSheet.absoluteFill} />
+        <ActivityIndicator size="large" color={Colors.gold} />
+        <Text style={{ color: Colors.textSecondary, marginTop: 16, fontSize: 14 }}>
+          {lang === "tr" ? "Giriş tamamlanıyor..." : "Completing sign-in..."}
+        </Text>
+      </View>
+    );
+  }
   return (
     <View style={styles.root}>
       <LinearGradient colors={["#08051A", "#070D1A", "#0D0820"]} style={StyleSheet.absoluteFill} />
