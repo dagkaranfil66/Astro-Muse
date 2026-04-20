@@ -71,7 +71,21 @@ const auth = _fb.auth;
 
 export { app, db, auth };
 
-// ── Firebase Auth: Google sign-in via redirect (web only) ────────────────
+// ── Firebase Auth: Google sign-in via popup (web only) ───────────────────
+// Popup is more reliable than redirect on browsers that block 3rd-party cookies.
+export async function firebaseGoogleSignInPopup(): Promise<{ email: string; name: string } | null> {
+  if (!auth) { console.warn('[Firebase] auth not initialized'); return null; }
+  const provider = new GoogleAuthProvider();
+  provider.addScope('profile');
+  provider.addScope('email');
+  const result = await signInWithPopup(auth, provider);
+  return {
+    email: result.user.email ?? `google_${Date.now()}@tengri.social`,
+    name:  result.user.displayName ?? '',
+  };
+}
+
+// Kept for backward compat; falls back to popup automatically.
 export async function firebaseGoogleSignInRedirect(): Promise<void> {
   if (!auth) { console.warn('[Firebase] auth not initialized'); return; }
   const provider = new GoogleAuthProvider();

@@ -37,7 +37,7 @@ import { Colors } from "@/constants/colors";
 import { useLang } from "@/context/LanguageContext";
 import { useApp } from "@/context/AppContext";
 import { getApiUrl } from "@/lib/query-client";
-import { firebaseAppleSignIn, firebaseGoogleSignIn, firebaseGoogleSignInRedirect, getGoogleRedirectResult } from "@/lib/firebase";
+import { firebaseAppleSignIn, firebaseGoogleSignIn, firebaseGoogleSignInRedirect, firebaseGoogleSignInPopup, getGoogleRedirectResult } from "@/lib/firebase";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -366,19 +366,41 @@ export default function AuthScreen() {
     })();
   }, []);
 
-  // ── Web: Start Google sign-in via redirect ────────────────────────────
+  // ── Web: Start Google sign-in via popup (with redirect fallback) ──────
   const handleWebGoogleSignIn = async () => {
     if (Platform.OS !== "web") return;
     try {
       setGoogleWebLoading(true);
       setError("");
-      await firebaseGoogleSignInRedirect();
+      const result = await firebaseGoogleSignInPopup();
+      if (result) {
+        await finishLogin(
+          result.name || (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User"),
+          result.email,
+          "google",
+        );
+      } else {
+        setGoogleWebLoading(false);
+      }
     } catch (e: any) {
+      console.error("[Web Google] popup error:", e?.code, e?.message);
+      // Popup blocked or closed → fall back to redirect
+      if (e?.code === "auth/popup-blocked" || e?.code === "auth/cancelled-popup-request") {
+        try {
+          await firebaseGoogleSignInRedirect();
+          return;
+        } catch (re: any) {
+          console.error("[Web Google] redirect fallback error:", re?.code, re?.message);
+        }
+      }
       setGoogleWebLoading(false);
-      console.error("[Web Google] sign-in start error:", e?.code, e?.message);
+      if (e?.code === "auth/popup-closed-by-user") {
+        // User closed popup — silent
+        return;
+      }
       setError(lang === "tr"
-        ? "Google girişi başlatılamadı: " + (e?.code ?? e?.message ?? "")
-        : "Could not start Google sign-in: " + (e?.code ?? e?.message ?? ""));
+        ? "Google girişi başarısız: " + (e?.code ?? e?.message ?? "")
+        : "Google sign-in failed: " + (e?.code ?? e?.message ?? ""));
     }
   };
 
