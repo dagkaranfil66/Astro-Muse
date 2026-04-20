@@ -71,8 +71,55 @@ const auth = _fb.auth;
 
 export { app, db, auth };
 
+// ── Firebase Auth: Google sign-in via OAuth implicit flow (web only) ─────
+// Works in regular browsers AND embedded WebViews (Median Android APK),
+// because it bypasses Firebase's tengri-astroloji.firebaseapp.com auth
+// handler entirely and redirects back to our own domain (`/auth`).
+const GOOGLE_WEB_CLIENT_ID =
+  '317895700540-7uf6115hi8u4pu9cp46e0liugpi98s9i.apps.googleusercontent.com';
+
+export function firebaseGoogleSignInImplicit(): void {
+  if (typeof window === 'undefined') return;
+  const redirectUri = `${window.location.origin}/auth`;
+  const nonce =
+    Math.random().toString(36).slice(2) + Date.now().toString(36);
+  try { window.sessionStorage.setItem('google_oauth_nonce', nonce); } catch {}
+  const params = new URLSearchParams({
+    client_id:     GOOGLE_WEB_CLIENT_ID,
+    redirect_uri:  redirectUri,
+    response_type: 'id_token',
+    scope:         'openid email profile',
+    nonce,
+    prompt:        'select_account',
+  });
+  window.location.href =
+    'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString();
+}
+
+// Read id_token from URL hash on /auth mount and exchange for Firebase user.
+export async function consumeGoogleImplicitResult(): Promise<{ email: string; name: string } | null> {
+  if (typeof window === 'undefined' || !auth) return null;
+  if (!window.location.hash || window.location.hash.length < 2) return null;
+  const params = new URLSearchParams(window.location.hash.slice(1));
+  const idToken = params.get('id_token');
+  if (!idToken) return null;
+  // Clean the hash so refresh doesn't re-trigger.
+  try { window.history.replaceState(null, '', window.location.pathname + window.location.search); } catch {}
+  try {
+    const credential = GoogleAuthProvider.credential(idToken);
+    const result     = await signInWithCredential(auth, credential);
+    return {
+      email: result.user.email ?? `google_${Date.now()}@tengri.social`,
+      name:  result.user.displayName ?? '',
+    };
+  } catch (e: any) {
+    console.warn('[Firebase] Google implicit sign-in error:', e?.code ?? e);
+    return null;
+  }
+}
+
 // ── Firebase Auth: Google sign-in via popup (web only) ───────────────────
-// Popup is more reliable than redirect on browsers that block 3rd-party cookies.
+// Kept as a fallback for non-WebView browsers.
 export async function firebaseGoogleSignInPopup(): Promise<{ email: string; name: string } | null> {
   if (!auth) { console.warn('[Firebase] auth not initialized'); return null; }
   const provider = new GoogleAuthProvider();

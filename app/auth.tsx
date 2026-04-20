@@ -37,7 +37,7 @@ import { Colors } from "@/constants/colors";
 import { useLang } from "@/context/LanguageContext";
 import { useApp } from "@/context/AppContext";
 import { getApiUrl } from "@/lib/query-client";
-import { firebaseAppleSignIn, firebaseGoogleSignIn, firebaseGoogleSignInRedirect, firebaseGoogleSignInPopup, getGoogleRedirectResult } from "@/lib/firebase";
+import { firebaseAppleSignIn, firebaseGoogleSignIn, firebaseGoogleSignInRedirect, firebaseGoogleSignInPopup, firebaseGoogleSignInImplicit, consumeGoogleImplicitResult, getGoogleRedirectResult } from "@/lib/firebase";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -351,27 +351,49 @@ export default function AuthScreen() {
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
   const [googleWebLoading, setGoogleWebLoading] = useState(false);
 
-  // ── Web: Pick up Google redirect result on mount ──────────────────────
+  // ── Web: Pick up Google sign-in result on mount ───────────────────────
+  // Handles both: (1) implicit OAuth flow returning #id_token=... in the URL
+  // hash, and (2) the legacy Firebase signInWithRedirect result.
   useEffect(() => {
     if (Platform.OS !== "web") return;
     (async () => {
       try {
+        // 1) Implicit OAuth (works in WebViews like Median Android APK)
+        const implicit = await consumeGoogleImplicitResult();
+        if (implicit) {
+          await finishLogin(implicit.name || (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User"), implicit.email, "google");
+          return;
+        }
+        // 2) Firebase legacy redirect handler (regular browsers)
         const result = await getGoogleRedirectResult();
         if (result) {
           await finishLogin(result.name || (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User"), result.email, "google");
         }
       } catch (e: any) {
-        console.warn("[Web Google] redirect result error:", e?.code ?? e);
+        console.warn("[Web Google] result error:", e?.code ?? e);
       }
     })();
   }, []);
 
-  // ── Web: Start Google sign-in via popup (with redirect fallback) ──────
+  // ── Web: Start Google sign-in ─────────────────────────────────────────
+  // In embedded WebViews (Median Android APK) Google blocks Firebase's auth
+  // handler, so we use OAuth implicit flow against accounts.google.com directly
+  // and let it redirect back to /#id_token=...  Regular browsers also work fine.
   const handleWebGoogleSignIn = async () => {
     if (Platform.OS !== "web") return;
     try {
       setGoogleWebLoading(true);
       setError("");
+      const ua = typeof navigator !== "undefined" ? navigator.userAgent || "" : "";
+      const isWebView =
+        /; wv\)/i.test(ua) ||
+        /Median|GonativeIO|gonative/i.test(ua) ||
+        // iOS WKWebView heuristic: missing "Safari" while on iOS
+        (/(iPhone|iPad|iPod)/i.test(ua) && !/Safari/i.test(ua));
+      if (isWebView) {
+        firebaseGoogleSignInImplicit();
+        return; // page will navigate away
+      }
       const result = await firebaseGoogleSignInPopup();
       if (result) {
         await finishLogin(
@@ -606,15 +628,9 @@ export default function AuthScreen() {
                 </Animated.View>
               )}
 
-              {/* 2b. Google — Web only, but hidden inside Median Android WebView
-                  because Google blocks OAuth in embedded WebViews (404 / disallowed_useragent).
-                  iOS WebView (Median) and regular browsers still show the button. */}
-              {Platform.OS === "web" && (() => {
-                if (typeof navigator === "undefined") return true;
-                const ua = navigator.userAgent || "";
-                const isMedianAndroid = /Android/i.test(ua) && (/Median|GonativeIO|gonative/i.test(ua) || /; wv\)/i.test(ua));
-                return !isMedianAndroid;
-              })() && (
+              {/* 2b. Google — Web (uses popup in browsers, OAuth implicit
+                  flow inside Median Android/iOS WebViews; both supported). */}
+              {Platform.OS === "web" && (
                 <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.btnRow}>
                   <Pressable
                     onPress={handleWebGoogleSignIn}
