@@ -182,11 +182,9 @@ type AndroidGoogleButtonProps = {
   onError:   (msg: string) => void;
 };
 
-// redirectUri, manifest'teki owner ("dagkaranfil") ve slug ("tengriastroloji")
-// değerlerinden otomatik üretilir: https://auth.expo.io/@dagkaranfil/tengriastroloji
-// Bu URL Google Cloud Console → Authorized redirect URIs listesinde olmalı.
-const GOOGLE_REDIRECT_URI = AuthSession.makeRedirectUri({ useProxy: true } as any);
-
+// SDK 54: redirectUri'yi GEÇMİYORUZ — expo-auth-session/providers/google
+// kendi otomatik türetir (Android için com.googleusercontent.apps.X:/oauth2redirect,
+// iOS için bundleId:/oauth2redirect). useProxy SDK 51+ ile kaldırıldı.
 function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonProps) {
   const [loading, setLoading] = useState(false);
 
@@ -198,12 +196,11 @@ function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonPr
     webClientId,
     androidClientId,
     iosClientId,
-    redirectUri: GOOGLE_REDIRECT_URI,
   });
 
   useEffect(() => {
     console.log("=== [Google OAuth] CONFIG ===");
-    console.log("[Google OAuth] REDIRECT_URI :", GOOGLE_REDIRECT_URI);
+    console.log("[Google OAuth] ANDROID_CLIENT_ID:", androidClientId ? androidClientId.slice(0, 30) + "..." : "⚠️ YOK");
     console.log("[Google OAuth] WEB_CLIENT_ID:", webClientId ?? "⚠️ YOK — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik");
     console.log("[Google OAuth] request ready:", !!request);
     if (request) {
@@ -272,7 +269,7 @@ function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonPr
     } else if (response.type === "error") {
       console.error("[Google OAuth] ❌ OAuth hata:", JSON.stringify(response.error));
       console.error("[Google OAuth] ❌ Olası neden: Google Console'da bu redirectUri izinli değil.");
-      console.error("[Google OAuth] ❌ İzin verilmesi gereken redirectUri:", GOOGLE_REDIRECT_URI);
+      console.error("[Google OAuth] ❌ Olası neden 2: app.json'a Android Client URL scheme intent filter eklenmemiş.");
       setLoading(false);
       const errCode = (response.error as any)?.code ?? "";
       const errMsg  = (response.error as any)?.message ?? errCode;
@@ -289,7 +286,7 @@ function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonPr
   const handlePress = () => {
     console.log("[Google OAuth] ── BUTTON PRESS ──");
     console.log("[Google OAuth] request hazır mı:", !!request);
-    console.log("[Google OAuth] redirectUri (makeRedirectUri):", GOOGLE_REDIRECT_URI);
+    console.log("[Google OAuth] redirectUri (auto from android client):", (request as any)?.redirectUri ?? "(none)");
 
     if (!request) {
       console.warn("[Google OAuth] ⚠️ request null — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik olabilir");
