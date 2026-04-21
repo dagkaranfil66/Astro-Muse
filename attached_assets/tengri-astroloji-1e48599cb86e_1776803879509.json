@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "tengri-astroloji",
+  "private_key_id": "1e48599cb86e9b00166fcfa6531bced0609899c8",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCnrTXMl65VM6V3\nnD7AIV8j0EkuGZ5WWctFV6OKjEGXPiUxkxVAQT65FR+gP8mZLrPKAJVCjq06nVUr\nexZiuFUbHvbF7zX/P5wNsuEJQoaMBwzzCCBMib4e0luAjUBW3rPlxuRT+ExxCY1X\nOx8eCW4Zczlh7Q76b4APTHTM6B4woYaRL6fSrlKcRthzwiymdnKP+7K47zl91Ay7\n0JFLAI+KM1NYMJATM3P2D8BZTBKhA0wllO3Lt51vU7VeN7fPNJ8zcYtq7l0FwImM\nlfZVjRFGsFpWWDXfUwQmFLIQa+/WRIwla1NMF2qjEI6ii0cxa2pNsYa1DJa2Y4Ep\nIZWrlPobAgMBAAECggEARYHAvnnWE42gNu/29zAePztVSp3mDAeXArysl39CpU5m\nnqFI+uTQ+mouPQCUMkKw1rjdJsT8PEMCDk8s3WlqJh70zuI1cQTOTMNtE6iXG67E\niG5C7VdgD2jF84kaNaiFzGdhOQnBrk32YEWqxYnFMRmZnOVnAxt7a1wXQuWptiBj\nYcPQY7t6r+6wwjBQYne8qPWUoXvq65/Df4NjE5jXwu5059RiAoIS8H2Lq4lOpBca\n+qqs6/1xFnCj/mF3a+SqOuduNzQNcSVULIoIMGtscBNbm+Xnm/E/Y0oOerpg9c9c\ngS38T6Bpn7ixLXnggQvGrTdmCibFUbE4lgzp3qDrsQKBgQDPj6rrtlxRi1Sk8jP0\nd84rO1+y3TlCIvKWDRdBq9cZpRoHu2Bpb3WtJSHc6XDGdSU2W8zLCQCdMyJ56+AS\nr1gxOdH6ajgpoFfGb6n8TjtiLRvDlbVfLrSg/0bWoQB8qhKDp2hZ3nKHQDGX3Hws\nDt9WQxRF10HdCCk4FpuqVzUDIwKBgQDOzrdYaHYEAwPaj8is8nhhGxaBP1/yjbGO\nDxFWQ+YoG8n7WjxInHwS6Z0LmQuvGgz3ATjBnE/YLaBplRmm06BnFNTObTehuJcG\n7G2V/NgZCkxE0LxJMVAKLDV3p6/dgJFWH/anUXZAHl7pv80udnBzu+4Lo5PBX/2/\nicmupgT4qQKBgDmhpY6/WtDVhBIsohpuLZO5b7AFVwGzHHJnfh6g7R/UxO6Cq5l6\n9ky2M7nYI5UnL8bxJGL3w/DiIt+Bi/0ELNO2P0Rtu9xrBhQ2KxfATSLMbZoX9n1Q\nRZ0yZGPx3mW+/1cI46OYbWp6e4q0ENJW6tJT28wsocASpQdK17wrbK/LAoGAVAE6\nDopYLeb/oL85F69iYKd9K8EPe1o9HmRWeYEZM3+eOyB7Tk9qQtBsP3LKgTUGwSrY\n4CRbdoeKGnk7Mz3RcS3QB43rxCBUELbnCL7tFLbPJkDXyq9iQM+WZGVUFZiM8LwJ\nGAwKCZ+MlEyZzt7DbO+QkV+/vBP+4dfZebzsVgkCgYAmz14RWxD0e6g2d8KMHrxi\nPVJm5q1KQvfeDbQTE4Fc2bWHghdSFSpN7sfqZQuwPC5TdJkhK1ko4Bn5Hg13uogX\nErtNkr4PHcq9HVAl4ZwktgShs7BpQCFkQHggrRNBbwOSEy0DGry7CdhbHNJ88Poo\n5g7lXGsQY/hMxFPzLfKQwQ==\n-----END PRIVATE KEY-----\n",
+  "client_email": "revenuecat@tengri-astroloji.iam.gserviceaccount.com",
+  "client_id": "100885337615165462828",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/revenuecat%40tengri-astroloji.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
