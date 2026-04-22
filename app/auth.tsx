@@ -524,7 +524,11 @@ export default function AuthScreen() {
       await finishLogin(data.user.name || (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User"), data.user.email, "email");
       setLoading(false);
     } catch (e: any) {
-      setError(lang === "tr" ? "Sunucuya bağlanılamadı" : "Could not reach server");
+      const msg = e?.message ?? String(e);
+      console.error("[Email Auth] fetch failed:", msg);
+      setError(lang === "tr"
+        ? `Sunucuya bağlanılamadı: ${msg}`
+        : `Could not reach server: ${msg}`);
       setLoading(false);
     }
   };

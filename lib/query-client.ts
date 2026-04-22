@@ -33,11 +33,14 @@ export function getApiUrl(): string {
 
   // 3. Native fallback: derive URL from EXPO_PUBLIC_DOMAIN (dev builds)
   const host = process.env.EXPO_PUBLIC_DOMAIN;
-  if (!host) {
-    throw new Error("Neither EXPO_PUBLIC_API_URL nor EXPO_PUBLIC_DOMAIN is set");
+  if (host) {
+    return new URL(`https://${host}`).origin;
   }
 
-  return new URL(`https://${host}`).origin;
+  // 4. Last-resort hardcoded production URL — ensures the app never crashes
+  //    if env vars somehow get stripped during the build process.
+  console.warn("[getApiUrl] No env var found, falling back to hardcoded production URL");
+  return "https://astro-muse.replit.app";
 }
 
 async function throwIfResNotOk(res: Response) {
