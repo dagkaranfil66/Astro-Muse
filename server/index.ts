@@ -326,7 +326,14 @@ function configureExpoAndLanding(app: express.Application) {
 }
 
 function setupErrorHandler(app: express.Application) {
-  app.use((err: unknown, _req: Request, res: Response, next: NextFunction) => {
+  // 404 handler for /api/* — must always return JSON (mobile app expects it)
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (!req.path.startsWith("/api")) return next();
+    if (res.headersSent) return next();
+    res.status(404).json({ error: `Endpoint bulunamadı: ${req.method} ${req.path}` });
+  });
+
+  app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
     const error = err as {
       status?: number;
       statusCode?: number;
@@ -340,6 +347,11 @@ function setupErrorHandler(app: express.Application) {
 
     if (res.headersSent) {
       return next(err);
+    }
+
+    // API requests must always receive JSON, never HTML/plaintext
+    if (req.path.startsWith("/api")) {
+      return res.status(status).json({ error: message });
     }
 
     return res.status(status).json({ message });
