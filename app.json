@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Tengri-Astroloji-Fal-Burçlar-Mistik Yolculuk",
-    "slug": "tengri-astroloji",
+    "slug": "tengristar",
     "version": "1.2.4",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -145,9 +145,9 @@
         "origin": "https://replit.com/"
       },
       "eas": {
-        "projectId": "e80dcf4a-3033-4691-8e20-9544eacc4101"
+        "projectId": ""
       }
     },
-    "owner": "tengri-new"
+    "owner": "tengri-astroloji-burclar-mistik-yolculuk"
   }
 }
