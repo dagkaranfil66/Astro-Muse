@@ -1,0 +1,80 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "Times New Roman",
+      "count": 3
+    }
+  ],
+  "colors": {
+    "primary": "#009688",
+    "secondary": "#AAB8C2",
+    "accent": "#070D1A",
+    "background": "#FFFFFF",
+    "textPrimary": "#070D1A",
+    "link": "#070D1A"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "Times New Roman",
+      "heading": "Times New Roman"
+    },
+    "fontStacks": {
+      "body": [
+        "Times New Roman"
+      ],
+      "heading": [
+        "Times New Roman"
+      ],
+      "paragraph": [
+        "Times New Roman"
+      ]
+    },
+    "fontSizes": {
+      "h1": "16px",
+      "h2": "16px",
+      "body": "16px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "borderRadius": "22px"
+  },
+  "components": {},
+  "images": {
+    "logo": null,
+    "favicon": "https://astro-muse.replit.app/favicon.ico",
+    "ogImage": null
+  },
+  "personality": {
+    "tone": "professional",
+    "energy": "medium",
+    "targetAudience": "unknown"
+  },
+  "designSystem": {
+    "framework": "unknown",
+    "componentLibrary": ""
+  },
+  "confidence": {
+    "buttons": 0,
+    "colors": 0,
+    "overall": 0
+  },
+  "__llm_metadata": {
+    "logoSelection": {
+      "llmCalled": false,
+      "llmSucceeded": false,
+      "finalSource": "none",
+      "rawLogoSelection": {
+        "selectedLogoIndex": -1,
+        "selectedLogoReasoning": "LLM failed",
+        "confidence": 0
+      }
+    },
+    "buttonClassification": {
+      "llmCalled": false,
+      "llmSucceeded": false,
+      "error": "LLM call failed or returned fallback values"
+    }
+  }
+}
