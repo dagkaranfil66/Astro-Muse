@@ -105,17 +105,12 @@ export async function consumeGoogleImplicitResult(): Promise<{ email: string; na
   if (!idToken) return null;
   // Clean the hash so refresh doesn't re-trigger.
   try { window.history.replaceState(null, '', window.location.pathname + window.location.search); } catch {}
-  try {
-    const credential = GoogleAuthProvider.credential(idToken);
-    const result     = await signInWithCredential(auth, credential);
-    return {
-      email: result.user.email ?? `google_${Date.now()}@tengri.social`,
-      name:  result.user.displayName ?? '',
-    };
-  } catch (e: any) {
-    console.warn('[Firebase] Google implicit sign-in error:', e?.code ?? e);
-    return null;
-  }
+  const credential = GoogleAuthProvider.credential(idToken);
+  const result     = await signInWithCredential(auth, credential);
+  return {
+    email: result.user.email ?? `google_${Date.now()}@tengri.social`,
+    name:  result.user.displayName ?? '',
+  };
 }
 
 // ── Firebase Auth: Google sign-in via popup (web only) ───────────────────

@@ -379,7 +379,13 @@ export default function AuthScreen() {
         // No pending OAuth result → reveal the auth UI again.
         setOauthReturning(false);
       } catch (e: any) {
-        console.warn("[Web Google] result error:", e?.code ?? e);
+        const code = e?.code ?? "";
+        const msg  = e?.message ?? String(e);
+        console.error("[Web Google] sign-in error:", code, msg);
+        setError(
+          (lang === "tr" ? "Google girişi başarısız: " : "Google sign-in failed: ") +
+          (code || msg || "unknown"),
+        );
         setOauthReturning(false);
       }
     })();
@@ -420,16 +426,18 @@ export default function AuthScreen() {
       console.warn("[finishLogin] setUserProfile error:", e);
     }
     try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
-    // Use setTimeout to escape the current call stack before navigating —
-    // ensures router is ready and avoids navigation-during-render issues.
+    // On web, always do a full page reload so all providers re-initialize
+    // with the freshly-stored profile from AsyncStorage. router.replace can
+    // fail silently after an OAuth redirect (state lost across navigations).
+    if (Platform.OS === "web" && typeof window !== "undefined") {
+      window.location.replace("/");
+      return;
+    }
     setTimeout(() => {
       try {
         router.replace("/(tabs)");
       } catch (e) {
         console.warn("[finishLogin] router.replace error:", e);
-        if (Platform.OS === "web" && typeof window !== "undefined") {
-          window.location.href = "/";
-        }
       }
     }, 0);
   };
