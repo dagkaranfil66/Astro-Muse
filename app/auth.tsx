@@ -510,14 +510,28 @@ export default function AuthScreen() {
       const body     = mode === "register"
         ? { name: name.trim(), email: email.trim(), password }
         : { email: email.trim(), password };
-      const res  = await fetch(`${base}${endpoint}`, {
+      const fullUrl = `${base}${endpoint}`;
+      console.log("[Email Auth] POST →", fullUrl);
+      const res  = await fetch(fullUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify(body),
       });
-      const data = await res.json();
+      const rawText = await res.text();
+      console.log("[Email Auth] status:", res.status, "body:", rawText.slice(0, 200));
+      let data: any = null;
+      try {
+        data = rawText ? JSON.parse(rawText) : {};
+      } catch {
+        const preview = rawText.slice(0, 80).replace(/\s+/g, " ");
+        setError(lang === "tr"
+          ? `Sunucu yanıtı geçersiz (HTTP ${res.status}): ${preview || "boş yanıt"}`
+          : `Invalid server response (HTTP ${res.status}): ${preview || "empty"}`);
+        setLoading(false);
+        return;
+      }
       if (!res.ok) {
-        setError(data.error || (lang === "tr" ? "İşlem başarısız" : "Action failed"));
+        setError(data.error || (lang === "tr" ? `İşlem başarısız (HTTP ${res.status})` : `Action failed (HTTP ${res.status})`));
         setLoading(false);
         return;
       }
@@ -527,8 +541,8 @@ export default function AuthScreen() {
       const msg = e?.message ?? String(e);
       console.error("[Email Auth] fetch failed:", msg);
       setError(lang === "tr"
-        ? `Sunucuya bağlanılamadı: ${msg}`
-        : `Could not reach server: ${msg}`);
+        ? `Ağ hatası: ${msg}`
+        : `Network error: ${msg}`);
       setLoading(false);
     }
   };

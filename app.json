@@ -2,7 +2,7 @@
   "expo": {
     "name": "Tengri-Astroloji-Fal-Burçlar-Mistik Yolculuk",
     "slug": "tengri-astroloji",
-    "version": "1.2.3",
+    "version": "1.2.4",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "tengriastrolojifalburlarmistikyolculuk",
@@ -61,7 +61,7 @@
     },
     "android": {
       "package": "co.median.android.bnljzke",
-      "versionCode": 28,
+      "versionCode": 29,
       "adaptiveIcon": {
         "backgroundColor": "#070D1A",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
