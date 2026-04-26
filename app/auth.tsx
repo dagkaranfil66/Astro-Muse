@@ -522,7 +522,11 @@ export default function AuthScreen() {
       console.log("[Email Auth] POST →", fullUrl);
       const res  = await fetch(fullUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
         body: JSON.stringify(body),
       });
       const rawText = await res.text();
@@ -531,10 +535,11 @@ export default function AuthScreen() {
       try {
         data = rawText ? JSON.parse(rawText) : {};
       } catch {
-        const preview = rawText.slice(0, 80).replace(/\s+/g, " ");
+        const preview = rawText.slice(0, 120).replace(/\s+/g, " ");
+        const hostInfo = (() => { try { return new URL(fullUrl).host; } catch { return "?"; } })();
         setError(lang === "tr"
-          ? `Sunucu yanıtı geçersiz (HTTP ${res.status}): ${preview || "boş yanıt"}`
-          : `Invalid server response (HTTP ${res.status}): ${preview || "empty"}`);
+          ? `Sunucu yanıtı geçersiz (HTTP ${res.status}) [${hostInfo}]: ${preview || "boş yanıt"}`
+          : `Invalid server response (HTTP ${res.status}) [${hostInfo}]: ${preview || "empty"}`);
         setLoading(false);
         return;
       }
