@@ -2,7 +2,7 @@
   "expo": {
     "name": "Tengri-Astroloji-Fal-Burçlar-Mistik Yolculuk",
     "slug": "tengristar",
-    "version": "1.2.5",
+    "version": "1.2.6",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "tengriastrolojifalburlarmistikyolculuk",
@@ -146,7 +146,8 @@
           "microphonePermission": false
         }
       ],
-      "expo-apple-authentication"
+      "expo-apple-authentication",
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true

@@ -22,6 +22,19 @@ import * as AppleAuthentication from "expo-apple-authentication";
 import * as Crypto from "expo-crypto";
 import * as AuthSession from "expo-auth-session";
 import { useIdTokenAuthRequest } from "expo-auth-session/providers/google";
+
+// Native Google Sign-In only loads on iOS/Android. On web it's not used.
+let GoogleSignin: any = null;
+let statusCodes: any = {};
+if (Platform.OS !== "web") {
+  try {
+    const mod = require("@react-native-google-signin/google-signin");
+    GoogleSignin = mod.GoogleSignin;
+    statusCodes = mod.statusCodes;
+  } catch (e) {
+    console.warn("[Native Google] Module not available:", e);
+  }
+}
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -182,115 +195,45 @@ type AndroidGoogleButtonProps = {
   onError:   (msg: string) => void;
 };
 
-// SDK 54: redirectUri'yi GEÇMİYORUZ — expo-auth-session/providers/google
-// kendi otomatik türetir (Android için com.googleusercontent.apps.X:/oauth2redirect,
-// iOS için bundleId:/oauth2redirect). useProxy SDK 51+ ile kaldırıldı.
+// NATIVE Google Sign-In: @react-native-google-signin/google-signin
+// Tarayıcıya yönlendirme YOK. Telefonda kayıtlı Google hesapları
+// native bir bottom-sheet/account picker'da gösterilir.
+// idToken alınır → firebaseGoogleSignIn(idToken) ile Firebase Auth'a verilir.
 function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonProps) {
   const [loading, setLoading] = useState(false);
+  const [configured, setConfigured] = useState(false);
 
   const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
-  const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
   const iosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
 
-  const [request, response, promptAsync] = useIdTokenAuthRequest({
-    webClientId,
-    androidClientId,
-    iosClientId,
-  });
-
   useEffect(() => {
-    console.log("=== [Google OAuth] CONFIG ===");
-    console.log("[Google OAuth] ANDROID_CLIENT_ID:", androidClientId ? androidClientId.slice(0, 30) + "..." : "⚠️ YOK");
-    console.log("[Google OAuth] WEB_CLIENT_ID:", webClientId ?? "⚠️ YOK — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik");
-    console.log("[Google OAuth] request ready:", !!request);
-    if (request) {
-      const url = (request as any)?.url ?? "";
-      const clientParam   = url.match(/client_id=([^&]+)/)?.[1];
-      const redirectParam = url.match(/redirect_uri=([^&]+)/)?.[1];
-      console.log("[Google OAuth] OAuth client_id   :", clientParam   ? decodeURIComponent(clientParam)   : "bulunamadı");
-      console.log("[Google OAuth] OAuth redirect_uri :", redirectParam ? decodeURIComponent(redirectParam) : "bulunamadı");
+    try {
+      console.log("=== [Native Google] CONFIG ===");
+      console.log("[Native Google] webClientId:", webClientId ? webClientId.slice(0, 30) + "..." : "⚠️ YOK");
+      console.log("[Native Google] iosClientId:", iosClientId ? iosClientId.slice(0, 30) + "..." : "(opsiyonel)");
+
+      if (!webClientId) {
+        console.warn("[Native Google] ⚠️ EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik!");
+        return;
+      }
+
+      GoogleSignin.configure({
+        webClientId,
+        iosClientId: iosClientId || undefined,
+        offlineAccess: false,
+        scopes: ["profile", "email"],
+      });
+      setConfigured(true);
+      console.log("[Native Google] ✅ Configure tamamlandı");
+    } catch (err: any) {
+      console.error("[Native Google] ❌ Configure hatası:", err?.message ?? err);
     }
-  }, [request]);
+  }, [webClientId, iosClientId]);
 
-  useEffect(() => {
-    if (!response) return;
+  const handlePress = async () => {
+    console.log("[Native Google] ── BUTTON PRESS ──");
 
-    console.log("[Google OAuth] ── RESPONSE ──");
-    console.log("[Google OAuth] type:", response.type);
-    console.log("[Google OAuth] full response:", JSON.stringify(response, null, 2));
-
-    if (response.type === "success") {
-      const params      = (response as any).params ?? {};
-      const idToken     = response.authentication?.idToken     ?? params.id_token     ?? null;
-      const accessToken = response.authentication?.accessToken ?? params.access_token ?? null;
-
-      console.log("[Google OAuth] idToken present:", !!idToken);
-      console.log("[Google OAuth] accessToken present:", !!accessToken);
-      console.log("[Google OAuth] params keys:", Object.keys(params));
-
-      (async () => {
-        try {
-          if (!idToken) {
-            console.error("[Google OAuth] ❌ idToken yok! Dönen params:", JSON.stringify(params));
-            throw new Error("No id_token in OAuth response");
-          }
-
-          console.log("[Google OAuth] Firebase signInWithCredential başlatılıyor...");
-          const user = await firebaseGoogleSignIn(idToken, accessToken);
-
-          if (!user) {
-            console.error("[Google OAuth] ❌ Firebase null user döndürdü");
-            throw new Error("Firebase sign-in returned null user");
-          }
-
-          const displayName = user.displayName ?? (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
-          const email       = user.email       ?? `google_${Date.now()}@tengri.social`;
-          console.log("[Google OAuth] ✅ Giriş başarılı:", email);
-          onSuccess(displayName, email);
-        } catch (err: any) {
-          console.error("[Google OAuth] ❌ HATA kodu:", err?.code);
-          console.error("[Google OAuth] ❌ HATA mesajı:", err?.message);
-          const msg =
-            err?.code === "auth/network-request-failed"
-              ? (lang === "tr" ? "Ağ hatası. İnternet bağlantınızı kontrol edin." : "Network error. Check your connection.")
-            : err?.code === "auth/invalid-credential"
-              ? (lang === "tr" ? "Geçersiz kimlik bilgisi. Lütfen tekrar deneyin." : "Invalid credential. Please try again.")
-            : err?.code === "auth/api-key-not-valid"
-              ? (lang === "tr" ? "Firebase yapılandırma hatası. Geliştiriciyle iletişime geçin." : "Firebase config error. Contact developer.")
-            : (lang === "tr"
-                ? "Google ile giriş başarısız: " + (err?.code ?? err?.message ?? "Bilinmeyen hata")
-                : "Google sign-in failed: " + (err?.code ?? err?.message ?? "Unknown error"));
-          onError(msg);
-        } finally {
-          setLoading(false);
-        }
-      })();
-
-    } else if (response.type === "error") {
-      console.error("[Google OAuth] ❌ OAuth hata:", JSON.stringify(response.error));
-      console.error("[Google OAuth] ❌ Olası neden: Google Console'da bu redirectUri izinli değil.");
-      console.error("[Google OAuth] ❌ Olası neden 2: app.json'a Android Client URL scheme intent filter eklenmemiş.");
-      setLoading(false);
-      const errCode = (response.error as any)?.code ?? "";
-      const errMsg  = (response.error as any)?.message ?? errCode;
-      onError(lang === "tr"
-        ? "Google girişi başarısız: " + errMsg
-        : "Google sign-in failed: " + errMsg);
-
-    } else {
-      console.log("[Google OAuth] İptal edildi / kapatıldı:", response.type);
-      setLoading(false);
-    }
-  }, [response]);
-
-  const handlePress = () => {
-    console.log("[Google OAuth] ── BUTTON PRESS ──");
-    console.log("[Google OAuth] request hazır mı:", !!request);
-    console.log("[Google OAuth] redirectUri (auto from android client):", (request as any)?.redirectUri ?? "(none)");
-
-    if (!request) {
-      console.warn("[Google OAuth] ⚠️ request null — EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID eksik olabilir");
-      console.warn("[Google OAuth] webClientId:", webClientId ? (webClientId.slice(0, 30) + "...") : "YOK");
+    if (!webClientId) {
       onError(lang === "tr"
         ? "Google girişi yapılandırılmamış. Geliştiriciyle iletişime geçin."
         : "Google sign-in not configured.");
@@ -299,14 +242,68 @@ function AndroidGoogleButton({ lang, onSuccess, onError }: AndroidGoogleButtonPr
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setLoading(true);
-    // Redirect URI zaten makeRedirectUri({ useProxy: true }) ile oluşturuldu
-    promptAsync().then((result) => {
-      console.log("[Google OAuth] promptAsync sonucu:", result?.type);
-    }).catch((err) => {
-      console.error("[Google OAuth] promptAsync hatası:", err?.message ?? err);
+
+    try {
+      // Play Services kontrolü (Android)
+      if (Platform.OS === "android") {
+        await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      }
+
+      // Önceki oturumu temizle ki account picker her zaman çıksın
+      try { await GoogleSignin.signOut(); } catch {}
+
+      // Native account picker açılır (tarayıcı YOK)
+      const result: any = await GoogleSignin.signIn();
+      console.log("[Native Google] signIn sonucu alındı");
+
+      // SDK v13+ → result.data.idToken / v12 → result.idToken
+      const idToken: string | null =
+        result?.data?.idToken ?? result?.idToken ?? null;
+      const userInfo: any = result?.data?.user ?? result?.user ?? null;
+
+      if (!idToken) {
+        console.error("[Native Google] ❌ idToken yok:", JSON.stringify(result).slice(0, 200));
+        throw new Error("No idToken in Google sign-in response");
+      }
+
+      console.log("[Native Google] idToken alındı, Firebase'e gönderiliyor...");
+      const user = await firebaseGoogleSignIn(idToken, null);
+
+      if (!user) {
+        throw new Error("Firebase sign-in returned null user");
+      }
+
+      const displayName =
+        user.displayName ??
+        userInfo?.name ??
+        (lang === "tr" ? "Tengri Kullanıcısı" : "Tengri User");
+      const email =
+        user.email ?? userInfo?.email ?? `google_${Date.now()}@tengri.social`;
+
+      console.log("[Native Google] ✅ Giriş başarılı:", email);
+      onSuccess(displayName, email);
+    } catch (err: any) {
+      const code = err?.code;
+      console.error("[Native Google] ❌ code:", code, "message:", err?.message);
+
+      if (code === statusCodes.SIGN_IN_CANCELLED) {
+        console.log("[Native Google] Kullanıcı iptal etti");
+        // Sessiz iptal — hata gösterme
+      } else if (code === statusCodes.IN_PROGRESS) {
+        onError(lang === "tr" ? "Giriş zaten devam ediyor." : "Sign-in already in progress.");
+      } else if (code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        onError(lang === "tr"
+          ? "Google Play Hizmetleri yok veya güncel değil."
+          : "Google Play Services not available.");
+      } else {
+        const msg = err?.message ?? code ?? "Bilinmeyen hata";
+        onError(lang === "tr"
+          ? "Google ile giriş başarısız: " + msg
+          : "Google sign-in failed: " + msg);
+      }
+    } finally {
       setLoading(false);
-      onError(lang === "tr" ? "Google girişi açılamadı." : "Could not open Google sign-in.");
-    });
+    }
   };
 
   return (
