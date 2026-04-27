@@ -2,7 +2,7 @@
   "expo": {
     "name": "Tengri-Astroloji-Fal-Burçlar-Mistik Yolculuk",
     "slug": "tengristar",
-    "version": "1.2.6",
+    "version": "1.2.7",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "tengriastrolojifalburlarmistikyolculuk",
@@ -117,7 +117,7 @@
       [
         "expo-router",
         {
-          "origin": "https://replit.com/"
+          "origin": "https://astro-muse.replit.app/"
         }
       ],
       "expo-font",
@@ -154,7 +154,7 @@
     },
     "extra": {
       "router": {
-        "origin": "https://replit.com/"
+        "origin": "https://astro-muse.replit.app/"
       },
       "eas": {
         "projectId": "be1f0898-f169-478d-b357-f9e4dc61672f"

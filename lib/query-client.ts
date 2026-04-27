@@ -1,44 +1,48 @@
 import { fetch } from "expo/fetch";
+import { Platform } from "react-native";
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 /**
  * Gets the base URL for the Express API server.
  *
- * Priority order:
- * 1. EXPO_PUBLIC_API_URL — explicit override baked in at build time (production builds)
- * 2. window.location.origin — on web/Median WebView, uses the current page origin
- *    so API requests are same-origin (no CORS). Metro dev server proxies /api/*
- *    to Express (port 5000) internally.
- * 3. EXPO_PUBLIC_DOMAIN — fallback for native Expo runtime (dev/local builds)
+ * NATIVE (iOS/Android): ALWAYS use build-time env var. Do NOT trust window.location
+ * because expo-router polyfills it from app.json's `extra.router.origin` value.
+ *
+ * WEB (browser): use window.location.origin so API requests are same-origin.
  */
 export function getApiUrl(): string {
-  // 1. On web (Median WebView / browser): use current page origin.
-  //    This auto-adapts to dev domain in development and production domain in
-  //    production without needing an explicit env var override.
+  // ── NATIVE PATH ──────────────────────────────────────────────────────────
+  if (Platform.OS !== "web") {
+    if (process.env.EXPO_PUBLIC_API_URL) {
+      return process.env.EXPO_PUBLIC_API_URL.replace(/\/$/, "");
+    }
+    const host = process.env.EXPO_PUBLIC_DOMAIN;
+    if (host) {
+      return new URL(`https://${host}`).origin;
+    }
+    return "https://astro-muse.replit.app";
+  }
+
+  // ── WEB PATH ─────────────────────────────────────────────────────────────
   if (
     typeof window !== "undefined" &&
     typeof window.location !== "undefined" &&
     window.location.origin &&
-    window.location.origin !== "null"
+    window.location.origin !== "null" &&
+    // Defensive: if window.location.origin is the bare replit.com (router polyfill leak),
+    // fall through to env var instead of pointing API at the wrong host.
+    !/^https?:\/\/replit\.com\/?$/i.test(window.location.origin)
   ) {
     return window.location.origin;
   }
 
-  // 2. On native (iOS/Android Expo runtime, no window.location):
-  //    Use the explicit API URL baked in at bundle build time.
-  //    EXPO_PUBLIC_API_URL is set to the production URL for production builds.
   if (process.env.EXPO_PUBLIC_API_URL) {
     return process.env.EXPO_PUBLIC_API_URL.replace(/\/$/, "");
   }
-
-  // 3. Native fallback: derive URL from EXPO_PUBLIC_DOMAIN (dev builds)
   const host = process.env.EXPO_PUBLIC_DOMAIN;
   if (host) {
     return new URL(`https://${host}`).origin;
   }
-
-  // 4. Last-resort hardcoded production URL — ensures the app never crashes
-  //    if env vars somehow get stripped during the build process.
   console.warn("[getApiUrl] No env var found, falling back to hardcoded production URL");
   return "https://astro-muse.replit.app";
 }
