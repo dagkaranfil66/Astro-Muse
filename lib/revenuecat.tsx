@@ -45,6 +45,43 @@ export const EXPECTED_PRODUCT_IDS = [
   "tengri_300_gold",
 ];
 
+/**
+ * Resolves the gold amount for any RC package/product identifier.
+ *
+ * Priority:
+ *   1. Exact match in PACKAGE_GOLD_MAP (RC pkg id, then product id)
+ *   2. Regex fallback — extract first number from identifier and apply known
+ *      bonuses (50→55, 120→140, 300→360). Catches new/renamed SKUs that
+ *      weren't added to the map.
+ *
+ * Returns 0 only if no number can be extracted at all.
+ */
+export function resolveGoldForPackage(rcPkg: {
+  identifier?: string;
+  product?: { identifier?: string };
+}): number {
+  const pkgId = rcPkg?.identifier ?? "";
+  const prodId = rcPkg?.product?.identifier ?? "";
+
+  // 1. Exact match
+  const direct = PACKAGE_GOLD_MAP[pkgId] ?? PACKAGE_GOLD_MAP[prodId];
+  if (direct && direct > 0) return direct;
+
+  // 2. Regex fallback: extract first integer from either identifier
+  const extract = (s: string): number => {
+    const m = s.match(/(\d+)/);
+    return m ? parseInt(m[1], 10) : 0;
+  };
+  const base = extract(pkgId) || extract(prodId);
+  if (base <= 0) return 0;
+
+  // Apply known bonus tiers
+  if (base === 50) return 55;
+  if (base === 120) return 140;
+  if (base === 300) return 360;
+  return base;
+}
+
 // ── RC package identifier order (cheapest → most expensive) ──────────────────
 export const RC_PACKAGE_ORDER = ["gold_20", "gold_50", "gold_120", "gold_300"];
 

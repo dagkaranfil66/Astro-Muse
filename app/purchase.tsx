@@ -27,7 +27,7 @@ import { Colors } from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
 import { SERVICE_GOLD_COST, FREE_START_GOLD } from "@/constants/serviceConfig";
-import { useSubscription, PACKAGE_GOLD_MAP, RC_PACKAGE_ORDER } from "@/lib/revenuecat";
+import { useSubscription, PACKAGE_GOLD_MAP, RC_PACKAGE_ORDER, resolveGoldForPackage } from "@/lib/revenuecat";
 import type { PurchasesPackage } from "react-native-purchases";
 
 const SERVICE_NAMES_TR: Record<string, string> = {
@@ -312,25 +312,28 @@ export default function PurchaseScreen() {
       console.log("[Purchase] Starting purchase:", rcPkg?.identifier, rcPkg?.product?.identifier);
       const customerInfo = await purchase(rcPkg);
 
-      // Award gold: look up by RC package identifier first, then product identifier as fallback
-      const gold =
-        PACKAGE_GOLD_MAP[rcPkg.identifier] ??
-        PACKAGE_GOLD_MAP[rcPkg.product.identifier] ??
-        0;
+      // Award gold: try exact match first, then regex fallback (handles new/renamed SKUs)
+      const gold = resolveGoldForPackage(rcPkg);
 
-      console.log(`[Purchase] ✅ Success — pkg=${rcPkg.identifier} gold=${gold}`);
+      console.log(`[Purchase] ✅ Success — pkg=${rcPkg.identifier} product=${rcPkg.product.identifier} gold=${gold}`);
       console.log("[Purchase]   nonSubscriptionTransactions:", customerInfo?.nonSubscriptionTransactions?.length ?? 0);
 
       if (gold > 0) {
         addGold(gold);
         console.log(`[Purchase]   Added ${gold} gold to balance`);
+        setBoughtId(rcPkg.identifier);
+        setBoughtGold(gold);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setTimeout(() => router.back(), 1800);
       } else {
-        console.warn(`[Purchase] ⚠️ Gold=0 — pkg="${rcPkg.identifier}" product="${rcPkg.product.identifier}"`);
+        console.error(`[Purchase] ⚠️ Gold=0 — pkg="${rcPkg.identifier}" product="${rcPkg.product.identifier}"`);
+        setPurchaseError(
+          lang === "tr"
+            ? `Satın alma tamamlandı ancak altın eklenemedi. Lütfen ekran görüntüsü alıp destek ile iletişime geçin. (Paket: ${rcPkg.product.identifier})`
+            : `Purchase completed but gold could not be added. Please screenshot and contact support. (Package: ${rcPkg.product.identifier})`
+        );
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
-      setBoughtId(rcPkg.identifier);
-      setBoughtGold(gold);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setTimeout(() => router.back(), 1800);
     } catch (e: any) {
       if (!e?.userCancelled) {
         console.error("[Purchase] ❌ Error:", e?.message ?? e, "code:", e?.code);
