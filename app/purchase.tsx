@@ -682,6 +682,41 @@ export default function PurchaseScreen() {
           </Pressable>
         </View>
       </ScrollView>
+
+      {/* ── Satın Alma Yükleniyor Overlay ── */}
+      {buying && (
+        <Animated.View entering={FadeIn.duration(180)} style={styles.purchaseOverlay}>
+          <LinearGradient colors={["rgba(8,5,26,0.96)", "rgba(13,8,32,0.96)"]} style={StyleSheet.absoluteFill} />
+          <Text style={styles.purchaseOverlayIcon}>✦</Text>
+          <ActivityIndicator size="large" color={Colors.gold} style={{ marginTop: 8 }} />
+          <Text style={styles.purchaseOverlayTitle}>
+            {lang === "tr" ? "İşleminiz gerçekleştiriliyor..." : "Processing your purchase..."}
+          </Text>
+          <Text style={styles.purchaseOverlaySub}>
+            {lang === "tr" ? "Lütfen Google Play'i kapatmayın" : "Please don't close Google Play"}
+          </Text>
+        </Animated.View>
+      )}
+
+      {/* ── Başarı Overlay ── */}
+      {boughtId && !buying && (
+        <Animated.View entering={ZoomIn.springify()} style={styles.purchaseOverlay}>
+          <LinearGradient colors={["rgba(8,5,26,0.97)", "rgba(8,22,12,0.97)"]} style={StyleSheet.absoluteFill} />
+          <Text style={styles.successOverlayIcon}>✦</Text>
+          <Text style={styles.successOverlayTitle}>
+            {lang === "tr" ? `${boughtGold} Altın Eklendi!` : `${boughtGold} Gold Added!`}
+          </Text>
+          <Text style={styles.successOverlaySub}>
+            {lang === "tr" ? "Mistik yolculuğunuz devam ediyor..." : "Your mystical journey continues..."}
+          </Text>
+          <View style={styles.successOverlayChip}>
+            <Ionicons name="checkmark-circle" size={14} color={Colors.success} />
+            <Text style={styles.successOverlayChipText}>
+              {lang === "tr" ? "Hesabınıza yüklendi" : "Added to your account"}
+            </Text>
+          </View>
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -804,6 +839,24 @@ const styles = StyleSheet.create({
   legalRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 2 },
   legal: { fontSize: 10, fontFamily: "Lora_400Regular", color: Colors.textDim, textAlign: "center", lineHeight: 16 },
   legalLink: { fontSize: 10, fontFamily: "Lora_400Regular", color: Colors.gold + "90", textAlign: "center", lineHeight: 16, textDecorationLine: "underline" },
+
+  purchaseOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 300,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 14,
+    padding: 40,
+  },
+  purchaseOverlayIcon: { fontSize: 56, color: Colors.gold, opacity: 0.7 },
+  purchaseOverlayTitle: { fontSize: 18, fontFamily: "Lora_700Bold", color: Colors.text, textAlign: "center", lineHeight: 26 },
+  purchaseOverlaySub: { fontSize: 13, fontFamily: "Lora_400Regular_Italic", color: Colors.textSecondary, textAlign: "center" },
+
+  successOverlayIcon: { fontSize: 80, color: Colors.gold },
+  successOverlayTitle: { fontSize: 26, fontFamily: "Lora_700Bold", color: Colors.text, textAlign: "center", marginTop: 4 },
+  successOverlaySub: { fontSize: 14, fontFamily: "Lora_400Regular_Italic", color: Colors.success, textAlign: "center" },
+  successOverlayChip: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: Colors.success + "15", borderWidth: 1, borderColor: Colors.success + "40", borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7, marginTop: 6 },
+  successOverlayChipText: { fontSize: 12, fontFamily: "Lora_700Bold", color: Colors.success },
 });
 
 const ag = StyleSheet.create({
