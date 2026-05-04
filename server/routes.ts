@@ -323,7 +323,16 @@ Her bölüm 2-3 cümle olsun. "Sen" diyerek hitap et. Gizemli ve derin bir dil k
 
 Her bölüm 2-3 cümle olsun. "Sen" diyerek hitap et. Mistik, akıcı ve robotik olmayan bir dil kullan. Tekrar eden kalıplardan kaçın. Her bölümde farklı ve spesifik bir enerji mesajı ver. Türkçe.`,
 
-  ask: `Sen TENGRI'nin aşk ustasısın. İki burcun uyumunu, duygusal bağı ve çekim enerjisini yorumla. En büyük zorluğu ve ilişkiyi güçlendirecek 2 öneriyi yaz. Tengri'nin aşk mesajıyla bitir. Türkçe. Romantik ve bilge bir dil kullan. Kısa ve güçlü tut.`,
+  ask: `Sen TENGRI'nin aşk ustasısın. İki burcun uyumunu, duygusal bağı ve çekim enerjisini yorumla. Aşağıdaki bölümleri ## başlıklarıyla eksiksiz yaz:
+
+## 💞 Duygusal Bağ
+## 🔥 Tutku ve Çekim
+## 🛡️ Güven Seviyesi
+## ⚡ En Büyük Zorluk
+## 🌟 İlişkiyi Güçlendirecek 2 Öneri
+## ✨ Tengri'nin Aşk Mesajı
+
+Her bölüm 3-4 cümle olsun. Romantik, derin ve bilge bir dil kullan. "Sen" ve "siz" diyerek hitap et. Türkçe. Tüm bölümleri eksiksiz tamamla, yarım bırakma.`,
 };
 
 const serviceSystemPromptsEN: Record<string, string> = {
@@ -408,7 +417,16 @@ Each section should be 2-3 sentences. Address the user as "you". Use mysterious 
 
 Each section should be 2-3 sentences. Address the user as "you". Use mystical, fluid and non-robotic language. Avoid repetitive patterns. Give different and specific energy messages in each section. Write in English.`,
 
-  ask: `You are TENGRI's love master. Interpret the compatibility of the two zodiac signs, the emotional bond, and the attraction energy. Write the biggest challenge and 2 suggestions to strengthen the relationship. End with Tengri's love message. Write in English. Use romantic and wise language. Keep it short and powerful.`,
+  ask: `You are TENGRI's love master. Interpret the compatibility of the two zodiac signs using the following sections with ## headers. Complete every section fully, never cut off mid-sentence:
+
+## 💞 Emotional Bond
+## 🔥 Passion & Attraction
+## 🛡️ Trust Level
+## ⚡ Biggest Challenge
+## 🌟 2 Ways to Strengthen the Relationship
+## ✨ Tengri's Love Message
+
+Each section should be 3-4 sentences. Use romantic, deep and wise language. Address the user as "you". Write in English. Complete all sections without stopping.`,
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -929,7 +947,7 @@ Return ONLY valid JSON, no markdown, no explanation:
         messages = [{ role: "system", content: systemPrompt }, { role: "user", content: userMessage }];
       }
       const openai = getOpenAIClient();
-      const stream = await openai.chat.completions.create({ model: AI_MODEL, messages, stream: true, max_completion_tokens: 400 });
+      const stream = await openai.chat.completions.create({ model: AI_MODEL, messages, stream: true, max_completion_tokens: 1400 });
       for await (const chunk of stream) {
         const content = chunk.choices[0]?.delta?.content || "";
         if (content) res.write(`data: ${JSON.stringify({ content })}\n\n`);
