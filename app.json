@@ -78,7 +78,7 @@
       },
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
         "android.permission.INTERNET",
         "android.permission.VIBRATE",
         "android.permission.POST_NOTIFICATIONS",
