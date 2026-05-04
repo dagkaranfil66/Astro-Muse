@@ -30,7 +30,7 @@ const translations = {
     buyPackage: 'Paket satın al',
     connectionError: 'Bağlantı hatası oluştu. Lütfen tekrar deneyin.',
     services_list: {
-      astroloji: { label: 'AI Doğum Haritası Analizi', desc: 'Doğum tarihi ve konumuna göre yapay zeka destekli kişisel analiz' },
+      astroloji: { label: 'Burç Rehberi', desc: 'Burcunuza özel günlük astroloji rehberliği ve enerji analizi' },
       kahve: { label: 'AI Kahve Analizi', desc: 'Fincanınızdaki sembolleri yapay zeka yorumlar' },
       el: { label: 'El Çizgisi Analizi', desc: 'Avuç içi fotoğrafına göre yapay zeka ile kişisel analiz oluşturur.' },
       tarot: { label: 'AI Tarot Analizi', desc: 'Kart enerjilerini analiz ederek kişisel içgörüler üretir' },
@@ -40,7 +40,7 @@ const translations = {
       dogum: { label: 'Doğum Haritası Analizi', desc: 'Gezegen konumlarına göre kişisel analiz oluşturur' },
       ruya: { label: 'Rüya Analizi', desc: 'Rüyanızdaki sembolleri yapay zeka ile keşfedin' },
       burclar: { label: 'Astroloji Rehberi', desc: 'Burcunuza özel haftalık mistik yorumlar ve rehberlik' },
-      ask: { label: 'Uyum Analizi', desc: 'İki kişi arasındaki enerji uyumunu keşfedin' },
+      ask: { label: 'Aşk Uyum Analizi', desc: 'İki kişi arasındaki enerji uyumunu keşfedin' },
     },
     reading_meta: {
       astroloji: { placeholder: 'Doğum tarihinizi yazın (örn: 15 Mart 1990)', inputLabel: 'Doğum Tarihi & Adınız', hint: 'Yıldızlar kaderinizi bekliyor…' },
@@ -84,7 +84,7 @@ const translations = {
     buyPackage: 'Buy package',
     connectionError: 'Connection error. Please try again.',
     services_list: {
-      astroloji: { label: 'AI Birth Chart Analysis', desc: 'AI-powered personal analysis based on birth date and location' },
+      astroloji: { label: 'Zodiac Guide', desc: 'Daily astrology guidance and energy analysis tailored to your zodiac sign' },
       kahve: { label: 'AI Coffee Analysis', desc: 'Artificial intelligence interprets the symbols in your cup' },
       el: { label: 'Palm Line Analysis', desc: 'Generates a personal AI analysis based on your palm photo.' },
       tarot: { label: 'AI Tarot Analysis', desc: 'Analyzes card energies to generate personal insights' },
@@ -94,7 +94,7 @@ const translations = {
       dogum: { label: 'Birth Chart Analysis', desc: 'Creates personal analysis based on planetary positions' },
       ruya: { label: 'Dream Analysis', desc: 'Discover the symbols in your dream with AI' },
       burclar: { label: 'Astrology Guide', desc: 'Weekly mystic insights and guidance for your zodiac sign' },
-      ask: { label: 'Compatibility Analysis', desc: 'Discover energy compatibility between two people' },
+      ask: { label: 'Love Compatibility', desc: 'Discover energy compatibility between two people' },
     },
     reading_meta: {
       astroloji: { placeholder: 'Enter your birth date (e.g. March 15, 1990)', inputLabel: 'Birth Date & Name', hint: 'Stars are waiting for your destiny…' },

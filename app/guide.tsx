@@ -71,7 +71,7 @@ const GUIDE_SECTIONS = [
   },
   {
     icon: "🌟",
-    title: "Astroloji",
+    title: "Burç Rehberi",
     body: "Doğum haritanıza göre derin karakter ve kader analizi. Gezegenlerin sizin üzerinizdeki etkisini keşfedin.",
     cost: "6",
   },

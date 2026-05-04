@@ -32,7 +32,7 @@ import type { PurchasesPackage } from "react-native-purchases";
 
 const SERVICE_NAMES_TR: Record<string, string> = {
   samanizm: "Şamanizm Analizi", burclar: "Astroloji Rehberi", ruh: "Enerji Analizi",
-  astroloji: "Doğum Haritası Analizi", kahve: "Kahve Analizi", el: "El Çizgisi Analizi",
+  astroloji: "Burç Rehberi", kahve: "Kahve Analizi", el: "El Çizgisi Analizi",
   numeroloji: "Numeroloji Analizi", ruya: "Rüya Analizi", ask: "Aşk Uyum Analizi",
   tarot: "Tarot Analizi", dogum: "Doğum Haritası Analizi",
 };
