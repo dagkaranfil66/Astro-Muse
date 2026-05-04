@@ -7,8 +7,7 @@ export const SHARE_CONFIG = {
   // TODO: Apple onayladıktan sonra gerçek URL ile değiştir
   APP_STORE_URL: "https://apps.apple.com/app/tengri/PLACEHOLDER",
 
-  // TODO: Google onayladıktan sonra gerçek URL ile değiştir
-  PLAY_STORE_URL: "https://play.google.com/store/apps/details?id=com.tengristar.app",
+  PLAY_STORE_URL: "https://play.google.com/store/apps/details?id=co.median.android.bnljzke",
 
   // Referral deep link base (uygulama canlıya alınca güncelle)
   REFERRAL_BASE_URL: "https://tengristar.com/?ref=",

@@ -56,7 +56,7 @@ const translations = {
       ask: { placeholder: 'İki kişinin burcu (örn: Ben Terazi, O Koç)', inputLabel: 'Burç Uyumu', hint: 'Aşk enerjisi okunuyor…' },
     },
     shareText: (service: string, content: string) =>
-      `🔮 TENGRI uygulamasından mistik analizim\n\n✨ ${service}\n\n${content.slice(0, 300)}...\n\n📱 App Store & Google Play'de "Tengri" uygulamasını siz de indirin`,
+      `🔮 TENGRI uygulamasından mistik analizim\n\n✨ ${service}\n\n${content.slice(0, 300)}...\n\n📱 Siz de deneyin 👇\nhttps://play.google.com/store/apps/details?id=co.median.android.bnljzke`,
   },
   en: {
     appTagline: 'AI-Powered Mystic Analysis',
@@ -110,7 +110,7 @@ const translations = {
       ask: { placeholder: "Two people's signs (e.g. I'm Libra, they're Aries)", inputLabel: 'Zodiac Compatibility', hint: 'Reading love energy…' },
     },
     shareText: (service: string, content: string) =>
-      `🔮 My mystic analysis from the TENGRI app\n\n✨ ${service}\n\n${content.slice(0, 300)}...\n\n📱 Download "Tengri" on App Store & Google Play`,
+      `🔮 My mystic analysis from the TENGRI app\n\n✨ ${service}\n\n${content.slice(0, 300)}...\n\n📱 Try it yourself 👇\nhttps://play.google.com/store/apps/details?id=co.median.android.bnljzke`,
   },
 };
 
