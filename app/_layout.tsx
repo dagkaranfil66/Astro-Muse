@@ -16,7 +16,7 @@ import { useFonts, CinzelDecorative_400Regular, CinzelDecorative_700Bold } from 
 import { Lora_400Regular, Lora_400Regular_Italic, Lora_700Bold } from "@expo-google-fonts/lora";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
-import { SubscriptionProvider } from "@/lib/revenuecat";
+import { IAPProvider } from "@/lib/iap";
 import type * as NotificationsType from "expo-notifications";
 import {
   requestNotificationPermission,
@@ -191,7 +191,7 @@ export default function RootLayout() {
       <StatusBar barStyle="light-content" backgroundColor={BG} />
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <SubscriptionProvider>
+          <IAPProvider>
             <AppProvider>
               <LanguageProvider>
                 <GestureHandlerRootView style={styles.gesture}>
@@ -199,7 +199,7 @@ export default function RootLayout() {
                 </GestureHandlerRootView>
               </LanguageProvider>
             </AppProvider>
-          </SubscriptionProvider>
+          </IAPProvider>
         </QueryClientProvider>
       </ErrorBoundary>
     </View>

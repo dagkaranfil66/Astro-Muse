@@ -1,7 +1,16 @@
 const { getDefaultConfig } = require("expo/metro-config");
 const { createProxyMiddleware } = require("http-proxy-middleware");
+const path = require("path");
 
 const config = getDefaultConfig(__dirname);
+
+// react-native-iap v12: Metro follows "react-native" field in package.json
+// which points to src/ (TypeScript). The src/modules dir is not properly
+// compiled for Metro. Force Metro to use the pre-built commonjs bundle instead.
+config.resolver.extraNodeModules = {
+  ...config.resolver.extraNodeModules,
+  "react-native-iap": path.resolve(__dirname, "node_modules/react-native-iap/lib/commonjs"),
+};
 
 // Exclude Replit temp/cache dirs from Metro's file watcher to prevent
 // crashes when Replit deletes temporary directories while Metro is watching.

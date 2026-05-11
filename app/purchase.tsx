@@ -27,8 +27,8 @@ import { Colors } from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
 import { SERVICE_GOLD_COST, FREE_START_GOLD } from "@/constants/serviceConfig";
-import { useSubscription, PACKAGE_GOLD_MAP, RC_PACKAGE_ORDER, resolveGoldForPackage } from "@/lib/revenuecat";
-import type { PurchasesPackage } from "react-native-purchases";
+import { useIAP, IAP_PACKAGE_ORDER, IAP_GOLD_MAP, resolveGoldForProduct } from "@/lib/iap";
+import type { Product } from "react-native-iap";
 
 const SERVICE_NAMES_TR: Record<string, string> = {
   samanizm: "Şamanizm Analizi", burclar: "Astroloji Burç Rehberi Analizi", ruh: "Enerji Analizi",
@@ -127,41 +127,41 @@ function AuthGate({ lang, goldBalance }: { lang: string; goldBalance: number }) 
   );
 }
 
-// ─── RC Package Card ──────────────────────────────────────────────────────
+// ─── IAP Package Card ──────────────────────────────────────────────────────
 function GoldPackageCard({
-  rcPkg,
+  product,
   onBuy,
   buying,
   boughtId,
   lang,
 }: {
-  rcPkg: PurchasesPackage;
-  onBuy: (pkg: PurchasesPackage) => void;
+  product: Product;
+  onBuy: (productId: string) => void;
   buying: boolean;
   boughtId: string | null;
   lang: string;
 }) {
   const scale = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-  const display = PKG_DISPLAY[rcPkg.identifier] ?? {
+  const display = PKG_DISPLAY[product.productId] ?? {
     gradient: ["#1A1A30", "#0D1526"] as [string, string],
     popular: false,
     advantage: false,
-    gold: PACKAGE_GOLD_MAP[rcPkg.identifier] ?? 0,
+    gold: IAP_GOLD_MAP[product.productId] ?? 0,
     bonus: 0,
-    label: rcPkg.identifier,
+    label: product.productId,
     discount: 0,
     desc: "",
     descEn: "",
   };
-  const isThisBought = boughtId === rcPkg.identifier;
+  const isThisBought = boughtId === product.productId;
   const isBuying = buying && boughtId === null;
 
   return (
     <Pressable
       onPressIn={() => { scale.value = withSpring(0.97); }}
       onPressOut={() => { scale.value = withSpring(1); }}
-      onPress={() => onBuy(rcPkg)}
+      onPress={() => onBuy(product.productId)}
       disabled={buying || !!boughtId}
     >
       <Animated.View style={[styles.pkgCard, display.popular && styles.pkgCardPopular, display.advantage && styles.pkgCardAdvantage, animStyle]}>
@@ -205,7 +205,7 @@ function GoldPackageCard({
               </View>
             ) : (
               <View>
-                <Text style={styles.pkgPrice}>{rcPkg.product.priceString}</Text>
+                <Text style={styles.pkgPrice}>{product.localizedPrice ?? product.price}</Text>
                 <View style={styles.pkgBuyBtn}>
                   <Text style={styles.pkgBuyBtnText}>Satın Al</Text>
                 </View>
@@ -272,7 +272,7 @@ export default function PurchaseScreen() {
   const insets = useSafeAreaInsets();
   const { addGold, goldBalance, userProfile, canSpin } = useApp();
   const { lang } = useLang();
-  const { isReady, rcConfigured, isExpoGo, packages, offeringsLoading, offeringsError, offeringsEmpty, purchase, restore, isRestoring, refetchOfferings } = useSubscription();
+  const { isReady, products, isLoading, isPurchasing, purchase, refetch } = useIAP();
 
   const [buying, setBuying] = useState(false);
   const [boughtId, setBoughtId] = useState<string | null>(null);
@@ -290,76 +290,41 @@ export default function PurchaseScreen() {
 
   const isLoggedIn = !!userProfile;
 
-  // RC_PACKAGE_ORDER = ["gold_20", "gold_50", "gold_120", "gold_300"]
-  // These are RC *package* identifiers, not product identifiers.
-  const ORDER = RC_PACKAGE_ORDER;
-  const sortedRcPkgs = [...packages]
-    .filter((p) => ORDER.includes(p.identifier))
-    .sort((a, b) => ORDER.indexOf(a.identifier) - ORDER.indexOf(b.identifier));
-  const rcPkgMap = Object.fromEntries(sortedRcPkgs.map(p => [p.identifier, p]));
+  const ORDER = IAP_PACKAGE_ORDER;
+  const productMap = Object.fromEntries(products.map(p => [p.productId, p]));
+  const sortedProducts = ORDER.map(id => productMap[id]).filter(Boolean) as Product[];
 
-  // Always show all 4 packages after offerings settle.
-  // Real RC package → real StoreKit purchase with price shown.
-  // Missing package → UnavailablePackageCard (grey / disabled).
-  const packagesToShow = ORDER;
-
-  const handleRcBuy = async (rcPkg: PurchasesPackage) => {
+  const handleBuy = async (productId: string) => {
     if (!isLoggedIn || buying || boughtId) return;
     setPurchaseError("");
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setBuying(true);
     try {
-      console.log("[Purchase] Starting purchase:", rcPkg?.identifier, rcPkg?.product?.identifier);
-      const customerInfo = await purchase(rcPkg);
-
-      // Award gold: try exact match first, then regex fallback (handles new/renamed SKUs)
-      const gold = resolveGoldForPackage(rcPkg);
-
-      console.log(`[Purchase] ✅ Success — pkg=${rcPkg.identifier} product=${rcPkg.product.identifier} gold=${gold}`);
-      console.log("[Purchase]   nonSubscriptionTransactions:", customerInfo?.nonSubscriptionTransactions?.length ?? 0);
-
+      console.log("[Purchase] Starting purchase:", productId);
+      const gold = await purchase(productId);
+      console.log(`[Purchase] ✅ Success — product=${productId} gold=${gold}`);
       if (gold > 0) {
         addGold(gold);
-        console.log(`[Purchase]   Added ${gold} gold to balance`);
-        setBoughtId(rcPkg.identifier);
+        setBoughtId(productId);
         setBoughtGold(gold);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setTimeout(() => router.back(), 1800);
       } else {
-        console.error(`[Purchase] ⚠️ Gold=0 — pkg="${rcPkg.identifier}" product="${rcPkg.product.identifier}"`);
         setPurchaseError(
           lang === "tr"
-            ? `Satın alma tamamlandı ancak altın eklenemedi. Lütfen ekran görüntüsü alıp destek ile iletişime geçin. (Paket: ${rcPkg.product.identifier})`
-            : `Purchase completed but gold could not be added. Please screenshot and contact support. (Package: ${rcPkg.product.identifier})`
+            ? `Satın alma tamamlandı ancak altın eklenemedi. Destek ile iletişime geçin. (${productId})`
+            : `Purchase completed but gold could not be added. Contact support. (${productId})`
         );
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
     } catch (e: any) {
-      if (!e?.userCancelled) {
-        console.error("[Purchase] ❌ Error:", e?.message ?? e, "code:", e?.code);
-        const code = e?.code as number | undefined;
-        let msg = lang === "tr" ? "Satın alma başarısız oldu" : "Purchase failed";
-        if (Platform.OS === "android") {
-          if (code === 3) msg = lang === "tr" ? "Google Play Billing kullanılamıyor" : "Google Play Billing unavailable";
-          else if (code === 6) msg = lang === "tr" ? "Ürün şu an satışta değil" : "Product not available";
-          else if (code === 7) msg = lang === "tr" ? "Bu ürün zaten satın alınmış" : "Product already owned";
-          else if (code === 1) msg = lang === "tr" ? "Satın alma iptal edildi" : "Purchase cancelled";
-        }
+      if (e?.message !== "cancelled") {
+        console.error("[Purchase] ❌ Error:", e?.message ?? e);
+        const msg = lang === "tr" ? "Satın alma başarısız oldu" : "Purchase failed";
         setPurchaseError(msg);
       }
     } finally {
       setBuying(false);
-    }
-  };
-
-  const handleRestore = async () => {
-    if (isRestoring) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    try {
-      await restore();
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch {
-      // silent — RC shows its own errors
     }
   };
 
@@ -451,30 +416,18 @@ export default function PurchaseScreen() {
               {lang === "tr" ? "Büyük paket, daha fazla tasarruf!" : "Bigger package, more savings!"}
             </Text>
 
-            {Platform.OS === "web" && packages.length === 0 && !offeringsLoading && (
+            {Platform.OS === "web" && (
               <Animated.View entering={FadeIn.duration(400)} style={styles.webNoticeBanner}>
                 <Ionicons name="phone-portrait-outline" size={16} color={Colors.gold} />
                 <Text style={styles.webNoticeText}>
                   {lang === "tr"
-                    ? "Satın alma yalnızca mobil uygulamada çalışır. Expo Go ile telefonunuzda deneyin."
-                    : "Purchases only work in the mobile app. Try on your phone with Expo Go."}
+                    ? "Satın alma yalnızca mobil uygulamada çalışır. Telefonunuzda deneyin."
+                    : "Purchases only work in the mobile app. Try on your phone."}
                 </Text>
               </Animated.View>
             )}
 
-            {/* Expo Go notice — Preview API Mode */}
-            {isExpoGo && (
-              <Animated.View entering={FadeIn.duration(400)} style={styles.webNoticeBanner}>
-                <Ionicons name="information-circle-outline" size={16} color={Colors.gold} />
-                <Text style={styles.webNoticeText}>
-                  {lang === "tr"
-                    ? "Expo Go önizleme modunda çalışıyor. Fiyatlar simüle edilmiştir; gerçek ödeme alınmaz."
-                    : "Running in Expo Go preview mode. Prices are simulated; no real payment is taken."}
-                </Text>
-              </Animated.View>
-            )}
-
-            {!isReady || offeringsLoading ? (
+            {!isReady || isLoading ? (
               // ── Loading ─────────────────────────────────────────────────────
               <View style={styles.loadingWrap}>
                 <ActivityIndicator color={Colors.gold} />
@@ -482,30 +435,8 @@ export default function PurchaseScreen() {
                   {lang === "tr" ? "Paketler yükleniyor..." : "Loading packages..."}
                 </Text>
               </View>
-            ) : offeringsError ? (
-              // ── Error (network / StoreKit failure) ──────────────────────────
-              <Animated.View entering={FadeIn.duration(400)} style={styles.rcErrorWrap}>
-                <Ionicons name="cloud-offline-outline" size={32} color={Colors.textDim} />
-                <Text style={styles.rcErrorTitle}>
-                  {lang === "tr" ? "Paketler yüklenemedi" : "Packages unavailable"}
-                </Text>
-                <Text style={styles.rcErrorDesc}>
-                  {lang === "tr"
-                    ? "İnternet bağlantınızı kontrol edip tekrar deneyin."
-                    : "Check your internet connection and try again."}
-                </Text>
-                <Pressable
-                  onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); refetchOfferings(); }}
-                  style={styles.retryBtn}
-                >
-                  <Ionicons name="refresh-outline" size={16} color={Colors.gold} />
-                  <Text style={styles.retryBtnText}>
-                    {lang === "tr" ? "Tekrar Dene" : "Try Again"}
-                  </Text>
-                </Pressable>
-              </Animated.View>
-            ) : offeringsEmpty && Platform.OS !== "web" ? (
-              // ── Empty — RC configured but no current offering / products not approved ─
+            ) : products.length === 0 && Platform.OS !== "web" ? (
+              // ── Yüklenemedi ─────────────────────────────────────────────────
               <Animated.View entering={FadeIn.duration(400)} style={styles.rcErrorWrap}>
                 <Ionicons name="storefront-outline" size={32} color={Colors.textDim} />
                 <Text style={styles.rcErrorTitle}>
@@ -513,15 +444,11 @@ export default function PurchaseScreen() {
                 </Text>
                 <Text style={styles.rcErrorDesc}>
                   {lang === "tr"
-                    ? (Platform.OS === "android"
-                        ? "Ürünler Google Play'den yüklenemedi. İnternet bağlantınızı kontrol edip tekrar deneyin."
-                        : "Ürünler App Store'dan yüklenemedi. Lütfen daha sonra tekrar deneyin.")
-                    : (Platform.OS === "android"
-                        ? "Products could not be loaded from Google Play. Check your connection and try again."
-                        : "Products could not be loaded from App Store. Please try again later.")}
+                    ? "Google Play'den ürünler yüklenemedi. İnternet bağlantınızı kontrol edip tekrar deneyin."
+                    : "Could not load products from Google Play. Check your connection and try again."}
                 </Text>
                 <Pressable
-                  onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); refetchOfferings(); }}
+                  onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); refetch(); }}
                   style={styles.retryBtn}
                 >
                   <Ionicons name="refresh-outline" size={16} color={Colors.gold} />
@@ -531,15 +458,15 @@ export default function PurchaseScreen() {
                 </Pressable>
               </Animated.View>
             ) : (
-              // ── Packages (real RC price or unavailable shell on web) ─────────
-              packagesToShow.map((pkgId, i) => {
-                const rcPkg = rcPkgMap[pkgId];
+              // ── Paketler ─────────────────────────────────────────────────────
+              ORDER.map((productId, i) => {
+                const prod = productMap[productId];
                 return (
-                  <Animated.View key={pkgId} entering={FadeInDown.delay(200 + i * 60).springify()}>
-                    {rcPkg ? (
-                      <GoldPackageCard rcPkg={rcPkg} onBuy={handleRcBuy} buying={buying} boughtId={boughtId} lang={lang} />
+                  <Animated.View key={productId} entering={FadeInDown.delay(200 + i * 60).springify()}>
+                    {prod ? (
+                      <GoldPackageCard product={prod} onBuy={handleBuy} buying={buying} boughtId={boughtId} lang={lang} />
                     ) : (
-                      <UnavailablePackageCard pkgId={pkgId} lang={lang} />
+                      <UnavailablePackageCard pkgId={productId} lang={lang} />
                     )}
                   </Animated.View>
                 );
@@ -629,21 +556,7 @@ export default function PurchaseScreen() {
           </View>
         </Animated.View>
 
-        {isLoggedIn && (
-          <Pressable
-            onPress={handleRestore}
-            disabled={isRestoring}
-            style={({ pressed }) => [styles.restoreBtn, pressed && { opacity: 0.7 }]}
-          >
-            {isRestoring ? (
-              <ActivityIndicator size="small" color={Colors.textDim} />
-            ) : (
-              <Text style={styles.restoreBtnText}>
-                {lang === "tr" ? "Satın Almaları Geri Yükle" : "Restore Purchases"}
-              </Text>
-            )}
-          </Pressable>
-        )}
+        
 
         <Pressable
           onPress={() => router.push("/guide" as any)}
