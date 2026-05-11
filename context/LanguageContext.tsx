@@ -43,7 +43,7 @@ const translations = {
       ask: { label: 'Aşk Uyum Analizi', desc: 'İki kişi arasındaki enerji uyumunu keşfedin' },
     },
     reading_meta: {
-      astroloji: { placeholder: 'Doğum tarihinizi yazın (örn: 15 Mart 1990)', inputLabel: 'Doğum Tarihi & Adınız', hint: 'Yıldızlar kaderinizi bekliyor…' },
+      astroloji: { placeholder: 'Burcunuzu yazın (örn: Akrep, Aslan, Yay)', inputLabel: 'Burcunuz', hint: 'Yıldızlar rehberliğinizi hazırlıyor…' },
       kahve: { placeholder: 'Fincanınızda ne gördüğünüzü yazın ya da fotoğraf yükleyin', inputLabel: 'Fincan Gözlemleriniz', hint: 'Telvelerin sırrı açılıyor…' },
       el: { placeholder: 'Elinizi tanımlayın ya da fotoğraf yükleyin', inputLabel: 'El Çizgileriniz', hint: 'Avucunuzdaki harita okunuyor…' },
       tarot: { placeholder: 'Kafanızdaki soruyu ya da durumu yazın', inputLabel: 'Sorunuz veya Durumunuz', hint: 'Kartlar diziliyor…' },
@@ -97,7 +97,7 @@ const translations = {
       ask: { label: 'Love Compatibility', desc: 'Discover energy compatibility between two people' },
     },
     reading_meta: {
-      astroloji: { placeholder: 'Enter your birth date (e.g. March 15, 1990)', inputLabel: 'Birth Date & Name', hint: 'Stars are waiting for your destiny…' },
+      astroloji: { placeholder: 'Enter your zodiac sign (e.g. Scorpio, Leo, Sagittarius)', inputLabel: 'Your Zodiac Sign', hint: 'Stars are preparing your guidance…' },
       kahve: { placeholder: 'Describe what you see in the cup, or upload a photo', inputLabel: 'Cup Observations', hint: 'The secrets of the grounds are opening…' },
       el: { placeholder: 'Describe your palm lines, or upload a photo', inputLabel: 'Your Palm Lines', hint: 'Reading the map in your hand…' },
       tarot: { placeholder: 'Write your question or current situation', inputLabel: 'Your Question or Situation', hint: 'Cards are being laid…' },

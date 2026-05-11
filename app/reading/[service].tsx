@@ -507,6 +507,7 @@ const SERVICE_SHARE_COPY: Record<string, { headerTR: string; btnTR: string; head
   samanizm:   { headerTR: "ŞAMANİZM REHBERLİĞİNİ PAYLAŞ",   btnTR: "Şamanizm Rehberliğimi Paylaş", headerEN: "SHARE YOUR SHAMANISM GUIDANCE", btnEN: "Share My Shamanism Guidance" },
   numeroloji: { headerTR: "NUMEROLOJİ ANALİZİNİ PAYLAŞ",    btnTR: "Numeroloji Analizimi Paylaş",   headerEN: "SHARE YOUR NUMEROLOGY ANALYSIS", btnEN: "Share My Numerology Analysis" },
   ruya:       { headerTR: "RÜYA ANALİZİNİ PAYLAŞ",           btnTR: "Rüya Analizimi Paylaş",         headerEN: "SHARE YOUR DREAM ANALYSIS",     btnEN: "Share My Dream Analysis" },
+  astroloji:  { headerTR: "BURÇ REHBERLİĞİNİ PAYLAŞ",        btnTR: "Burç Rehberliğimi Paylaş",      headerEN: "SHARE YOUR ZODIAC GUIDE",       btnEN: "Share My Zodiac Guide" },
   burclar:    { headerTR: "ASTROLOJİ ANALİZİNİ PAYLAŞ",      btnTR: "Astroloji Analizimi Paylaş",    headerEN: "SHARE YOUR ASTROLOGY ANALYSIS", btnEN: "Share My Astrology Analysis" },
   ask:        { headerTR: "AŞK UYUM ANALİZİNİ PAYLAŞ",        btnTR: "Aşk Uyum Analizimi Paylaş",     headerEN: "SHARE YOUR COMPATIBILITY",      btnEN: "Share My Compatibility Analysis" },
 };
