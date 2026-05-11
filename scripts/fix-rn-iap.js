@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Fix 1: PromiseUtlis.kt — ObjectAlreadyConsumedException is internal in newer RN
+// Also fixes String? → String mismatch for Promise.reject
 const promiseUtlisPath = path.join(
   __dirname,
   '../node_modules/react-native-iap/android/src/main/java/com/dooboolab/rniap/PromiseUtlis.kt'
@@ -9,6 +10,8 @@ const promiseUtlisPath = path.join(
 
 if (fs.existsSync(promiseUtlisPath)) {
   let content = fs.readFileSync(promiseUtlisPath, 'utf8');
+  let changed = false;
+
   if (content.includes('ObjectAlreadyConsumedException')) {
     content = content.replace(
       "import com.facebook.react.bridge.ObjectAlreadyConsumedException\n",
@@ -22,8 +25,21 @@ if (fs.existsSync(promiseUtlisPath)) {
       /Log\.d\(TAG, "Already consumed \$\{oce\.message\}"\)/g,
       'Log.d(TAG, "Already consumed ${e.message}")'
     );
+    changed = true;
+  }
+
+  // Fix String? → String mismatch (Promise.reject needs non-null first arg in newer RN)
+  if (content.includes('this.reject(code, message, throwable)')) {
+    content = content.replace(
+      'this.reject(code, message, throwable)',
+      'this.reject(code ?: "", message, throwable)'
+    );
+    changed = true;
+  }
+
+  if (changed) {
     fs.writeFileSync(promiseUtlisPath, content, 'utf8');
-    console.log('[fix-rn-iap] Patched PromiseUtlis.kt (removed ObjectAlreadyConsumedException)');
+    console.log('[fix-rn-iap] Patched PromiseUtlis.kt');
   } else {
     console.log('[fix-rn-iap] PromiseUtlis.kt already patched, skipping.');
   }
@@ -59,7 +75,7 @@ if (fs.existsSync(rniapModulePath)) {
 
   if (changed) {
     fs.writeFileSync(rniapModulePath, content, 'utf8');
-    console.log('[fix-rn-iap] Patched RNIapModule.kt (fixed currentActivity + Activity import)');
+    console.log('[fix-rn-iap] Patched RNIapModule.kt');
   } else {
     console.log('[fix-rn-iap] RNIapModule.kt already patched, skipping.');
   }
