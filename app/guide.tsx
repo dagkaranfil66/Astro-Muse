@@ -71,8 +71,8 @@ const GUIDE_SECTIONS = [
   },
   {
     icon: "🌟",
-    title: "Astroloji Burç Rehberi",
-    body: "Burcunuza özel günlük mistik rehberlik ve enerji analizi. Yıldızların sizin üzerinizdeki etkisini keşfedin.",
+    title: "Doğum Haritası Analizi",
+    body: "Doğum haritanıza göre derin karakter ve kader analizi. Gezegenlerin sizin üzerinizdeki etkisini keşfedin.",
     cost: "6",
   },
   {

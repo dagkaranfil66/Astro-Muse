@@ -30,7 +30,7 @@ const translations = {
     buyPackage: 'Paket satın al',
     connectionError: 'Bağlantı hatası oluştu. Lütfen tekrar deneyin.',
     services_list: {
-      astroloji: { label: 'Astroloji Burç Rehberi', desc: 'Burcunuza özel günlük astroloji rehberliği ve enerji analizi' },
+      astroloji: { label: 'Doğum Haritası Analizi', desc: 'Doğum tarihi ve konumuna göre yapay zeka destekli kişisel analiz' },
       kahve: { label: 'AI Kahve Analizi', desc: 'Fincanınızdaki sembolleri yapay zeka yorumlar' },
       el: { label: 'El Çizgisi Analizi', desc: 'Avuç içi fotoğrafına göre yapay zeka ile kişisel analiz oluşturur.' },
       tarot: { label: 'AI Tarot Analizi', desc: 'Kart enerjilerini analiz ederek kişisel içgörüler üretir' },
@@ -43,7 +43,7 @@ const translations = {
       ask: { label: 'Aşk Uyum Analizi', desc: 'İki kişi arasındaki enerji uyumunu keşfedin' },
     },
     reading_meta: {
-      astroloji: { placeholder: 'Burcunuzu yazın (örn: Akrep, Aslan, Yay)', inputLabel: 'Burcunuz', hint: 'Yıldızlar rehberliğinizi hazırlıyor…' },
+      astroloji: { placeholder: 'Doğum tarihinizi yazın (örn: 15 Mart 1990)', inputLabel: 'Doğum Tarihi & Adınız', hint: 'Yıldızlar kaderinizi bekliyor…' },
       kahve: { placeholder: 'Fincanınızda ne gördüğünüzü yazın ya da fotoğraf yükleyin', inputLabel: 'Fincan Gözlemleriniz', hint: 'Telvelerin sırrı açılıyor…' },
       el: { placeholder: 'Elinizi tanımlayın ya da fotoğraf yükleyin', inputLabel: 'El Çizgileriniz', hint: 'Avucunuzdaki harita okunuyor…' },
       tarot: { placeholder: 'Kafanızdaki soruyu ya da durumu yazın', inputLabel: 'Sorunuz veya Durumunuz', hint: 'Kartlar diziliyor…' },
@@ -84,7 +84,7 @@ const translations = {
     buyPackage: 'Buy package',
     connectionError: 'Connection error. Please try again.',
     services_list: {
-      astroloji: { label: 'Astrology Zodiac Guide', desc: 'Daily astrology guidance and energy analysis tailored to your zodiac sign' },
+      astroloji: { label: 'Birth Chart Analysis', desc: 'AI-powered personal analysis based on birth date and location' },
       kahve: { label: 'AI Coffee Analysis', desc: 'Artificial intelligence interprets the symbols in your cup' },
       el: { label: 'Palm Line Analysis', desc: 'Generates a personal AI analysis based on your palm photo.' },
       tarot: { label: 'AI Tarot Analysis', desc: 'Analyzes card energies to generate personal insights' },
@@ -97,7 +97,7 @@ const translations = {
       ask: { label: 'Love Compatibility', desc: 'Discover energy compatibility between two people' },
     },
     reading_meta: {
-      astroloji: { placeholder: 'Enter your zodiac sign (e.g. Scorpio, Leo, Sagittarius)', inputLabel: 'Your Zodiac Sign', hint: 'Stars are preparing your guidance…' },
+      astroloji: { placeholder: 'Enter your birth date (e.g. March 15, 1990)', inputLabel: 'Birth Date & Name', hint: 'Stars are waiting for your destiny…' },
       kahve: { placeholder: 'Describe what you see in the cup, or upload a photo', inputLabel: 'Cup Observations', hint: 'The secrets of the grounds are opening…' },
       el: { placeholder: 'Describe your palm lines, or upload a photo', inputLabel: 'Your Palm Lines', hint: 'Reading the map in your hand…' },
       tarot: { placeholder: 'Write your question or current situation', inputLabel: 'Your Question or Situation', hint: 'Cards are being laid…' },
