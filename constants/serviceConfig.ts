@@ -12,62 +12,56 @@ export const SERVICE_GOLD_COST: Record<string, number> = {
   dogum:     6,
 };
 
-// 20 altın  = 49,99 ₺  (2,50 ₺/altın — baz)
-// 50+5=55   = 99,99 ₺  (1,82 ₺/altın — %27 indirim)
-// 120+20=140 = 199,99 ₺ (1,43 ₺/altın — %43 indirim)
-// 300+60=360 = 399,99 ₺ (1,11 ₺/altın — %56 indirim)
-// GOLD_PACKAGES is reference data only (prices shown are approximate).
-// Actual prices and purchase flow come from RevenueCat / App Store Connect.
-// Product IDs match App Store Connect consumable products.
+// 20 altın  = 71,99 ₺  (3,60 ₺/altın — baz)
+// 50+5=55   = 144,99 ₺ (2,64 ₺/altın — %27 indirim)
+// 120+20=140 = 289,99 ₺ (2,07 ₺/altın — %43 indirim)
+// 300+60=360 = 579,99 ₺ (1,61 ₺/altın — %56 indirim)
+// GOLD_PACKAGES is reference data only. Actual prices come from Google Play.
 export const GOLD_PACKAGES = [
   {
-    id: "tengri_gold_20",
-    rcPackageId: "gold_20",
+    id: "tengri_20_gold",
     nameKey: "pkgBasic",
     label: "Başlangıç Paketi",
     gold: 20,
     bonus: 0,
-    price: "49,99 ₺",
-    perGold: "2,50 ₺",
+    price: "71,99 ₺",
+    perGold: "3,60 ₺",
     discount: 0,
     gradient: ["#1A1A30", "#0D1526"] as [string, string],
     popular: false,
   },
   {
-    id: "tengri_gold_50",
-    rcPackageId: "gold_50",
+    id: "tengri_50_gold",
     nameKey: "pkgPlus",
     label: "Popüler Paket",
     gold: 50,
     bonus: 5,
-    price: "99,99 ₺",
-    perGold: "1,82 ₺",
+    price: "144,99 ₺",
+    perGold: "2,64 ₺",
     discount: 27,
     gradient: ["#1A1030", "#0D1526"] as [string, string],
     popular: true,
   },
   {
-    id: "tengri_gold_120",
-    rcPackageId: "gold_120",
+    id: "tengri_120_gold",
     nameKey: "pkgPremium",
     label: "Büyük Paket",
     gold: 120,
     bonus: 20,
-    price: "199,99 ₺",
-    perGold: "1,43 ₺",
+    price: "289,99 ₺",
+    perGold: "2,07 ₺",
     discount: 43,
     gradient: ["#1A0A20", "#0D1526"] as [string, string],
     popular: false,
   },
   {
-    id: "tengri_gold_300",
-    rcPackageId: "gold_300",
+    id: "tengri_300_gold",
     nameKey: "pkgVip",
     label: "Mega Paket",
     gold: 300,
     bonus: 60,
-    price: "399,99 ₺",
-    perGold: "1,11 ₺",
+    price: "579,99 ₺",
+    perGold: "1,61 ₺",
     discount: 56,
     gradient: ["#1A0805", "#0D1526"] as [string, string],
     popular: false,
