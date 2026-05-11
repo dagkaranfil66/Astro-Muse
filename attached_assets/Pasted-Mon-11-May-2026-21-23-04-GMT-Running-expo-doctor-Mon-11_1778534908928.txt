@@ -1,0 +1,98 @@
+Mon, 11 May 2026 21:23:04 GMT
+
+Running "expo doctor"
+Mon, 11 May 2026 21:23:05 GMT
+
+Running 17 checks on your project...
+Mon, 11 May 2026 21:23:08 GMT
+
+16/17 checks passed. 1 checks failed. Possible issues detected:
+Mon, 11 May 2026 21:23:08 GMT
+
+Use the --verbose flag to see more details about passed checks.
+Mon, 11 May 2026 21:23:08 GMT
+
+Mon, 11 May 2026 21:23:08 GMT
+
+✖ Check that packages match versions required by installed Expo SDK
+Mon, 11 May 2026 21:23:08 GMT
+
+Mon, 11 May 2026 21:23:08 GMT
+
+🔧 Patch version mismatches
+Mon, 11 May 2026 21:23:08 GMT
+
+package             expected  found    
+Mon, 11 May 2026 21:23:08 GMT
+
+expo                ~54.0.34  54.0.33  
+Mon, 11 May 2026 21:23:08 GMT
+
+expo-auth-session   ~7.0.11   7.0.10   
+Mon, 11 May 2026 21:23:08 GMT
+
+expo-crypto         ~15.0.9   15.0.8   
+Mon, 11 May 2026 21:23:08 GMT
+
+expo-glass-effect   ~0.1.10   0.1.9    
+Mon, 11 May 2026 21:23:08 GMT
+
+expo-image-picker   ~17.0.11  17.0.10  
+Mon, 11 May 2026 21:23:08 GMT
+
+expo-linking        ~8.0.12   8.0.11   
+Mon, 11 May 2026 21:23:08 GMT
+
+expo-notifications  ~0.32.17  0.32.16  
+Mon, 11 May 2026 21:23:08 GMT
+
+expo-web-browser    ~15.0.11  15.0.10  
+Mon, 11 May 2026 21:23:08 GMT
+
+Mon, 11 May 2026 21:23:08 GMT
+
+Changelogs:
+Mon, 11 May 2026 21:23:08 GMT
+
+- expo-auth-session → https://github.com/expo/expo/blob/sdk-54/packages/expo-auth-session/CHANGELOG.md
+Mon, 11 May 2026 21:23:08 GMT
+
+- expo-crypto → https://github.com/expo/expo/blob/sdk-54/packages/expo-crypto/CHANGELOG.md
+Mon, 11 May 2026 21:23:08 GMT
+
+- expo-glass-effect → https://github.com/expo/expo/blob/sdk-54/packages/expo-glass-effect/CHANGELOG.md
+Mon, 11 May 2026 21:23:08 GMT
+
+- expo-image-picker → https://github.com/expo/expo/blob/sdk-54/packages/expo-image-picker/CHANGELOG.md
+Mon, 11 May 2026 21:23:08 GMT
+
+- expo-linking → https://github.com/expo/expo/blob/sdk-54/packages/expo-linking/CHANGELOG.md
+Mon, 11 May 2026 21:23:08 GMT
+
+- expo-notifications → https://github.com/expo/expo/blob/sdk-54/packages/expo-notifications/CHANGELOG.md
+Mon, 11 May 2026 21:23:08 GMT
+
+- expo-web-browser → https://github.com/expo/expo/blob/sdk-54/packages/expo-web-browser/CHANGELOG.md
+Mon, 11 May 2026 21:23:08 GMT
+
+Mon, 11 May 2026 21:23:08 GMT
+
+8 packages out of date.
+Mon, 11 May 2026 21:23:08 GMT
+
+Advice:
+Mon, 11 May 2026 21:23:08 GMT
+
+Use 'npx expo install --check' to review and upgrade your dependencies.
+Mon, 11 May 2026 21:23:08 GMT
+
+To ignore specific packages, add them to "expo.install.exclude" in package.json. Learn more: https://expo.fyi/dependency-validation
+Mon, 11 May 2026 21:23:08 GMT
+
+[stderr] 
+
+1 check failed, indicating possible issues with the project.
+Mon, 11 May 2026 21:23:08 GMT
+
+Command "expo doctor" failed.
+npx -y expo-doctor exited with non-zero code: 1
