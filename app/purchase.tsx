@@ -31,7 +31,7 @@ import { useSubscription, PACKAGE_GOLD_MAP, RC_PACKAGE_ORDER, resolveGoldForPack
 import type { PurchasesPackage } from "react-native-purchases";
 
 const SERVICE_NAMES_TR: Record<string, string> = {
-  samanizm: "Şamanizm Analizi", burclar: "Astroloji Rehberi", ruh: "Enerji Analizi",
+  samanizm: "Şamanizm Analizi", burclar: "Astroloji Burç Rehberi Analizi", ruh: "Enerji Analizi",
   astroloji: "Doğum Haritası Analizi", kahve: "Kahve Analizi", el: "El Çizgisi Analizi",
   numeroloji: "Numeroloji Analizi", ruya: "Rüya Analizi", ask: "Aşk Uyum Analizi",
   tarot: "Tarot Analizi", dogum: "Doğum Haritası Analizi",

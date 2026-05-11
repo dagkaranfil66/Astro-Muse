@@ -39,7 +39,7 @@ const translations = {
       ruh: { label: 'Enerji Analizi', desc: 'Günlük ruhsal enerjinizi ve auranızı analiz eder' },
       dogum: { label: 'Doğum Haritası Analizi', desc: 'Gezegen konumlarına göre kişisel analiz oluşturur' },
       ruya: { label: 'Rüya Analizi', desc: 'Rüyanızdaki sembolleri yapay zeka ile keşfedin' },
-      burclar: { label: 'Astroloji Rehberi', desc: 'Burcunuza özel haftalık mistik yorumlar ve rehberlik' },
+      burclar: { label: 'Astroloji Burç Rehberi Analizi', desc: 'Burcunuza özel haftalık mistik yorumlar ve rehberlik' },
       ask: { label: 'Aşk Uyum Analizi', desc: 'İki kişi arasındaki enerji uyumunu keşfedin' },
     },
     reading_meta: {
@@ -93,7 +93,7 @@ const translations = {
       ruh: { label: 'Energy Analysis', desc: 'Analyzes your daily spiritual energy and aura' },
       dogum: { label: 'Birth Chart Analysis', desc: 'Creates personal analysis based on planetary positions' },
       ruya: { label: 'Dream Analysis', desc: 'Discover the symbols in your dream with AI' },
-      burclar: { label: 'Astrology Guide', desc: 'Weekly mystic insights and guidance for your zodiac sign' },
+      burclar: { label: 'Astrology Zodiac Analysis', desc: 'Weekly mystic insights and guidance for your zodiac sign' },
       ask: { label: 'Love Compatibility', desc: 'Discover energy compatibility between two people' },
     },
     reading_meta: {
