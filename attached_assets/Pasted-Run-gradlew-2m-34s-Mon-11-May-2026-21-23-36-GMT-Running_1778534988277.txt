@@ -1,0 +1,1287 @@
+Run gradlew
+
+2m 34s
+
+
+Mon, 11 May 2026 21:23:36 GMT
+
+Running 'gradlew :app:bundleRelease' in /home/expo/workingdir/build/android
+Mon, 11 May 2026 21:23:37 GMT
+
+Downloading https://services.gradle.org/distributions/gradle-8.14.3-bin.zip
+Mon, 11 May 2026 21:23:38 GMT
+
+10%.
+Mon, 11 May 2026 21:23:38 GMT
+
+20%.
+Mon, 11 May 2026 21:23:38 GMT
+
+30%.
+Mon, 11 May 2026 21:23:38 GMT
+
+40%.
+Mon, 11 May 2026 21:23:38 GMT
+
+50%.
+Mon, 11 May 2026 21:23:38 GMT
+
+60%.
+Mon, 11 May 2026 21:23:38 GMT
+
+70
+Mon, 11 May 2026 21:23:38 GMT
+
+%.
+Mon, 11 May 2026 21:23:38 GMT
+
+80%.
+Mon, 11 May 2026 21:23:38 GMT
+
+90%.
+Mon, 11 May 2026 21:23:38 GMT
+
+100%
+Mon, 11 May 2026 21:23:39 GMT
+
+Welcome to Gradle 8.14.3!
+Mon, 11 May 2026 21:23:39 GMT
+
+Here are the highlights of this release:
+Mon, 11 May 2026 21:23:39 GMT
+
+ - Java 24 support
+Mon, 11 May 2026 21:23:39 GMT
+
+- GraalVM Native Image toolchain selection
+Mon, 11 May 2026 21:23:39 GMT
+
+ - Enhancements to test reporting
+Mon, 11 May 2026 21:23:39 GMT
+
+ - Build Authoring improvements
+Mon, 11 May 2026 21:23:39 GMT
+
+For more details see https://docs.gradle.org/8.14.3/release-notes.html
+Mon, 11 May 2026 21:23:40 GMT
+
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Mon, 11 May 2026 21:23:41 GMT
+
+Daemon will be stopped at the end of the build
+Mon, 11 May 2026 21:24:16 GMT
+
+> Configure project :expo-gradle-plugin:expo-autolinking-plugin
+Mon, 11 May 2026 21:24:16 GMT
+
+w: file:///home/expo/workingdir/build/node_modules/expo-modules-autolinking/android/expo-gradle-plugin/expo-autolinking-plugin/build.gradle.kts:25:3: 'kotlinOptions(KotlinJvmOptionsDeprecated /* = KotlinJvmOptions */.() -> Unit): Unit' is deprecated. Please migrate to the compilerOptions DSL. More details are here: https://kotl.in/u1r8ln
+Mon, 11 May 2026 21:24:17 GMT
+
+> Configure project :expo-gradle-plugin:expo-autolinking-settings-plugin
+Mon, 11 May 2026 21:24:17 GMT
+
+w: file:///home/expo/workingdir/build/node_modules/expo-modules-autolinking/android/expo-gradle-plugin/expo-autolinking-settings-plugin/build.gradle.kts:30:3: 'kotlinOptions(KotlinJvmOptionsDeprecated /* = KotlinJvmOptions */.() -> Unit): Unit' is deprecated. Please migrate to the compilerOptions DSL. More details are here: https://kotl.in/u1r8ln
+Mon, 11 May 2026 21:24:18 GMT
+
+> Task :gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Mon, 11 May 2026 21:24:18 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-plugin-shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Mon, 11 May 2026 21:24:18 GMT
+
+> Task :gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Mon, 11 May 2026 21:24:18 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-settings-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Mon, 11 May 2026 21:24:18 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-settings-plugin:pluginDescriptors
+Mon, 11 May 2026 21:24:18 GMT
+
+> Task :gradle-plugin:settings-plugin:pluginDescriptors
+Mon, 11 May 2026 21:24:18 GMT
+
+> Task :gradle-plugin:settings-plugin:processResources
+Mon, 11 May 2026 21:24:18 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-settings-plugin:processResources
+Mon, 11 May 2026 21:24:23 GMT
+
+> Task :gradle-plugin:shared:processResources NO-SOURCE
+Mon, 11 May 2026 21:24:23 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-plugin-shared:processResources NO-SOURCE
+Mon, 11 May 2026 21:24:29 GMT
+
+> Task :gradle-plugin:shared:compileKotlin
+Mon, 11 May 2026 21:24:29 GMT
+
+> Task :gradle-plugin:shared:compileJava NO-SOURCE
+Mon, 11 May 2026 21:24:29 GMT
+
+> Task :gradle-plugin:shared:classes UP-TO-DATE
+Mon, 11 May 2026 21:24:29 GMT
+
+> Task :gradle-plugin:shared:jar
+Mon, 11 May 2026 21:24:29 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-plugin-shared:compileKotlin
+Mon, 11 May 2026 21:24:29 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-plugin-shared:compileJava NO-SOURCE
+Mon, 11 May 2026 21:24:29 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-plugin-shared:classes UP-TO-DATE
+Mon, 11 May 2026 21:24:30 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-plugin-shared:jar
+Mon, 11 May 2026 21:24:37 GMT
+
+> Task :gradle-plugin:settings-plugin:compileKotlin
+Mon, 11 May 2026 21:24:37 GMT
+
+> Task :gradle-plugin:settings-plugin:compileJava NO-SOURCE
+Mon, 11 May 2026 21:24:37 GMT
+
+> Task :gradle-plugin:settings-plugin:classes
+Mon, 11 May 2026 21:24:37 GMT
+
+> Task :gradle-plugin:settings-plugin:jar
+Mon, 11 May 2026 21:24:38 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-settings-plugin:compileKotlin
+Mon, 11 May 2026 21:24:38 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-settings-plugin:compileJava NO-SOURCE
+Mon, 11 May 2026 21:24:38 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-settings-plugin:classes
+Mon, 11 May 2026 21:24:38 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-settings-plugin:jar
+Mon, 11 May 2026 21:24:41 GMT
+
+> Configure project :expo-module-gradle-plugin
+Mon, 11 May 2026 21:24:41 GMT
+
+w: file:///home/expo/workingdir/build/node_modules/expo-modules-core/expo-module-gradle-plugin/build.gradle.kts:58:3: 'kotlinOptions(KotlinJvmOptionsDeprecated /* = KotlinJvmOptions */.() -> Unit): Unit' is deprecated. Please migrate to the compilerOptions DSL. More details are here: https://kotl.in/u1r8ln
+Mon, 11 May 2026 21:24:42 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Mon, 11 May 2026 21:24:42 GMT
+
+> Task :gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Mon, 11 May 2026 21:24:42 GMT
+
+> Task :expo-module-gradle-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Mon, 11 May 2026 21:24:42 GMT
+
+> Task :expo-module-gradle-plugin:pluginDescriptors
+Mon, 11 May 2026 21:24:42 GMT
+
+> Task :expo-module-gradle-plugin:processResources
+Mon, 11 May 2026 21:24:42 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-plugin:pluginDescriptors
+Mon, 11 May 2026 21:24:42 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-plugin:processResources
+Mon, 11 May 2026 21:24:45 GMT
+
+> Task :gradle-plugin:react-native-gradle-plugin:pluginDescriptors
+Mon, 11 May 2026 21:24:45 GMT
+
+> Task :gradle-plugin:react-native-gradle-plugin:processResources
+Mon, 11 May 2026 21:24:45 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-plugin:compileKotlin
+Mon, 11 May 2026 21:24:45 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-plugin:compileJava NO-SOURCE
+Mon, 11 May 2026 21:24:45 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-plugin:classes
+Mon, 11 May 2026 21:24:45 GMT
+
+> Task :expo-gradle-plugin:expo-autolinking-plugin:jar
+Mon, 11 May 2026 21:24:49 GMT
+
+> Task :gradle-plugin:react-native-gradle-plugin:compileKotlin
+Mon, 11 May 2026 21:24:49 GMT
+
+> Task :gradle-plugin:react-native-gradle-plugin:compileJava
+Mon, 11 May 2026 21:24:49 GMT
+
+NO-SOURCE
+Mon, 11 May 2026 21:24:49 GMT
+
+> Task :gradle-plugin:react-native-gradle-plugin:classes
+Mon, 11 May 2026 21:24:49 GMT
+
+> Task :gradle-plugin:react-native-gradle-plugin:jar
+Mon, 11 May 2026 21:24:51 GMT
+
+> Task :expo-module-gradle-plugin:compileKotlin
+Mon, 11 May 2026 21:24:51 GMT
+
+w: file:///home/expo/workingdir/build/node_modules/expo-modules-core/expo-module-gradle-plugin/src/main/kotlin/expo/modules/plugin/android/AndroidLibraryExtension.kt:9:24 'var targetSdk: Int?' is deprecated. Will be removed from library DSL in v9.0. Use testOptions.targetSdk or/and lint.targetSdk instead.
+Mon, 11 May 2026 21:24:51 GMT
+
+> Task :expo-module-gradle-plugin:compileJava NO-SOURCE
+Mon, 11 May 2026 21:24:51 GMT
+
+> Task :expo-module-gradle-plugin:classes
+Mon, 11 May 2026 21:24:51 GMT
+
+> Task :expo-module-gradle-plugin:jar
+Mon, 11 May 2026 21:24:58 GMT
+
+> Configure project :
+Mon, 11 May 2026 21:24:58 GMT
+
+[ExpoRootProject] Using the following versions:
+Mon, 11 May 2026 21:24:58 GMT
+
+  - buildTools:  36.0.0
+Mon, 11 May 2026 21:24:58 GMT
+
+  - minSdk:      24
+Mon, 11 May 2026 21:24:58 GMT
+
+  - compileSdk:  36
+Mon, 11 May 2026 21:24:58 GMT
+
+  - targetSdk:   36
+Mon, 11 May 2026 21:24:58 GMT
+
+  - ndk:         27.1.12297006
+Mon, 11 May 2026 21:24:58 GMT
+
+  - kotlin:      2.1.20
+Mon, 11 May 2026 21:24:58 GMT
+
+  - ksp:         2.1.20-2.0.1
+Mon, 11 May 2026 21:25:03 GMT
+
+> Configure project :expo
+Mon, 11 May 2026 21:25:03 GMT
+
+Using expo modules
+Mon, 11 May 2026 21:25:03 GMT
+
+  - expo-constants (18.0.13)
+Mon, 11 May 2026 21:25:03 GMT
+
+  - expo-modules-core (3.0.29)
+Mon, 11 May 2026 21:25:03 GMT
+
+- [📦] expo-application (7.0.8)
+Mon, 11 May 2026 21:25:03 GMT
+
+  - [📦] expo-asset (12.0.12)
+Mon, 11 May 2026 21:25:03 GMT
+
+  - [📦] expo-blur (15.0.8)
+Mon, 11 May 2026 21:25:03 GMT
+
+  - [📦] expo-camera (17.0.10)
+Mon, 11 May 2026 21:25:03 GMT
+
+  - [📦] expo-clipboard (8.0.8)
+Mon, 11 May 2026 21:25:03 GMT
+
+  - [📦] expo-crypto (15.0.8)
+Mon, 11 May 2026 21:25:03 GMT
+
+  - [📦] expo-file-system (19.0.21)
+Mon, 11 May 2026 21:25:03 GMT
+
+  - [📦] expo-font (14.0.11)
+Mon, 11 May 2026 21:25:03 GMT
+
+  - [📦] expo-haptics (15.0.8)
+Mon, 11 May 2026 21:25:03 GMT
+
+  - [📦] expo-image (3.0.11)
+Mon, 11 May 2026 21:25:03 GMT
+
+  - [📦] expo-image-loader (6.0.0)
+Mon, 11 May 2026 21:25:03 GMT
+
+  - [📦] expo-image-picker (17.0.10)
+Mon, 11 May 2026 21:25:03 GMT
+
+  - [📦] expo-keep-awake (15.0.8)
+Mon, 11 May 2026 21:25:03 GMT
+
+  - [📦] expo-linear-gradient (15.0.8)
+Mon, 11 May 2026 21:25:03 GMT
+
+  - [📦] expo-linking (8.0.11)
+Mon, 11 May 2026 21:25:03 GMT
+
+  - [📦] expo-notifications (0.32.16)
+Mon, 11 May 2026 21:25:03 GMT
+
+  - [📦] expo-splash-screen (31.0.13)
+Mon, 11 May 2026 21:25:03 GMT
+
+  - [📦] expo-system-ui (6.0.9)
+Mon, 11 May 2026 21:25:03 GMT
+
+  - [📦] expo-web-browser (15.0.10)
+Mon, 11 May 2026 21:25:39 GMT
+
+Checking the license for package Android SDK Build-Tools 36 in /home/expo/Android/Sdk/licenses
+Mon, 11 May 2026 21:25:39 GMT
+
+License for package Android SDK Build-Tools 36 accepted.
+Mon, 11 May 2026 21:25:39 GMT
+
+Preparing "Install Android SDK Build-Tools 36 v.36.0.0".
+Mon, 11 May 2026 21:25:43 GMT
+
+"Install Android SDK Build-Tools 36 v.36.0.0" ready.
+Mon, 11 May 2026 21:25:43 GMT
+
+Installing Android SDK Build-Tools 36 in /home/expo/Android/Sdk/build-tools/36.0.0
+Mon, 11 May 2026 21:25:43 GMT
+
+"Install Android SDK Build-Tools 36 v.36.0.0" complete.
+Mon, 11 May 2026 21:25:44 GMT
+
+"Install Android SDK Build-Tools 36 v.36.0.0" finished.
+Mon, 11 May 2026 21:25:44 GMT
+
+[=======================================] 100% Fetch remote repository...       
+Mon, 11 May 2026 21:25:45 GMT
+
+> Task :expo-modules-core:preBuild UP-TO-DATE
+Mon, 11 May 2026 21:25:46 GMT
+
+> Task :expo-constants:createExpoConfig
+Mon, 11 May 2026 21:25:46 GMT
+
+[stderr] 
+
+The NODE_ENV environment variable is required but was not specified. Ensure the project is bundled with Expo CLI or NODE_ENV is set. Using only .env.local and .env
+Mon, 11 May 2026 21:25:46 GMT
+
+> Task :expo-constants:preBuild
+Mon, 11 May 2026 21:25:46 GMT
+
+> Task :react-native-async-storage_async-storage:generateCodegenSchemaFromJavaScript
+Mon, 11 May 2026 21:25:46 GMT
+
+> Task :react-native-async-storage_async-storage:generateCodegenArtifactsFromSchema
+Mon, 11 May 2026 21:25:46 GMT
+
+> Task :react-native-async-storage_async-storage:preBuild
+Mon, 11 May 2026 21:25:46 GMT
+
+> Task :react-native-gesture-handler:generateCodegenSchemaFromJavaScript
+Mon, 11 May 2026 21:25:46 GMT
+
+> Task :react-native-google-signin_google-signin:generateCodegenSchemaFromJavaScript
+Mon, 11 May 2026 21:25:46 GMT
+
+> Task :expo:generatePackagesList
+Mon, 11 May 2026 21:25:46 GMT
+
+> Task :expo:preBuild
+Mon, 11 May 2026 21:25:46 GMT
+
+> Task :react-native-gesture-handler:generateCodegenArtifactsFromSchema
+Mon, 11 May 2026 21:25:46 GMT
+
+> Task :react-native-gesture-handler:preBuild
+Mon, 11 May 2026 21:25:46 GMT
+
+> Task :react-native-iap:generateCodegenSchemaFromJavaScript
+Mon, 11 May 2026 21:25:46 GMT
+
+> Task :react-native-google-signin_google-signin:generateCodegenArtifactsFromSchema
+Mon, 11 May 2026 21:25:46 GMT
+
+> Task :react-native-google-signin_google-signin:preBuild
+Mon, 11 May 2026 21:25:46 GMT
+
+> Task :react-native-purchases:preBuild UP-TO-DATE
+Mon, 11 May 2026 21:25:46 GMT
+
+> Task :react-native-keyboard-controller:generateCodegenSchemaFromJavaScript
+Mon, 11 May 2026 21:25:46 GMT
+
+> Task :react-native-reanimated:assertMinimalReactNativeVersionTask
+Mon, 11 May 2026 21:25:46 GMT
+
+> Task :react-native-reanimated:assertNewArchitectureEnabledTask SKIPPED
+Mon, 11 May 2026 21:25:46 GMT
+
+[stderr] 
+
+No modules to process in combine-js-to-schema-cli. If this is unexpected, please check if you set up your NativeComponent correctly. See combine-js-to-schema.js for how codegen finds modules.
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :react-native-reanimated:assertWorkletsVersionTask
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :react-native-iap:generateCodegenArtifactsFromSchema
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :react-native-iap:preBuild
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :react-native-keyboard-controller:generateCodegenArtifactsFromSchema
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :react-native-keyboard-controller:preBuild
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :react-native-reanimated:generateCodegenSchemaFromJavaScript
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :react-native-safe-area-context:generateCodegenSchemaFromJavaScript
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :react-native-screens:generateCodegenSchemaFromJavaScript
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :react-native-reanimated:generateCodegenArtifactsFromSchema
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :react-native-safe-area-context:generateCodegenArtifactsFromSchema
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :react-native-safe-area-context:preBuild
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :react-native-screens:generateCodegenArtifactsFromSchema
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :react-native-screens:preBuild
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :react-native-reanimated:prepareReanimatedHeadersForPrefabs
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :react-native-reanimated:preBuild
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :expo:preReleaseBuild
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :react-native-worklets:assertMinimalReactNativeVersionTask
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :react-native-worklets:assertNewArchitectureEnabledTask SKIPPED
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :expo:generateReleaseResValues
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :expo:generateReleaseResources
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :app:createBundleReleaseJsAndAssets
+Mon, 11 May 2026 21:25:47 GMT
+
+Starting Metro Bundler
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :expo:packageReleaseResources
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :expo-constants:preReleaseBuild
+Mon, 11 May 2026 21:25:47 GMT
+
+> Task :expo-constants:generateReleaseResValues
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :expo-constants:generateReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-svg:generateCodegenSchemaFromJavaScript
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :expo-constants:packageReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :expo-modules-core:preReleaseBuild
+Mon, 11 May 2026 21:25:48 GMT
+
+UP-TO-DATE
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :expo-modules-core:generateReleaseResValues
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :expo-modules-core:generateReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :expo-modules-core:packageReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-async-storage_async-storage:preReleaseBuild
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-async-storage_async-storage:generateReleaseResValues
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-async-storage_async-storage:generateReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-async-storage_async-storage:packageReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-gesture-handler:preReleaseBuild
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-gesture-handler:generateReleaseResValues
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-worklets:generateCodegenSchemaFromJavaScript
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-gesture-handler:generateReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-gesture-handler:packageReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-google-signin_google-signin:preReleaseBuild
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-google-signin_google-signin:generateReleaseResValues
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-google-signin_google-signin:generateReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-google-signin_google-signin:packageReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-iap:prePlayReleaseBuild
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-iap:generatePlayReleaseResValues
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-iap:generatePlayReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-iap:packagePlayReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-keyboard-controller:preReleaseBuild
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-keyboard-controller:generateReleaseResValues
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-keyboard-controller:generateReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-keyboard-controller:packageReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-purchases:preReleaseBuild UP-TO-DATE
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-purchases:generateReleaseResValues
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-purchases:generateReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-svg:generateCodegenArtifactsFromSchema
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-svg:preBuild
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-reanimated:preReleaseBuild
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-reanimated:generateReleaseResValues
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-purchases:packageReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-safe-area-context:preReleaseBuild
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-safe-area-context:generateReleaseResValues
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-reanimated:generateReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-safe-area-context:generateReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-reanimated:packageReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-screens:preReleaseBuild
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-screens:generateReleaseResValues
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-safe-area-context:packageReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-svg:preReleaseBuild
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-svg:generateReleaseResValues
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-screens:generateReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-svg:generateReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-svg:packageReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :expo:extractDeepLinksRelease
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-screens:packageReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-worklets:generateCodegenArtifactsFromSchema
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :expo-constants:extractDeepLinksRelease
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-worklets:prepareWorkletsHeadersForPrefabs
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-worklets:preBuild
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-worklets:preReleaseBuild
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-worklets:generateReleaseResValues
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-worklets:generateReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :expo-constants:processReleaseManifest
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-worklets:packageReleaseResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :expo:processReleaseManifest
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :expo-modules-core:extractDeepLinksRelease
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-gesture-handler:extractDeepLinksRelease
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-async-storage_async-storage:extractDeepLinksRelease
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-gesture-handler:processReleaseManifest
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :expo-modules-core:processReleaseManifest
+Mon, 11 May 2026 21:25:48 GMT
+
+/home/expo/workingdir/build/node_modules/expo-modules-core/android/src/main/AndroidManifest.xml:8:9-11:45 Warning:
+Mon, 11 May 2026 21:25:48 GMT
+
+	meta-data#com.facebook.soloader.enabled@android:value was tagged at AndroidManifest.xml:8 to replace other declarations but no other declaration present
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-async-storage_async-storage:processReleaseManifest
+Mon, 11 May 2026 21:25:48 GMT
+
+package="com.reactnativecommunity.asyncstorage" found in source AndroidManifest.xml: /home/expo/workingdir/build/node_modules/@react-native-async-storage/async-storage/android/src/main/AndroidManifest.xml.
+Mon, 11 May 2026 21:25:48 GMT
+
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Mon, 11 May 2026 21:25:48 GMT
+
+Recommendation: remove package="com.reactnativecommunity.asyncstorage" from the source AndroidManifest.xml: /home/expo/workingdir/build/node_modules/@react-native-async-storage/async-storage/android/src/main/AndroidManifest.xml.
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-iap:extractDeepLinksPlayRelease
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-google-signin_google-signin:extractDeepLinksRelease
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-keyboard-controller:extractDeepLinksRelease
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-iap:processPlayReleaseManifest
+Mon, 11 May 2026 21:25:48 GMT
+
+package="com.dooboolab.rniap" found in source AndroidManifest.xml: /home/expo/workingdir/build/node_modules/react-native-iap/android/src/main/AndroidManifest.xml.
+Mon, 11 May 2026 21:25:48 GMT
+
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Mon, 11 May 2026 21:25:48 GMT
+
+Recommendation: remove package="com.dooboolab.rniap" from the source AndroidManifest.xml: /home/expo/workingdir/build/node_modules/react-native-iap/android/src/main/AndroidManifest.xml.
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-keyboard-controller:processReleaseManifest
+Mon, 11 May 2026 21:25:48 GMT
+
+package="com.reactnativekeyboardcontroller" found in source AndroidManifest.xml: /home/expo/workingdir/build/node_modules/react-native-keyboard-controller/android/src/main/AndroidManifest.xml.
+Mon, 11 May 2026 21:25:48 GMT
+
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Mon, 11 May 2026 21:25:48 GMT
+
+Recommendation: remove package="com.reactnativekeyboardcontroller" from the source AndroidManifest.xml: /home/expo/workingdir/build/node_modules/react-native-keyboard-controller/android/src/main/AndroidManifest.xml.
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-google-signin_google-signin:processReleaseManifest
+Mon, 11 May 2026 21:25:48 GMT
+
+package="com.reactnativegooglesignin" found in source AndroidManifest.xml: /home/expo/workingdir/build/node_modules/@react-native-google-signin/google-signin/android/src/main/AndroidManifest.xml.
+Mon, 11 May 2026 21:25:48 GMT
+
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Mon, 11 May 2026 21:25:48 GMT
+
+Recommendation: remove package="com.reactnativegooglesignin" from the source AndroidManifest.xml: /home/expo/workingdir/build/node_modules/@react-native-google-signin/google-signin/android/src/main/AndroidManifest.xml.
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-safe-area-context:extractDeepLinksRelease
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-reanimated:extractDeepLinksRelease
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-purchases:extractDeepLinksRelease
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-reanimated:processReleaseManifest
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-safe-area-context:processReleaseManifest
+Mon, 11 May 2026 21:25:48 GMT
+
+package="com.th3rdwave.safeareacontext" found in source AndroidManifest.xml: /home/expo/workingdir/build/node_modules/react-native-safe-area-context/android/src/main/AndroidManifest.xml.
+Mon, 11 May 2026 21:25:48 GMT
+
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Mon, 11 May 2026 21:25:48 GMT
+
+Recommendation: remove package="com.th3rdwave.safeareacontext" from the source AndroidManifest.xml: /home/expo/workingdir/build/node_modules/react-native-safe-area-context/android/src/main/AndroidManifest.xml.
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-purchases:processReleaseManifest
+Mon, 11 May 2026 21:25:48 GMT
+
+package="com.revenuecat.purchases.react" found in source AndroidManifest.xml: /home/expo/workingdir/build/node_modules/react-native-purchases/android/src/main/AndroidManifest.xml.
+Mon, 11 May 2026 21:25:48 GMT
+
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Mon, 11 May 2026 21:25:48 GMT
+
+Recommendation: remove package="com.revenuecat.purchases.react" from the source AndroidManifest.xml: /home/expo/workingdir/build/node_modules/react-native-purchases/android/src/main/AndroidManifest.xml.
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-screens:extractDeepLinksRelease
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-svg:extractDeepLinksRelease
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-worklets:extractDeepLinksRelease
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-screens:processReleaseManifest
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-worklets:processReleaseManifest
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-svg:processReleaseManifest
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :expo-modules-core:writeReleaseAarMetadata
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :expo:writeReleaseAarMetadata
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :expo-constants:writeReleaseAarMetadata
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-async-storage_async-storage:writeReleaseAarMetadata
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-google-signin_google-signin:writeReleaseAarMetadata
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-gesture-handler:writeReleaseAarMetadata
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-keyboard-controller:writeReleaseAarMetadata
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-iap:writePlayReleaseAarMetadata
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-purchases:writeReleaseAarMetadata
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-safe-area-context:writeReleaseAarMetadata
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-reanimated:writeReleaseAarMetadata
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-screens:writeReleaseAarMetadata
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-worklets:writeReleaseAarMetadata
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :react-native-svg:writeReleaseAarMetadata
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :expo-constants:compileReleaseLibraryResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :expo-modules-core:compileReleaseLibraryResources
+Mon, 11 May 2026 21:25:48 GMT
+
+> Task :expo:compileReleaseLibraryResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :expo-constants:parseReleaseLocalResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :expo:parseReleaseLocalResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :expo-modules-core:parseReleaseLocalResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :expo:generateReleaseRFile
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :expo-constants:generateReleaseRFile
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :expo-modules-core:generateReleaseRFile
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-google-signin_google-signin:compileReleaseLibraryResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-gesture-handler:compileReleaseLibraryResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-async-storage_async-storage:compileReleaseLibraryResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-google-signin_google-signin:parseReleaseLocalResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-async-storage_async-storage:parseReleaseLocalResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-gesture-handler:parseReleaseLocalResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-google-signin_google-signin:generateReleaseRFile
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-async-storage_async-storage:generateReleaseRFile
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-gesture-handler:generateReleaseRFile
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-iap:compilePlayReleaseLibraryResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-purchases:compileReleaseLibraryResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-keyboard-controller:compileReleaseLibraryResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-iap:parsePlayReleaseLocalResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-purchases:parseReleaseLocalResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-keyboard-controller:parseReleaseLocalResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-purchases:generateReleaseRFile
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-reanimated:compileReleaseLibraryResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-iap:generatePlayReleaseRFile
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-keyboard-controller:generateReleaseRFile
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-reanimated:parseReleaseLocalResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-safe-area-context:compileReleaseLibraryResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-reanimated:generateReleaseRFile
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-safe-area-context:parseReleaseLocalResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-screens:parseReleaseLocalResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-safe-area-context:generateReleaseRFile
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-svg:compileReleaseLibraryResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-screens:generateReleaseRFile
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-screens:compileReleaseLibraryResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-google-signin_google-signin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-worklets:compileReleaseLibraryResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-svg:parseReleaseLocalResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-google-signin_google-signin:generateReleaseBuildConfig
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-worklets:parseReleaseLocalResources
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-svg:generateReleaseRFile
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-gesture-handler:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-gesture-handler:generateReleaseBuildConfig
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-reanimated:generateReleaseBuildConfig
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-worklets:generateReleaseRFile
+Mon, 11 May 2026 21:25:49 GMT
+
+> Task :react-native-worklets:generateReleaseBuildConfig
+Mon, 11 May 2026 21:25:50 GMT
+
+> Task :react-native-worklets:javaPreCompileRelease
+Mon, 11 May 2026 21:25:50 GMT
+
+> Task :react-native-reanimated:javaPreCompileRelease
+Mon, 11 May 2026 21:25:50 GMT
+
+> Task :react-native-svg:generateReleaseBuildConfig
+Mon, 11 May 2026 21:25:51 GMT
+
+> Task :app:createBundleReleaseJsAndAssets
+Mon, 11 May 2026 21:25:51 GMT
+
+Android node_modules/expo-router/entry.js ▓▓▓▓▓▓▓░░░░░░░░░ 44.8% ( 784/1171)
+Mon, 11 May 2026 21:25:51 GMT
+
+> Task :react-native-svg:javaPreCompileRelease
+Mon, 11 May 2026 21:25:53 GMT
+
+> Task :app:createBundleReleaseJsAndAssets
+Mon, 11 May 2026 21:25:53 GMT
+
+Android Bundled 3541ms node_modules/expo-router/entry.js (1898 modules)
+Mon, 11 May 2026 21:25:54 GMT
+
+Writing bundle output to: /home/expo/workingdir/build/android/app/build/generated/assets/createBundleReleaseJsAndAssets/index.android.bundle
+Mon, 11 May 2026 21:25:54 GMT
+
+Writing sourcemap output to: /home/expo/workingdir/build/android/app/build/intermediates/sourcemaps/react/release/index.android.bundle.packager.map
+Mon, 11 May 2026 21:25:54 GMT
+
+Copying 68 asset files
+Mon, 11 May 2026 21:25:54 GMT
+
+Done writing bundle output
+Mon, 11 May 2026 21:25:54 GMT
+
+Done writing sourcemap output
+Mon, 11 May 2026 21:25:56 GMT
+
+> Task :react-native-google-signin_google-signin:compileReleaseKotlin
+Mon, 11 May 2026 21:25:56 GMT
+
+w: file:///home/expo/workingdir/build/node_modules/@react-native-google-signin/google-signin/android/src/main/java/com/reactnativegooglesignin/ErrorDto.kt:3:8 'class GoogleSignInStatusCodes : CommonStatusCodes' is deprecated. Deprecated in Java.
+Mon, 11 May 2026 21:25:56 GMT
+
+w: file:///home/expo/workingdir/build/node_modules/@react-native-google-signin/google-signin/android/src/main/java/com/reactnativegooglesignin/ErrorDto.kt:23:31 Condition is always 'true'.
+Mon, 11 May 2026 21:25:56 GMT
+
+w: file:///home/expo/workingdir/build/node_modules/@react-native-google-signin/google-signin/android/src/main/java/com/reactnativegooglesignin/ErrorDto.kt:24:16 'class GoogleSignInStatusCodes : CommonStatusCodes' is deprecated. Deprecated in Java.
+Mon, 11 May 2026 21:25:56 GMT
+
+w: file:///home/expo/workingdir/build/node_modules/@react-native-google-signin/google-signin/android/src/main/java/com/reactnativegooglesignin/ErrorDto.kt:29:33 'class GoogleSignInStatusCodes : CommonStatusCodes' is deprecated. Deprecated in Java.
+Mon, 11 May 2026 21:25:56 GMT
+
+w: file:///home/expo/workingdir/build/node_modules/@react-native-google-signin/google-signin/android/src/main/java/com/reactnativegooglesignin/ErrorDto.kt:30:38 'class GoogleSignInStatusCodes : CommonStatusCodes' is deprecated. Deprecated in Java.
+Mon, 11 May 2026 21:25:56 GMT
+
+> Task :react-native-google-signin_google-signin:javaPreCompileRelease
+Mon, 11 May 2026 21:25:56 GMT
+
+> Task :react-native-worklets:compileReleaseJavaWithJavac
+Mon, 11 May 2026 21:25:56 GMT
+
+[stderr] 
+
+Note: /home/expo/workingdir/build/node_modules/react-native-worklets/android/src/main/java/com/swmansion/worklets/WorkletsPackage.java uses unchecked or unsafe operations.
+Mon, 11 May 2026 21:25:56 GMT
+
+[stderr] 
+
+Note: Recompile with -Xlint:unchecked for details.
+Mon, 11 May 2026 21:26:01 GMT
+
+> Task :react-native-svg:compileReleaseJavaWithJavac
+Mon, 11 May 2026 21:26:01 GMT
+
+> Task :react-native-google-signin_google-signin:compileReleaseJavaWithJavac
+Mon, 11 May 2026 21:26:01 GMT
+
+> Task :react-native-google-signin_google-signin:bundleLibRuntimeToDirRelease
+Mon, 11 May 2026 21:26:01 GMT
+
+[stderr] 
+
+Note: Some input files use or override a deprecated API.
+Mon, 11 May 2026 21:26:01 GMT
+
+[stderr] 
+
+Note: Recompile with -Xlint:deprecation for details.
+Mon, 11 May 2026 21:26:01 GMT
+
+[stderr] 
+
+Note: Some input files use unchecked or unsafe operations.
+Mon, 11 May 2026 21:26:01 GMT
+
+[stderr] 
+
+Note: Recompile with -Xlint:unchecked for details.
+Mon, 11 May 2026 21:26:01 GMT
+
+[stderr] 
+
+Note: Some input files use or override a deprecated API.
+Mon, 11 May 2026 21:26:01 GMT
+
+[stderr] 
+
+Note: Recompile with -Xlint:deprecation for details.
+Mon, 11 May 2026 21:26:01 GMT
+
+[stderr] 
+
+Note: /home/expo/workingdir/build/node_modules/@react-native-google-signin/google-signin/android/src/main/java/com/reactnativegooglesignin/RNGoogleSigninModule.java uses unchecked or unsafe operations.
+Mon, 11 May 2026 21:26:01 GMT
+
+[stderr] 
+
+Note: Recompile with -Xlint:unchecked for details.
+Mon, 11 May 2026 21:26:01 GMT
+
+> Task :react-native-worklets:bundleLibCompileToJarRelease
+Mon, 11 May 2026 21:26:01 GMT
+
+> Task :react-native-svg:bundleLibCompileToJarRelease
+Mon, 11 May 2026 21:26:01 GMT
+
+> Task :react-native-gesture-handler:javaPreCompileRelease
+Mon, 11 May 2026 21:26:01 GMT
+
+> Task :react-native-iap:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Mon, 11 May 2026 21:26:01 GMT
+
+> Task :react-native-iap:generatePlayReleaseBuildConfig
+Mon, 11 May 2026 21:26:02 GMT
+
+> Task :react-native-reanimated:compileReleaseJavaWithJavac
+Mon, 11 May 2026 21:26:02 GMT
+
+> Task :react-native-reanimated:bundleLibCompileToJarRelease
+Mon, 11 May 2026 21:26:02 GMT
+
+[stderr] 
+
+Note: Some input files use or override a deprecated API.
+Mon, 11 May 2026 21:26:02 GMT
+
+[stderr] 
+
+Note: Recompile with -Xlint:deprecation for details.
+Mon, 11 May 2026 21:26:02 GMT
+
+[stderr] 
+
+Note: Some input files use unchecked or unsafe operations.
+Mon, 11 May 2026 21:26:02 GMT
+
+[stderr] 
+
+Note: Recompile with -Xlint:unchecked for details.
+Mon, 11 May 2026 21:26:04 GMT
+
+> Task :react-native-iap:compilePlayReleaseKotlin FAILED
+Mon, 11 May 2026 21:26:04 GMT
+
+[stderr] 
+
+e: file:///home/expo/workingdir/build/node_modules/react-native-iap/android/src/main/java/com/dooboolab/rniap/PromiseUtlis.kt:4:34 Cannot access 'class ObjectAlreadyConsumedException : RuntimeException': it is internal in file.
+Mon, 11 May 2026 21:26:04 GMT
+
+[stderr] 
+
+e: file:///home/expo/workingdir/build/node_modules/react-native-iap/android/src/main/java/com/dooboolab/rniap/PromiseUtlis.kt:17:19 Cannot access 'class ObjectAlreadyConsumedException : RuntimeException': it is internal in file.
+Mon, 11 May 2026 21:26:04 GMT
+
+[stderr] 
+
+e: file:///home/expo/workingdir/build/node_modules/react-native-iap/android/src/main/java/com/dooboolab/rniap/PromiseUtlis.kt:18:44 Cannot access 'class ObjectAlreadyConsumedException : RuntimeException': it is internal in file.
+Mon, 11 May 2026 21:26:04 GMT
+
+[stderr] 
+
+e: file:///home/expo/workingdir/build/node_modules/react-native-iap/android/src/main/java/com/dooboolab/rniap/PromiseUtlis.kt:40:21 Argument type mismatch: actual type is 'String?', but 'String' was expected.
+Mon, 11 May 2026 21:26:04 GMT
+
+[stderr] 
+
+e: file:///home/expo/workingdir/build/node_modules/react-native-iap/android/src/main/java/com/dooboolab/rniap/PromiseUtlis.kt:41:19 Cannot access 'class ObjectAlreadyConsumedException : RuntimeException': it is internal in file.
+Mon, 11 May 2026 21:26:04 GMT
+
+[stderr] 
+
+e: file:///home/expo/workingdir/build/node_modules/react-native-iap/android/src/main/java/com/dooboolab/rniap/PromiseUtlis.kt:42:44 Cannot access 'class ObjectAlreadyConsumedException : RuntimeException': it is internal in file.
+Mon, 11 May 2026 21:26:04 GMT
+
+[stderr] 
+
+e: file:///home/expo/workingdir/build/node_modules/react-native-iap/android/src/play/java/com/dooboolab/rniap/RNIapModule.kt:460:24 Unresolved reference 'currentActivity'.
+Mon, 11 May 2026 21:26:04 GMT
+
+[stderr] 
+
+e: file:///home/expo/workingdir/build/node_modules/react-native-iap/android/src/play/java/com/dooboolab/rniap/RNIapModule.kt:539:69 Argument type mismatch: actual type is 'Any', but 'Activity' was expected.
+Mon, 11 May 2026 21:26:11 GMT
+
+> Task :react-native-gesture-handler:compileReleaseKotlin
+Mon, 11 May 2026 21:26:11 GMT
+
+w: file:///home/expo/workingdir/build/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootView.kt:41:43 The corresponding parameter in the supertype 'ReactViewGroup' is named 'ev'. This may cause problems when calling this function with named arguments.
+Mon, 11 May 2026 21:26:11 GMT
+
+[Incubating] Problems report is available at: file:///home/expo/workingdir/build/android/build/reports/problems/problems-report.html
+Mon, 11 May 2026 21:26:11 GMT
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+Mon, 11 May 2026 21:26:11 GMT
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+Mon, 11 May 2026 21:26:11 GMT
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+Mon, 11 May 2026 21:26:11 GMT
+
+200 actionable tasks: 200 executed
+Mon, 11 May 2026 21:26:11 GMT
+
+[stderr] 
+
+FAILURE: Build failed with an exception.
+Mon, 11 May 2026 21:26:11 GMT
+
+[stderr] 
+
+* What went wrong:
+Mon, 11 May 2026 21:26:11 GMT
+
+[stderr] 
+
+Execution failed for task ':react-native-iap:compilePlayReleaseKotlin'.
+Mon, 11 May 2026 21:26:11 GMT
+
+[stderr] 
+
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+Mon, 11 May 2026 21:26:11 GMT
+
+[stderr] 
+
+   > Compilation error. See log for more details
+Mon, 11 May 2026 21:26:11 GMT
+
+[stderr] 
+
+* Try:
+Mon, 11 May 2026 21:26:11 GMT
+
+[stderr] 
+
+> Run with --stacktrace option to get the stack trace.
+Mon, 11 May 2026 21:26:11 GMT
+
+[stderr] 
+
+> Run with --info or --debug option to get more log output.
+Mon, 11 May 2026 21:26:11 GMT
+
+[stderr] 
+
+> Run with --scan to get full insights.
+Mon, 11 May 2026 21:26:11 GMT
+
+[stderr] 
+
+> Get more help at https://help.gradle.org.
+Mon, 11 May 2026 21:26:11 GMT
+
+[stderr] 
+
+BUILD FAILED in 2m 34s
+Mon, 11 May 2026 21:26:11 GMT
+
+Error: Gradle build failed with unknown error. See logs for the "Run gradlew" phase for more information.
