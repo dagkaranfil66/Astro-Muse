@@ -49,10 +49,10 @@ const PKG_DISPLAY: Record<string, {
   desc: string;
   descEn: string;
 }> = {
-  gold_20:  { gradient: ["#1A1A30", "#0D1526"], popular: false, advantage: false, gold: 20,  bonus: 0,  label: "Başlangıç Paketi", discount: 0,  desc: "", descEn: "" },
-  gold_50:  { gradient: ["#1A1030", "#0D1526"], popular: true,  advantage: false, gold: 50,  bonus: 5,  label: "Popüler Paket",    discount: 27, desc: "", descEn: "" },
-  gold_120: { gradient: ["#1A0A20", "#0D1526"], popular: false, advantage: false, gold: 120, bonus: 20, label: "Büyük Paket",      discount: 43, desc: "", descEn: "" },
-  gold_300: { gradient: ["#1A0805", "#0D1526"], popular: false, advantage: true,  gold: 300, bonus: 60, label: "Mega Paket",       discount: 56, desc: "", descEn: "" },
+  tengri_20_gold:  { gradient: ["#1A1A30", "#0D1526"], popular: false, advantage: false, gold: 20,  bonus: 0,  label: "Başlangıç Paketi", discount: 0,  desc: "", descEn: "" },
+  tengri_50_gold:  { gradient: ["#1A1030", "#0D1526"], popular: true,  advantage: false, gold: 50,  bonus: 5,  label: "Popüler Paket",    discount: 27, desc: "", descEn: "" },
+  tengri_120_gold: { gradient: ["#1A0A20", "#0D1526"], popular: false, advantage: false, gold: 120, bonus: 20, label: "Büyük Paket",      discount: 43, desc: "", descEn: "" },
+  tengri_300_gold: { gradient: ["#1A0805", "#0D1526"], popular: false, advantage: true,  gold: 300, bonus: 60, label: "Mega Paket",       discount: 56, desc: "", descEn: "" },
 };
 
 // ─── Auth Gate (not logged in) ─────────────────────────────────────────────
