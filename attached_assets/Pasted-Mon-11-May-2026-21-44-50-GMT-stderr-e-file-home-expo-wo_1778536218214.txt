@@ -1,0 +1,84 @@
+Mon, 11 May 2026 21:44:50 GMT
+
+[stderr] 
+
+e: file:///home/expo/workingdir/build/node_modules/react-native-iap/android/src/play/java/com/dooboolab/rniap/RNIapModule.kt:539:69 Argument type mismatch: actual type is 'Any', but 'Activity' was expected.
+Mon, 11 May 2026 21:44:56 GMT
+
+> Task :react-native-gesture-handler:compileReleaseKotlin
+Mon, 11 May 2026 21:44:56 GMT
+
+w: file:///home/expo/workingdir/build/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootView.kt:41:43 The corresponding parameter in the supertype 'ReactViewGroup' is named 'ev'. This may cause problems when calling this function with named arguments.
+Mon, 11 May 2026 21:44:56 GMT
+
+[Incubating] Problems report is available at: file:///home/expo/workingdir/build/android/build/reports/problems/problems-report.html
+Mon, 11 May 2026 21:44:56 GMT
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+Mon, 11 May 2026 21:44:56 GMT
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+Mon, 11 May 2026 21:44:56 GMT
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+Mon, 11 May 2026 21:44:56 GMT
+
+200 actionable tasks: 200 executed
+Mon, 11 May 2026 21:44:56 GMT
+
+[stderr] 
+
+FAILURE: Build failed with an exception.
+Mon, 11 May 2026 21:44:56 GMT
+
+[stderr] 
+
+* What went wrong:
+Mon, 11 May 2026 21:44:56 GMT
+
+[stderr] 
+
+Execution failed for task ':react-native-iap:compilePlayReleaseKotlin'.
+Mon, 11 May 2026 21:44:56 GMT
+
+[stderr] 
+
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+Mon, 11 May 2026 21:44:56 GMT
+
+[stderr] 
+
+   > Compilation error. See log for more details
+Mon, 11 May 2026 21:44:56 GMT
+
+[stderr] 
+
+* Try:
+Mon, 11 May 2026 21:44:56 GMT
+
+[stderr] 
+
+> Run with --stacktrace option to get the stack trace.
+Mon, 11 May 2026 21:44:56 GMT
+
+[stderr] 
+
+> Run with --info or --debug option to get more log output.
+Mon, 11 May 2026 21:44:56 GMT
+
+[stderr] 
+
+> Run with --scan to get full insights.
+Mon, 11 May 2026 21:44:56 GMT
+
+[stderr] 
+
+> Get more help at https://help.gradle.org.
+Mon, 11 May 2026 21:44:56 GMT
+
+[stderr] 
+
+BUILD FAILED in 2m 29s
+Mon, 11 May 2026 21:44:56 GMT
+
+Error: Gradle build failed with unknown error. See logs for the "Run gradlew" phase for more information.
