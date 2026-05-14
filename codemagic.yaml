@@ -1,0 +1,32 @@
+workflows:
+  android-release:
+    name: Android Release (AAB)
+    max_build_duration: 60
+    environment:
+      node: 18.17.0
+      java: 17
+      android_signing:
+        - tengri_keystore
+      vars:
+        PACKAGE_NAME: "co.median.android.bnljzke"
+    scripts:
+      - name: Install Node dependencies
+        script: npm install --legacy-peer-deps
+
+      - name: Build Android release AAB
+        script: |
+          cd android
+          chmod +x ./gradlew
+          ./gradlew bundleRelease --no-daemon --max-workers=2
+
+    artifacts:
+      - android/app/build/outputs/bundle/release/*.aab
+      - android/app/build/outputs/apk/release/*.apk
+
+    publishing:
+      email:
+        recipients:
+          - dagkaranfil@gmail.com
+        notify:
+          success: true
+          failure: true

@@ -1,0 +1,238 @@
+{
+  "id": "0e7d26ce-ebfd-45aa-98f6-72777dcd8da2",
+  "createdAt": "2026-04-23T21:36:34.082Z",
+  "runtimeVersion": "exposdk:54.0.0",
+  "launchAsset": {
+    "key": "bundle-1776980194082-10892",
+    "contentType": "application/javascript",
+    "url": "https://astro-muse.replit.app/1776980194082-10892/_expo/static/js/android/bundle.js"
+  },
+  "assets": [],
+  "metadata": {},
+  "extra": {
+    "eas": {
+      "projectId": "be1f0898-f169-478d-b357-f9e4dc61672f"
+    },
+    "expoClient": {
+      "name": "Tengri-Astroloji-Fal-Burçlar-Mistik Yolculuk",
+      "slug": "tengristar",
+      "version": "1.2.4",
+      "orientation": "portrait",
+      "icon": "./assets/images/icon.png",
+      "scheme": "tengriastrolojifalburlarmistikyolculuk",
+      "userInterfaceStyle": "dark",
+      "newArchEnabled": true,
+      "splash": {
+        "image": "./assets/images/splash-icon.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#070D1A",
+        "imageUrl": "http://127.0.0.1:8081/assets/./assets/images/splash-icon.png"
+      },
+      "ios": {
+        "supportsTablet": false,
+        "bundleIdentifier": "app.replit.tengri-astroloji-fal-burclar",
+        "buildNumber": "23",
+        "usesAppleSignIn": true,
+        "splash": {
+          "image": "./assets/images/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#070D1A",
+          "dark": {
+            "image": "./assets/images/splash-icon.png",
+            "resizeMode": "contain",
+            "backgroundColor": "#070D1A",
+            "imageUrl": "http://127.0.0.1:8081/assets/./assets/images/splash-icon.png"
+          },
+          "imageUrl": "http://127.0.0.1:8081/assets/./assets/images/splash-icon.png"
+        },
+        "infoPlist": {
+          "CFBundleDisplayName": "Tengri",
+          "NSCameraUsageDescription": "Tengri uses the camera so you can take a photo of your palm or coffee cup for a mystical reading.",
+          "NSPhotoLibraryUsageDescription": "Tengri uses your photo library so you can choose a photo of your palm or coffee cup for a mystical reading.",
+          "NSPhotoLibraryAddUsageDescription": "Tengri saves your reading results to your photo library so you can share them.",
+          "NSMicrophoneUsageDescription": "Tengri does not record audio. Microphone access is required by iOS when the camera is used.",
+          "ITSAppUsesNonExemptEncryption": false
+        },
+        "privacyManifests": {
+          "NSPrivacyAccessedAPITypes": [
+            {
+              "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+              "NSPrivacyAccessedAPITypeReasons": [
+                "CA92.1"
+              ]
+            },
+            {
+              "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+              "NSPrivacyAccessedAPITypeReasons": [
+                "C617.1"
+              ]
+            },
+            {
+              "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",
+              "NSPrivacyAccessedAPITypeReasons": [
+                "85F4.1"
+              ]
+            },
+            {
+              "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
+              "NSPrivacyAccessedAPITypeReasons": [
+                "35F9.1"
+              ]
+            }
+          ],
+          "NSPrivacyCollectedDataTypes": [],
+          "NSPrivacyTracking": false
+        }
+      },
+      "android": {
+        "package": "co.median.android.bnljzke",
+        "versionCode": 29,
+        "adaptiveIcon": {
+          "backgroundColor": "#070D1A",
+          "foregroundImage": "./assets/images/android-icon-foreground.png",
+          "backgroundImage": "./assets/images/android-icon-background.png",
+          "monochromeImage": "./assets/images/android-icon-monochrome.png",
+          "foregroundImageUrl": "http://127.0.0.1:8081/assets/./assets/images/android-icon-foreground.png",
+          "monochromeImageUrl": "http://127.0.0.1:8081/assets/./assets/images/android-icon-monochrome.png",
+          "backgroundImageUrl": "http://127.0.0.1:8081/assets/./assets/images/android-icon-background.png"
+        },
+        "permissions": [
+          "android.permission.CAMERA",
+          "android.permission.READ_MEDIA_IMAGES",
+          "android.permission.INTERNET",
+          "android.permission.VIBRATE",
+          "android.permission.POST_NOTIFICATIONS",
+          "com.android.vending.BILLING"
+        ],
+        "blockedPermissions": [
+          "android.permission.ACCESS_FINE_LOCATION",
+          "android.permission.ACCESS_COARSE_LOCATION",
+          "android.permission.ACCESS_BACKGROUND_LOCATION",
+          "android.permission.RECORD_AUDIO",
+          "android.permission.READ_EXTERNAL_STORAGE",
+          "android.permission.WRITE_EXTERNAL_STORAGE",
+          "android.permission.SCHEDULE_EXACT_ALARM",
+          "android.permission.RECEIVE_BOOT_COMPLETED"
+        ],
+        "intentFilters": [
+          {
+            "action": "VIEW",
+            "autoVerify": true,
+            "data": [
+              {
+                "scheme": "com.googleusercontent.apps.317895700540-6qb6bbrniroatm4dc6vk7uba2n09b4hm"
+              }
+            ],
+            "category": [
+              "BROWSABLE",
+              "DEFAULT"
+            ]
+          }
+        ]
+      },
+      "web": {
+        "favicon": "./assets/images/favicon.png"
+      },
+      "plugins": [
+        [
+          "expo-router",
+          {
+            "origin": "https://replit.com/"
+          }
+        ],
+        "expo-font",
+        "expo-web-browser",
+        [
+          "expo-notifications",
+          {
+            "icon": "./assets/images/icon.png",
+            "color": "#E7B008",
+            "sounds": []
+          }
+        ],
+        [
+          "expo-camera",
+          {
+            "cameraPermission": "Tengri uses the camera so you can take a photo of your palm or coffee cup for a mystical reading.",
+            "microphonePermission": "Tengri does not record audio. Microphone access is required by iOS when the camera is used.",
+            "recordAudioAndroid": false
+          }
+        ],
+        [
+          "expo-image-picker",
+          {
+            "photosPermission": "Tengri uses your photo library so you can choose a photo of your palm or coffee cup for a mystical reading.",
+            "cameraPermission": "Tengri uses the camera so you can take a photo of your palm or coffee cup for a mystical reading.",
+            "microphonePermission": false
+          }
+        ],
+        "expo-apple-authentication"
+      ],
+      "experiments": {
+        "typedRoutes": true
+      },
+      "extra": {
+        "router": {
+          "origin": "https://replit.com/"
+        },
+        "eas": {
+          "projectId": "be1f0898-f169-478d-b357-f9e4dc61672f"
+        }
+      },
+      "owner": "tengri-astroloji-burclar-mistik-yolculuk",
+      "_internal": {
+        "isDebug": false,
+        "projectRoot": "/home/runner/workspace",
+        "dynamicConfigPath": {},
+        "staticConfigPath": "/home/runner/workspace/app.json",
+        "packageJsonPath": "/home/runner/workspace/package.json",
+        "pluginHistory": {
+          "expo-font": {
+            "name": "expo-font",
+            "version": "14.0.11"
+          },
+          "expo-web-browser": {
+            "name": "expo-web-browser",
+            "version": "15.0.10"
+          },
+          "expo-notifications": {
+            "name": "expo-notifications",
+            "version": "0.32.16"
+          },
+          "expo-camera": {
+            "name": "expo-camera",
+            "version": "17.0.10"
+          },
+          "expo-image-picker": {
+            "name": "expo-image-picker",
+            "version": "17.0.10"
+          },
+          "expo-apple-authentication": {
+            "name": "expo-apple-authentication",
+            "version": "8.0.8"
+          }
+        }
+      },
+      "sdkVersion": "54.0.0",
+      "platforms": [
+        "ios",
+        "android",
+        "web"
+      ],
+      "iconUrl": "http://127.0.0.1:8081/assets/./assets/images/icon.png",
+      "hostUri": "astro-muse.replit.app/android"
+    },
+    "expoGo": {
+      "debuggerHost": "astro-muse.replit.app/android",
+      "developer": {
+        "tool": "expo-cli",
+        "projectRoot": "/home/runner/workspace"
+      },
+      "packagerOpts": {
+        "dev": false
+      },
+      "mainModuleName": "node_modules/expo-router/entry"
+    },
+    "scopeKey": "@anonymous/tengristar-3e81fa11-016b-4421-85a1-5c5071c7ce30"
+  }
+}
