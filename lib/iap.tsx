@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { Platform } from "react-native";
-import * as RNIap from "react-native-iap";
 
 // ── Product IDs (Google Play Console'da tanımlı consumable ürünler) ────────────
 export const IAP_PRODUCT_IDS = [
@@ -39,7 +38,7 @@ export function resolveGoldForProduct(productId: string): number {
 // ── Context ────────────────────────────────────────────────────────────────────
 interface IAPCtx {
   isReady: boolean;
-  products: RNIap.Product[];
+  products: any[];
   isLoading: boolean;
   isPurchasing: boolean;
   purchaseError: string | null;
@@ -51,9 +50,19 @@ const Context = createContext<IAPCtx | null>(null);
 
 const IS_WEB = Platform.OS === "web";
 
+// Lazy-load react-native-iap so a native init crash doesn't kill the whole app
+function getRNIap() {
+  try {
+    return require("react-native-iap");
+  } catch (e) {
+    console.warn("[IAP] react-native-iap could not be loaded:", e);
+    return null;
+  }
+}
+
 export function IAPProvider({ children }: { children: React.ReactNode }) {
   const [isReady, setIsReady] = useState(false);
-  const [products, setProducts] = useState<RNIap.Product[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [purchaseError, setPurchaseError] = useState<string | null>(null);
@@ -63,16 +72,28 @@ export function IAPProvider({ children }: { children: React.ReactNode }) {
       setIsReady(true);
       return;
     }
+
+    const RNIap = getRNIap();
+    if (!RNIap) {
+      console.warn("[IAP] Skipping IAP init — module not available");
+      setIsReady(true);
+      return;
+    }
+
     try {
       setIsLoading(true);
       await RNIap.initConnection();
       console.log("[IAP] Connection initialized");
-      const prods = await RNIap.getProducts({ skus: IAP_PRODUCT_IDS });
-      console.log("[IAP] Products loaded:", prods.map(p => p.productId));
-      setProducts(prods);
+      try {
+        const prods = await RNIap.getProducts({ skus: IAP_PRODUCT_IDS });
+        console.log("[IAP] Products loaded:", prods.map((p: any) => p.productId));
+        setProducts(prods);
+      } catch (prodErr: any) {
+        console.warn("[IAP] getProducts failed (non-fatal):", prodErr?.message ?? prodErr);
+      }
       setIsReady(true);
     } catch (e: any) {
-      console.error("[IAP] Init error:", e?.message ?? e);
+      console.error("[IAP] initConnection error:", e?.message ?? e);
       setIsReady(true);
     } finally {
       setIsLoading(false);
@@ -82,47 +103,62 @@ export function IAPProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     initIAP();
 
-    // Bekleyen satın almaları dinle (acknowledge için kritik)
     let purchaseUpdateSub: any;
     let purchaseErrorSub: any;
 
     if (!IS_WEB) {
-      purchaseUpdateSub = RNIap.purchaseUpdatedListener(async (purchase) => {
-        console.log("[IAP] purchaseUpdatedListener:", purchase.productId, purchase.transactionId);
-        const receipt = purchase.transactionReceipt;
-        if (receipt) {
-          try {
-            // Android: consumable ürünü acknowledge et (72 saat içinde yapılmazsa Google iade eder)
-            await RNIap.finishTransaction({ purchase, isConsumable: true });
-            console.log("[IAP] Transaction finished (acknowledged):", purchase.transactionId);
-          } catch (e) {
-            console.error("[IAP] finishTransaction error:", e);
-          }
+      const RNIap = getRNIap();
+      if (RNIap) {
+        try {
+          purchaseUpdateSub = RNIap.purchaseUpdatedListener(async (purchase: any) => {
+            console.log("[IAP] purchaseUpdatedListener:", purchase.productId, purchase.transactionId);
+            const receipt = purchase.transactionReceipt;
+            if (receipt) {
+              try {
+                await RNIap.finishTransaction({ purchase, isConsumable: true });
+                console.log("[IAP] Transaction finished:", purchase.transactionId);
+              } catch (e) {
+                console.error("[IAP] finishTransaction error:", e);
+              }
+            }
+          });
+        } catch (e) {
+          console.warn("[IAP] purchaseUpdatedListener setup failed:", e);
         }
-      });
 
-      purchaseErrorSub = RNIap.purchaseErrorListener((error) => {
-        console.error("[IAP] purchaseErrorListener:", error.message, "code:", error.code);
-      });
+        try {
+          purchaseErrorSub = RNIap.purchaseErrorListener((error: any) => {
+            console.error("[IAP] purchaseErrorListener:", error.message, "code:", error.code);
+          });
+        } catch (e) {
+          console.warn("[IAP] purchaseErrorListener setup failed:", e);
+        }
+      }
     }
 
     return () => {
-      purchaseUpdateSub?.remove();
-      purchaseErrorSub?.remove();
+      try { purchaseUpdateSub?.remove(); } catch {}
+      try { purchaseErrorSub?.remove(); } catch {}
       if (!IS_WEB) {
-        RNIap.endConnection();
+        const RNIap = getRNIap();
+        if (RNIap) {
+          try { RNIap.endConnection(); } catch {}
+        }
       }
     };
   }, [initIAP]);
 
   const purchase = useCallback(async (productId: string): Promise<number> => {
     if (IS_WEB) throw new Error("IAP not available on web");
+
+    const RNIap = getRNIap();
+    if (!RNIap) throw new Error("IAP module not available");
+
     setPurchaseError(null);
     setIsPurchasing(true);
     try {
       console.log("[IAP] Requesting purchase:", productId);
       await RNIap.requestPurchase({ sku: productId });
-      // purchaseUpdatedListener acknowledge işlemini halleder
       const gold = resolveGoldForProduct(productId);
       console.log("[IAP] Purchase success, gold:", gold);
       return gold;

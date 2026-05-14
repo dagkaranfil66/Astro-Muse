@@ -34,6 +34,27 @@ WebBrowser.maybeCompleteAuthSession();
 
 console.log('APP_START');
 
+// ── Global unhandled error/promise catcher — survives in production builds ──
+if (typeof global !== 'undefined') {
+  const origHandler = (global as any).ErrorUtils?.getGlobalHandler?.();
+  (global as any).ErrorUtils?.setGlobalHandler?.((error: any, isFatal: boolean) => {
+    console.error('[GLOBAL_ERROR]', isFatal ? 'FATAL' : 'non-fatal', error?.message, error?.stack);
+    origHandler?.(error, isFatal);
+  });
+}
+// Unhandled promise rejections
+const origPromiseHandler = (global as any).HermesInternal?.hasPromise
+  ? undefined
+  : undefined; // no-op placeholder
+if (typeof (global as any).__fbBatchedBridge !== 'undefined' || true) {
+  const _unhandled = (event: any) => {
+    console.error('[UNHANDLED_PROMISE]', event?.reason?.message ?? event?.reason, event?.reason?.stack);
+  };
+  if (typeof window !== 'undefined') {
+    (window as any).addEventListener?.('unhandledrejection', _unhandled);
+  }
+}
+
 let Notifications: typeof NotificationsType | null = null;
 
 // ── App navigation ─────────────────────────────────────────────────────────
