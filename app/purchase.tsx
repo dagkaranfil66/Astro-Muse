@@ -32,7 +32,7 @@ import type { Product } from "react-native-iap";
 
 const SERVICE_NAMES_TR: Record<string, string> = {
   samanizm: "Şamanizm Analizi", burclar: "Astroloji Burç Rehberi Analizi", ruh: "Enerji Analizi",
-  astroloji: "Doğum Haritası Analizi", kahve: "Kahve Analizi", el: "El Çizgisi Analizi",
+  astroloji: "Doğum Haritası Analizi", kahve: "Kahve Falı", el: "El Falı",
   numeroloji: "Numeroloji Analizi", ruya: "Rüya Analizi", ask: "Aşk Uyum Analizi",
   tarot: "Tarot Analizi", dogum: "Doğum Haritası Analizi",
 };

@@ -196,7 +196,7 @@ async function sendVerificationEmail(email: string, name: string, token: string,
           <!-- Feature pills -->
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
             <tr>
-              <td style="padding:4px;" width="33%"><div style="background:#1A1030;border:1px solid #C8A02020;border-radius:10px;padding:12px 8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">☕</div><div style="font-size:11px;color:#8A7AAA;">Kahve Analizi</div></div></td>
+              <td style="padding:4px;" width="33%"><div style="background:#1A1030;border:1px solid #C8A02020;border-radius:10px;padding:12px 8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">☕</div><div style="font-size:11px;color:#8A7AAA;">Kahve Falı</div></div></td>
               <td style="padding:4px;" width="33%"><div style="background:#1A1030;border:1px solid #C8A02020;border-radius:10px;padding:12px 8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">🔮</div><div style="font-size:11px;color:#8A7AAA;">Tarot</div></div></td>
               <td style="padding:4px;" width="33%"><div style="background:#1A1030;border:1px solid #C8A02020;border-radius:10px;padding:12px 8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">🌙</div><div style="font-size:11px;color:#8A7AAA;">Astroloji</div></div></td>
             </tr>
@@ -767,8 +767,8 @@ Return ONLY valid JSON, no markdown, no explanation:
             : "The image is too dark. Please try again in better lighting.";
         } else {
           reason = isTR
-            ? "Kahve analizi için telvenin göründüğü, yukarıdan çekilmiş net bir fincan fotoğrafı gerekli."
-            : "A clear top-down photo of the cup interior with coffee grounds is required for the analysis.";
+            ? "Kahve falı için telvenin göründüğü, yukarıdan çekilmiş net bir fincan fotoğrafı gerekli."
+            : "A clear top-down photo of the cup interior with coffee grounds is required for the reading.";
         }
       }
 

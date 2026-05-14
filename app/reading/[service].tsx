@@ -154,7 +154,7 @@ function KahveIntro({ color }: { color: string }) {
   return (
     <View style={styles.serviceIntro}>
       <ServiceHeroBanner serviceId="kahve" color={color} />
-      <Text style={styles.introServiceTitle}>{(t.services_list as any).kahve?.label ?? 'AI Kahve Analizi'}</Text>
+      <Text style={styles.introServiceTitle}>{(t.services_list as any).kahve?.label ?? 'Kahve Falı'}</Text>
       <Text style={styles.introDesc}>
         {lang === "tr"
           ? "Fincanınızın fotoğrafını yükleyin\nveya gördüğünüz sembolleri yazın."
@@ -501,8 +501,8 @@ function DefaultIntro({ serviceId, color, label, hint }: { serviceId: string; co
 // ────────── Share Panel ──────────
 // ── Service-specific share copy ───────────────────────────────────────────
 const SERVICE_SHARE_COPY: Record<string, { headerTR: string; btnTR: string; headerEN: string; btnEN: string }> = {
-  kahve:      { headerTR: "KAHVE ANALİZİNİ PAYLAŞ",           btnTR: "Kahve Analizimi Paylaş",       headerEN: "SHARE YOUR COFFEE ANALYSIS",    btnEN: "Share My Coffee Analysis" },
-  el:         { headerTR: "EL ÇİZGİSİ ANALİZİNİ PAYLAŞ",    btnTR: "El Analizimi Paylaş",           headerEN: "SHARE YOUR PALM ANALYSIS",      btnEN: "Share My Palm Analysis" },
+  kahve:      { headerTR: "KAHVE FALINI PAYLAŞ",               btnTR: "Kahve Falımı Paylaş",           headerEN: "SHARE YOUR COFFEE READING",     btnEN: "Share My Coffee Reading" },
+  el:         { headerTR: "EL FALINI PAYLAŞ",                 btnTR: "El Falımı Paylaş",              headerEN: "SHARE YOUR PALM READING",       btnEN: "Share My Palm Reading" },
   tarot:      { headerTR: "TAROT ANALİZİNİ PAYLAŞ",           btnTR: "Tarot Analizimi Paylaş",        headerEN: "SHARE YOUR TAROT ANALYSIS",     btnEN: "Share My Tarot Analysis" },
   samanizm:   { headerTR: "ŞAMANİZM REHBERLİĞİNİ PAYLAŞ",   btnTR: "Şamanizm Rehberliğimi Paylaş", headerEN: "SHARE YOUR SHAMANISM GUIDANCE", btnEN: "Share My Shamanism Guidance" },
   numeroloji: { headerTR: "NUMEROLOJİ ANALİZİNİ PAYLAŞ",    btnTR: "Numeroloji Analizimi Paylaş",   headerEN: "SHARE YOUR NUMEROLOGY ANALYSIS", btnEN: "Share My Numerology Analysis" },
@@ -1852,7 +1852,7 @@ export default function ReadingScreen() {
             <LinearGradient colors={["#1a1220", "#0e0c1a"]} style={StyleSheet.absoluteFill} />
             <Text style={styles.freeCoffeeCardEmoji}>☕</Text>
             <Text style={styles.freeCoffeeCardTitle}>
-              {lang === "tr" ? "Kahve analizini sevdin mi?" : "Enjoyed your coffee analysis?"}
+              {lang === "tr" ? "Kahve falını sevdin mi?" : "Enjoyed your coffee reading?"}
             </Text>
             <Text style={styles.freeCoffeeCardBody}>
               {lang === "tr"

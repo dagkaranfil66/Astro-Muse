@@ -142,7 +142,7 @@ export default function WelcomeBonusModal({ visible, onDismiss }: Props) {
             <Animated.View entering={FadeIn.delay(500)} style={s.statsRow}>
               <View style={s.statItem}>
                 <Ionicons name="cafe-outline" size={18} color={GOLD} />
-                <Text style={s.statText}>Kahve Analizi</Text>
+                <Text style={s.statText}>Kahve Falı</Text>
                 <Text style={s.statCost}>6✦</Text>
               </View>
               <View style={s.statDivider} />

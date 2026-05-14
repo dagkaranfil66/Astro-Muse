@@ -32,7 +32,7 @@ const GUIDE_SECTIONS = [
   },
   {
     icon: "☕",
-    title: "AI Kahve Analizi — Fotoğraf ile",
+    title: "Kahve Falı — Fotoğraf ile",
     body: "Fincanınızın fotoğrafını çekin ya da galerinizden yükleyin. Tengri, fincan sembollerini analiz ederek size özel bir yorum sunar.",
     items: [
       "Fincanı beyaz arka plan üzerinde, iyi ışıkta fotoğraflayın",

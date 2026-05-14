@@ -31,8 +31,8 @@ const translations = {
     connectionError: 'Bağlantı hatası oluştu. Lütfen tekrar deneyin.',
     services_list: {
       astroloji: { label: 'Doğum Haritası Analizi', desc: 'Doğum tarihi ve konumuna göre yapay zeka destekli kişisel analiz' },
-      kahve: { label: 'AI Kahve Analizi', desc: 'Fincanınızdaki sembolleri yapay zeka yorumlar' },
-      el: { label: 'El Çizgisi Analizi', desc: 'Avuç içi fotoğrafına göre yapay zeka ile kişisel analiz oluşturur.' },
+      kahve: { label: 'Kahve Falı', desc: 'Fincanınızdaki sembolleri yapay zeka yorumlar' },
+      el: { label: 'El Falı', desc: 'Avuç içi fotoğrafına göre yapay zeka ile kişisel yorum oluşturur.' },
       tarot: { label: 'AI Tarot Analizi', desc: 'Kart enerjilerini analiz ederek kişisel içgörüler üretir' },
       samanizm: { label: 'Şamanizm Rehberliği', desc: 'Ataların bilgeliğiyle ruhsal yolunuzu keşfedin' },
       numeroloji: { label: 'Numeroloji Analizi', desc: 'Sayı enerjilerine göre kişisel analiz üretir' },

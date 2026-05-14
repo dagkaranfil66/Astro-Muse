@@ -584,7 +584,7 @@ function DailyFreeCard() {
           </View>
 
           <Text style={styles.freeBannerTitle}>
-            {lang === "tr" ? "AI ile İlk Kahve Analizin Ücretsiz" : "Your First AI Coffee Analysis Free"}
+            {lang === "tr" ? "AI ile İlk Kahve Falın Ücretsiz" : "Your First AI Coffee Reading Free"}
           </Text>
           <Text style={styles.freeBannerSub}>
             {lang === "tr"
