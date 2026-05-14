@@ -13,11 +13,29 @@ workflows:
       - name: Install Node dependencies
         script: npm install --legacy-peer-deps
 
+      - name: Fix node PATH for Gradle (react-native-reanimated)
+        script: |
+          NODE_PATH=$(which node)
+          NODE_DIR=$(dirname $NODE_PATH)
+          echo "Node binary: $NODE_PATH"
+          echo "Node dir: $NODE_DIR"
+          # Symlink node to /usr/local/bin so Gradle finds it
+          sudo ln -sf "$NODE_PATH" /usr/local/bin/node 2>/dev/null || true
+          sudo ln -sf "$NODE_DIR/npm" /usr/local/bin/npm 2>/dev/null || true
+          node --version
+
       - name: Build Android release AAB
         script: |
+          export NODE_BINARY=$(which node)
+          export PATH="$(dirname $(which node)):$PATH"
+          export GRADLE_OPTS="-Dorg.gradle.jvmargs=-Xmx4096m -Dorg.gradle.daemon=false"
           cd android
           chmod +x ./gradlew
-          ./gradlew bundleRelease --no-daemon --max-workers=2
+          ./gradlew bundleRelease \
+            --no-daemon \
+            --max-workers=2 \
+            -PnodeExecutable="$(which node)" \
+            --info 2>&1 | tail -100
 
     artifacts:
       - android/app/build/outputs/bundle/release/*.aab
