@@ -1,0 +1,25 @@
+
+29190::react-native-iap:compilePlayReleaseKotlin (Thread[included builds Thread 4,5,main]) başlatıldı.
+29192:> Görev :react-native-iap:compilePlayReleaseKotlin
+29281: Özel eylemler ':react-native-iap:compilePlayReleaseKotlin' görevine eklenmiştir.
+29282: ':react-native-iap:compilePlayReleaseKotlin' görevi için önbellekleme devre dışı bırakıldı çünkü:
+29284: ':react-native-iap:compilePlayReleaseKotlin' görevi güncel değil çünkü:
+29286:Giriş değişiklikleri, artımlı görev ':react-native-iap:compilePlayReleaseKotlin' için tam bir yeniden derleme gerektiriyor.
+29287:[rniap-patch] PromiseUtlis.kt yaması uygulandı
+29288:[rniap-patch] Faturalama Kütüphanesi 7.x için enablePendingPurchases() düzeltildi.
+29289:[rniap-patch] PRICE_CHANGE_CONFIRMATION kaldırıldı (BL 6.x'te kaldırıldı)
+29290:[rniap-patch] RNIapModule.kt yaması uygulandı
+29375:KOTLIN DAEMON için Seçenekler: IncrementalCompilationOptions(super=CompilationOptions(compilerMode=INCREMENTAL_COMPILER, targetPlatform=JVM, reportCategories=[0, 3], reportSeverity=2, requestedCompilationResults=[0], kotlinScriptExtensions=[]), sourceChanges=org.jetbrains.kotlin.buildtools.api.SourcesChanges$Unknown@6d9659fe, classpathChanges=NotAvailableForNonIncrementalRun, workingDir=/Users/builder/clone/node_modules/react-native-iap/android/build/kotlin/compilePlayReleaseKotlin/cacheable, multiModuleICSettings=MultiModuleICSettings(buildHistoryFile=/Users/builder/clone/node_modules/react-native-iap/android/build/kotlin/compilePlayReleaseKotlin/local-state/build-history.bin, useModuleDetection=true), usePreciseJavaTracking=true, icFeatures=IncrementalCompilationFeatures(withAbiSnapshot=false, preciseCompilationResultsBackup=true, keepIncrementalCompilationCachesInMemory=true, enableUnsafeIncrementalCompilationForMultiplatform=false, enableMonotonousIncrementalCompileSetExpansion=true), outputFiles=[/Users/builder/clone/node_modules/react-native-iap/android/build/tmp/kotlin-classes/playRelease, /Users/builder/clone/node_modules/react-native-iap/android/build/kotlin/compilePlayReleaseKotlin/cacheable, /Users/builder/clone/node_modules/react-native-iap/android/build/kotlin/compilePlayReleaseKotlin/local-state])
+29400:> Görev :react-native-iap:compilePlayReleaseKotlin BAŞARISIZ OLDU
+29401:e: file:///Users/builder/clone/node_modules/react-native-iap/android/src/play/java/com/dooboolab/rniap/RNIapModule.kt:6:38 Çakışan içe aktarma: İçe aktarılan 'BillingClient' adı belirsiz.
+29402:e: file:///Users/builder/clone/node_modules/react-native-iap/android/src/play/java/com/dooboolab/rniap/RNIapModule.kt:8:38 Çakışan içe aktarma: İçe aktarılan 'BillingClient' adı belirsiz.
+29403:e: file:///Users/builder/clone/node_modules/react-native-iap/android/src/play/java/com/dooboolab/rniap/RNIapModule.kt:9:38 Çözümlenmemiş referans 'PendingPurchasesParamsStateListener'.
+29404:e: file:///Users/builder/clone/node_modules/react-native-iap/android/src/play/java/com/dooboolab/rniap/RNIapModule.kt:152:17 Argüman türü uyuşmazlığı: gerçek tür '<anonymous>' iken 'BillingClientStateListener' bekleniyordu.
+29405:e: file:///Users/builder/clone/node_modules/react-native-iap/android/src/play/java/com/dooboolab/rniap/RNIapModule.kt:152:26 Çözümlenmemiş referans 'BillingClientStateListener'.
+29406:e: file:///Users/builder/clone/node_modules/react-native-iap/android/src/play/java/com/dooboolab/rniap/RNIapModule.kt:153:21 'onBillingSetupFinished' hiçbir şeyi geçersiz kılmıyor.
+29407:e: file:///Users/builder/clone/node_modules/react-native-iap/android/src/play/java/com/dooboolab/rniap/RNIapModule.kt:159:21 'onBillingServiceDisconnected' hiçbir şeyi geçersiz kılmıyor.
+29429: ':react-native-iap:compilePlayReleaseKotlin' görevi için yürütme başarısız oldu.
+
+
+Derleme başarısız oldu :|
+4. Adım komut dosyası `Build Android release AAB` 1 durum koduyla sonlandı.

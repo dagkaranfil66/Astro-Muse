@@ -215,10 +215,13 @@ gradle.projectsEvaluated {
                 if (rniapFile.exists()) {
                     def c = rniapFile.text
                     // Fix 1: enablePendingPurchases() no-arg removed in Billing Library 7.x
+                    // NOTE: Groovy String.replace() replaces ALL occurrences (unlike JS).
+                    // Use "\n" suffix to match ONLY the standalone BillingClient import line,
+                    // NOT BillingClientStateListener (which starts with the same prefix).
                     if (c.contains(".enablePendingPurchases()") && !c.contains("PendingPurchasesParams")) {
                         c = c.replace(
-                            "import com.android.billingclient.api.BillingClient",
-                            "import com.android.billingclient.api.BillingClient\nimport com.android.billingclient.api.PendingPurchasesParams"
+                            "import com.android.billingclient.api.BillingClient\n",
+                            "import com.android.billingclient.api.BillingClient\nimport com.android.billingclient.api.PendingPurchasesParams\n"
                         )
                         c = c.replace(
                             ".enablePendingPurchases()",

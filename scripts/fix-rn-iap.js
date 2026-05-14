@@ -48,10 +48,12 @@ if (fs.existsSync(rniapModulePath)) {
   let changed = false;
 
   // (a) enablePendingPurchases() → new Billing Library 7.x API
+  // Use '\n' suffix so we ONLY match the standalone BillingClient import line,
+  // not BillingClientStateListener (which starts with the same prefix).
   if (content.includes('.enablePendingPurchases()') && !content.includes('PendingPurchasesParams')) {
     content = content.replace(
-      'import com.android.billingclient.api.BillingClient',
-      'import com.android.billingclient.api.BillingClient\nimport com.android.billingclient.api.PendingPurchasesParams'
+      'import com.android.billingclient.api.BillingClient\n',
+      'import com.android.billingclient.api.BillingClient\nimport com.android.billingclient.api.PendingPurchasesParams\n'
     );
     content = content.replace(
       '.enablePendingPurchases()',
