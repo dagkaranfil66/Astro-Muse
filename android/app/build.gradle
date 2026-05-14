@@ -231,6 +231,14 @@ gradle.projectsEvaluated {
                         c = c.replace("import android.util.Log", "import android.app.Activity\nimport android.util.Log")
                     }
                     c = c.replace("val activity = currentActivity", "val activity = reactContext.currentActivity as? Activity")
+                    // Fix 3: PRICE_CHANGE_CONFIRMATION removed in Billing Library 6.x
+                    if (c.contains("BillingClient.FeatureType.PRICE_CHANGE_CONFIRMATION")) {
+                        c = c.replace(
+                            '                    "PRICE_CHANGE_CONFIRMATION" ->\n                        BillingClient.FeatureType.PRICE_CHANGE_CONFIRMATION\n',
+                            ""
+                        )
+                        println "[rniap-patch] Removed PRICE_CHANGE_CONFIRMATION (removed in BL 6.x)"
+                    }
                     rniapFile.text = c
                     println "[rniap-patch] Patched RNIapModule.kt"
                 }

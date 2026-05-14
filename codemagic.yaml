@@ -18,12 +18,18 @@ workflows:
           export GRADLE_OPTS="-Dorg.gradle.jvmargs=-Xmx4096m -Dorg.gradle.daemon=false"
           cd android
           chmod +x ./gradlew
-          ./gradlew bundleRelease --no-daemon --max-workers=2 --stacktrace 2>&1 | grep -A 30 "compilePlayReleaseKotlin\|error:\|Unresolved\|None of the following\|Type mismatch\|rniap-patch\|RNIAP" || true
-          ./gradlew bundleRelease --no-daemon --max-workers=2
+          # Save full build log to file so we can inspect Kotlin errors
+          ./gradlew bundleRelease --no-daemon --max-workers=2 --info 2>&1 | tee /tmp/gradle_full.log; BUILD_EXIT=${PIPESTATUS[0]}
+          # Extract just the Kotlin compile errors (e: prefix) and context
+          grep -n "^e: \|rniap-patch\|compilePlayReleaseKotlin\|PromiseImpl\|error: " /tmp/gradle_full.log | head -60 || true
+          # Copy artifact log
+          cp /tmp/gradle_full.log ../gradle_build.log
+          exit $BUILD_EXIT
 
     artifacts:
       - android/app/build/outputs/bundle/release/*.aab
       - android/app/build/outputs/apk/release/*.apk
+      - gradle_build.log
 
     publishing:
       email:

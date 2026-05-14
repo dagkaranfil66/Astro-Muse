@@ -72,6 +72,16 @@ if (fs.existsSync(rniapModulePath)) {
     changed = true;
   }
 
+  // (c) PRICE_CHANGE_CONFIRMATION removed in Billing Library 6.x
+  if (content.includes('BillingClient.FeatureType.PRICE_CHANGE_CONFIRMATION')) {
+    content = content.replace(
+      '                    "PRICE_CHANGE_CONFIRMATION" ->\n                        BillingClient.FeatureType.PRICE_CHANGE_CONFIRMATION\n',
+      ''
+    );
+    changed = true;
+    console.log('[fix-rn-iap] Removed PRICE_CHANGE_CONFIRMATION (removed in Billing Library 6.x)');
+  }
+
   if (changed) {
     fs.writeFileSync(rniapModulePath, content, 'utf8');
     console.log('[fix-rn-iap] Patched RNIapModule.kt');
