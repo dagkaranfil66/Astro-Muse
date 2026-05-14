@@ -111,7 +111,11 @@
       ]
     },
     "web": {
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "description": "Tengri ile mistik yolculuğuna başla. Astroloji, kahve falı, tarot, numeroloji ve daha fazlası. Yapay zeka destekli kişisel rehberlik uygulaması.",
+      "themeColor": "#070D1A",
+      "backgroundColor": "#070D1A",
+      "lang": "tr"
     },
     "plugins": [
       [
