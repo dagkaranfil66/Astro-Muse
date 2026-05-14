@@ -15,7 +15,7 @@ ext {
 }
 
 react {
-    entryFile   = file("${projectRoot}/node_modules/expo/AppEntry.js")
+    entryFile   = file("${projectRoot}/node_modules/expo-router/entry.js")
     reactNativeDir = new File("${projectRoot}/node_modules/react-native")
     hermesCommand  = new File("${projectRoot}/node_modules/react-native/sdks/hermesc/%OS-BIN%/hermesc").absolutePath
     codegenDir  = new File("${projectRoot}/node_modules/@react-native/codegen")
