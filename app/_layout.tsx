@@ -134,7 +134,7 @@ function RootLayoutNav() {
       <Stack.Screen name="(tabs)"            options={{ headerShown: false }} />
       <Stack.Screen name="onboarding"        options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="reading/[service]" options={{ headerShown: false, presentation: "card" }} />
-      <Stack.Screen name="purchase"          options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="purchase"          options={{ headerShown: false, presentation: "card" }} />
       <Stack.Screen name="auth"              options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="spin"              options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="legal"             options={{ headerShown: false, presentation: "modal" }} />

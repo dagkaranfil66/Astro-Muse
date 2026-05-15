@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { Platform } from "react-native";
 
 // ── Product IDs (Google Play Console'da tanımlı consumable ürünler) ────────────
@@ -60,12 +60,22 @@ function getRNIap() {
   }
 }
 
+interface PendingPurchase {
+  productId: string;
+  resolve: (gold: number) => void;
+  reject: (err: Error) => void;
+  timeout: ReturnType<typeof setTimeout>;
+}
+
 export function IAPProvider({ children }: { children: React.ReactNode }) {
   const [isReady, setIsReady] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [purchaseError, setPurchaseError] = useState<string | null>(null);
+
+  // Pending purchase: set by purchase(), resolved by listeners
+  const pendingRef = useRef<PendingPurchase | null>(null);
 
   const initIAP = useCallback(async () => {
     if (IS_WEB) {
@@ -112,6 +122,8 @@ export function IAPProvider({ children }: { children: React.ReactNode }) {
         try {
           purchaseUpdateSub = RNIap.purchaseUpdatedListener(async (purchase: any) => {
             console.log("[IAP] purchaseUpdatedListener:", purchase.productId, purchase.transactionId);
+
+            // Finish the transaction (consumable)
             const receipt = purchase.transactionReceipt;
             if (receipt) {
               try {
@@ -121,6 +133,16 @@ export function IAPProvider({ children }: { children: React.ReactNode }) {
                 console.error("[IAP] finishTransaction error:", e);
               }
             }
+
+            // Resolve the pending purchase promise if it matches
+            const pending = pendingRef.current;
+            if (pending && pending.productId === purchase.productId) {
+              clearTimeout(pending.timeout);
+              pendingRef.current = null;
+              const gold = resolveGoldForProduct(purchase.productId);
+              console.log("[IAP] Resolving purchase with gold:", gold);
+              pending.resolve(gold);
+            }
           });
         } catch (e) {
           console.warn("[IAP] purchaseUpdatedListener setup failed:", e);
@@ -129,6 +151,18 @@ export function IAPProvider({ children }: { children: React.ReactNode }) {
         try {
           purchaseErrorSub = RNIap.purchaseErrorListener((error: any) => {
             console.error("[IAP] purchaseErrorListener:", error.message, "code:", error.code);
+
+            // Reject the pending purchase promise
+            const pending = pendingRef.current;
+            if (pending) {
+              clearTimeout(pending.timeout);
+              pendingRef.current = null;
+              if (error.code === "E_USER_CANCELLED") {
+                pending.reject(new Error("cancelled"));
+              } else {
+                pending.reject(new Error(error.message ?? "Purchase failed"));
+              }
+            }
           });
         } catch (e) {
           console.warn("[IAP] purchaseErrorListener setup failed:", e);
@@ -154,25 +188,53 @@ export function IAPProvider({ children }: { children: React.ReactNode }) {
     const RNIap = getRNIap();
     if (!RNIap) throw new Error("IAP module not available");
 
+    // Cancel any leftover pending purchase
+    if (pendingRef.current) {
+      clearTimeout(pendingRef.current.timeout);
+      pendingRef.current.reject(new Error("cancelled"));
+      pendingRef.current = null;
+    }
+
     setPurchaseError(null);
     setIsPurchasing(true);
-    try {
-      console.log("[IAP] Requesting purchase:", productId);
-      await RNIap.requestPurchase({ sku: productId });
-      const gold = resolveGoldForProduct(productId);
-      console.log("[IAP] Purchase success, gold:", gold);
-      return gold;
-    } catch (e: any) {
-      if (e?.code === "E_USER_CANCELLED") {
-        throw new Error("cancelled");
+
+    return new Promise<number>((resolve, reject) => {
+      // 90 second timeout — Google Play dialog can be slow
+      const timeout = setTimeout(() => {
+        if (pendingRef.current?.productId === productId) {
+          pendingRef.current = null;
+          setIsPurchasing(false);
+          reject(new Error("Purchase timed out"));
+        }
+      }, 90000);
+
+      pendingRef.current = { productId, resolve: (gold) => {
+        setIsPurchasing(false);
+        resolve(gold);
+      }, reject: (err) => {
+        setIsPurchasing(false);
+        if (err.message !== "cancelled") {
+          setPurchaseError(err.message);
+        }
+        reject(err);
+      }, timeout };
+
+      try {
+        console.log("[IAP] Requesting purchase:", productId);
+        RNIap.requestPurchase({ sku: productId });
+      } catch (e: any) {
+        clearTimeout(timeout);
+        pendingRef.current = null;
+        setIsPurchasing(false);
+        if (e?.code === "E_USER_CANCELLED") {
+          reject(new Error("cancelled"));
+        } else {
+          const msg = e?.message ?? "Purchase failed";
+          setPurchaseError(msg);
+          reject(new Error(msg));
+        }
       }
-      const msg = e?.message ?? "Purchase failed";
-      setPurchaseError(msg);
-      console.error("[IAP] Purchase error:", msg);
-      throw e;
-    } finally {
-      setIsPurchasing(false);
-    }
+    });
   }, []);
 
   const refetch = useCallback(() => {

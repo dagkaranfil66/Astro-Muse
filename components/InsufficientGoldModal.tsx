@@ -39,7 +39,7 @@ export default function InsufficientGoldModal({
   const handlePackagePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     onClose();
-    setTimeout(() => router.push("/purchase"), 300);
+    router.push("/purchase");
   };
 
   const displayPkgs = GOLD_PACKAGES.slice(0, 3);
